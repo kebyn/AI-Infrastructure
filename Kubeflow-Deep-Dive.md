@@ -18,7 +18,7 @@
 
 ### 1.1 本文如何理解 kserver / KServe
 
-用户语境中的 `kserver` 按 Kubeflow 生态语义理解为 **KServe**。本文不会把 KServe 当成独立于 Kubeflow 的外部系统来讲，而是把它作为 Kubeflow Community Distribution 里的一个正式应用节点：
+用户语境中的 `kserver` 按 Kubeflow 生态语义理解为 **KServe**。本文主线不会把 KServe 当成独立于 Kubeflow 的外部系统来讲，而是把它作为 Kubeflow Community Distribution 里的一个正式应用节点；同时在第七章单独分析部署 Kubeflow 后再拆分 KServe / Istio 的可行性和风险：
 
 | 角色 | 在 Kubeflow 中的位置 |
 |------|----------------------|
@@ -665,6 +665,45 @@ CI 中访问：
 
 并验证未授权 service account token 无法读取用户 namespace 的 `InferenceService`。这体现了 KServe UI 与 Kubeflow 多租户 RBAC 的整合：KServe UI 不是简单展示全局 endpoint，而是受用户 namespace 权限约束。
 
+### 7.8 部署 Kubeflow 后，KServe / Istio 独立部署可行性
+
+部署 Kubeflow 以后再把 KServe 或 Istio 当成“独立组件”处理是可行的，但不能理解成简单换 namespace 再安装一遍。KServe、Istio、Knative、cert-manager、OAuth2-Proxy、Dex、Profile/RBAC 和 Dashboard 在 Community Distribution 中已经形成一组共享控制面和入口约定。
+
+| 架构模式 | 可行性 | 适用场景 | 主要风险 | 推荐结论 |
+|----------|--------|----------|----------|----------|
+| 复用 Kubeflow 内置 KServe / Istio | 高 | 预测模型 serving、Dashboard 内查看 endpoint、Profile 多租户 | LLMISVC、LocalModelCache 等能力受 Kubeflow 安全补丁影响 | 默认推荐 |
+| 同集群独立安装一套 KServe | 中 | 需要 upstream KServe 新版本、Standard/Gateway API、独立 serving 配置 | CRD、webhook、ClusterRole、controller 是集群级资源，可能和 Kubeflow 内置 KServe 冲突 | 只能保留一个 KServe CRD/controller 所有者 |
+| 同集群额外安装一套 Istio control plane | 低到中 | 明确采用 revision、多控制面迁移或网格隔离 | Istio CNI、sidecar 注入、MutatingWebhook、Gateway、AuthorizationPolicy、VirtualService 容易互相影响 | 不建议作为普通后装方案 |
+| 企业平台先独立安装 Istio / Gateway，Kubeflow 复用 | 高 | 统一入口、统一证书、统一零信任和审计 | 需要在安装 Kubeflow 前规划 overlay、gateway、auth policy | 生产环境更合理 |
+| KServe 放到独立 serving 集群 | 高 | LLM、高级 Gateway API、Envoy Gateway、独立升级和 GPU 资源池 | 失去 Kubeflow KServe UI 的原生集成，需要额外发布链路 | 隔离要求高时推荐 |
+
+关键判断是：**namespace 拆分不等于控制面隔离**。
+
+| 资源类型 | 为什么会影响独立部署 |
+|----------|----------------------|
+| KServe CRD | `InferenceService`、`ServingRuntime`、`ClusterServingRuntime`、`LLMInferenceService` 是集群范围 API；两个版本的 CRD 不能安全并存 |
+| KServe webhook | admission webhook 绑定 Service、CA bundle 和证书 SAN；Kubeflow 已把证书注入 namespace patch 到 `kubeflow` |
+| KServe controller | 多个 controller 同时 reconcile 同一类 CRD 会产生状态覆盖、重复生成 workload 或路由 |
+| Istio CNI / webhook | CNI、sidecar injector、revision label 和 namespace label 会影响所有被纳入 mesh 的 Pod |
+| Gateway / VirtualService | Kubeflow 使用 `kubeflow-gateway` 和 wildcard/path-based route；KServe host-based route 可能触发匹配冲突 |
+| OAuth2-Proxy / Dex / RBAC | Kubeflow 的入口认证不等于独立 KServe endpoint 自动具备相同授权语义 |
+
+如果确实要拆分，建议按下面的边界执行：
+
+| 拆分目标 | 推荐做法 |
+|----------|----------|
+| 只想独立升级 KServe | 不要直接叠加 upstream KServe；先决定由 Kubeflow 发行版还是 upstream Helm/YAML 持有 CRD、webhook 和 controller，然后禁用或移除另一套 |
+| 只想让模型流量走独立入口 | 可以保留 Kubeflow KServe controller，但把 KServe ingress/gateway 配置改到独立 Gateway；同时验证 Dashboard/KServe UI 是否仍按预期展示 endpoint |
+| 想启用 LLMISVC / Gateway API / Envoy Gateway | 优先评估独立 KServe serving 栈，避免被 Kubeflow 默认 path-based Istio/Knative 配置和安全裁剪限制 |
+| 想独立部署 Istio | 优先使用 revisioned install 和明确 namespace label；入口 Gateway、CNI、AuthorizationPolicy、VirtualService host 必须有清晰归属 |
+| 想完全隔离 serving | 使用独立集群运行 KServe，Kubeflow Pipelines 通过 kubeconfig、GitOps 或平台 API 发布 `InferenceService` |
+
+推荐结论：
+
+1. 已经部署 Kubeflow 后，**最稳妥的是复用 Kubeflow 内置 Istio，并只保留一套 KServe 控制面**。
+2. 如果目标是 LLM serving、高级 Gateway API、独立 GPU 池或快速跟进 upstream KServe，**更推荐独立 serving 集群或预先规划的平台级 Gateway/Istio**。
+3. 同集群后装第二套 Istio 或第二套 KServe 不是不可行，但它是控制面治理问题，不是普通应用部署问题；必须先定义 CRD、webhook、Gateway、auth 和升级所有权。
+
 ---
 
 ## 第八章：端到端 MLOps 路径
@@ -902,6 +941,7 @@ KServe 节点升级时要特别关注：
 | 存储 | Pipeline artifacts、Notebook PVC、模型对象存储用什么？ |
 | GPU | KServe/Trainer/Notebook GPU 由谁治理？NVIDIA plugin、DRA、HAMi、MIG？ |
 | Serving | KServe 只做 predictive，还是启用 LLMISVC/LocalModel？ |
+| Serving 架构 | 复用 Kubeflow 内置 KServe/Istio，还是外置 serving 栈或独立集群？ |
 | 安全 | PSS、NetworkPolicy、image mirror、CVE 扫描怎么落地？ |
 
 ### 11.2 KServe 作为节点的生产建议
@@ -912,6 +952,9 @@ KServe 节点升级时要特别关注：
 | LLM 基础 serving | 先评估 KServe Standard/Gateway API 与 Kubeflow 当前 Istio/Knative 集成差异 |
 | LLMISVC 高级能力 | 不默认认为 Kubeflow 发行版完整启用，先检查安全补丁 |
 | LocalModelCache | 默认 LocalModel agent 被删除；启用前重做 PSS/security review |
+| 独立 KServe | 同集群只能保留一个 CRD/controller 所有者；需要独立升级时优先规划替换而不是叠加安装 |
+| 独立 Istio | 避免在已部署 Kubeflow 的集群直接后装第二套 control plane；必要时使用 revision、独立 Gateway 和明确 namespace label |
+| 独立 serving 集群 | 适合 LLM、高级 Gateway API、独立 GPU 池和独立升级节奏；Kubeflow 通过 Pipeline/GitOps/API 发布 |
 | 多租户模型服务 | 每个 Profile namespace 中部署 `InferenceService`，通过 Kubeflow RBAC 控制 UI/API |
 | 路由 | 同时验证 `/serving/<namespace>/<name>/...` 和 host-based route |
 
@@ -1147,3 +1190,5 @@ KServe 安装和测试：
 | Kubeflow Katib | <https://www.kubeflow.org/docs/components/katib/> |
 | Kubeflow Training | <https://www.kubeflow.org/docs/components/training/> |
 | Istio VirtualService 与 KServe path routing 排障 | <https://github.com/kubeflow/community-distribution/blob/master/common/istio/README.md#virtualservice-conflicts-with-kserve-path-based-routing> |
+| KServe Kubernetes Deployment Installation Guide | <https://kserve.github.io/website/docs/admin-guide/kubernetes-deployment> |
+| Istio Kubernetes Gateway API | <https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/> |
