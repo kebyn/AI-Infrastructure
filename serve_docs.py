@@ -111,8 +111,8 @@ def slugify_heading(value, separator):
     value = value.replace(dash_marker, f"{separator}{separator}")
     return value.strip(separator)
 
-def inject_nested_toc(body):
-    """Replace the hand-written top-level TOC with an h2/h3 nested TOC."""
+def collect_toc_sections(body):
+    """Collect h2/h3 headings into a nested table of contents."""
     sections = []
     current = None
     heading_re = re.compile(r'<h([23]) id="([^"]+)">(.*?)</h\1>', re.S)
@@ -136,10 +136,19 @@ def inject_nested_toc(body):
         elif level == 3 and current is not None:
             current["children"].append(item)
 
-    if not sections:
-        return body
+    return sections
 
-    lines = ['<div class="toc toc-nested">', "<ul>"]
+def build_nested_toc(body):
+    """Build the generated h2/h3 table of contents."""
+    sections = collect_toc_sections(body)
+    if not sections:
+        return ""
+
+    lines = [
+        '<nav class="toc toc-nested" aria-label="文档章节">',
+        '<div class="toc-title">目录</div>',
+        "<ul>",
+    ]
     for section in sections:
         lines.append(
             f'<li><a class="toc-chapter" href="#{escape(section["id"], quote=True)}">'
@@ -154,17 +163,23 @@ def inject_nested_toc(body):
                 )
             lines.append("</ul>")
         lines.append("</li>")
-    lines.extend(["</ul>", "</div>"])
+    lines.extend(["</ul>", "</nav>"])
+    return "\n".join(lines)
 
-    replacement = '<h2 id="目录">目录</h2>\n' + "\n".join(lines)
+def remove_inline_toc_placeholder(body):
+    """Remove the Markdown TOC placeholder from the rendered document body."""
     body, _ = re.subn(
-        r'<h2 id="目录">目录</h2>\s*<ul>.*?</ul>',
-        replacement,
+        r'<h2 id="目录">目录</h2>\s*<ul>.*?</ul>\s*(?:<hr\s*/?>\s*)?',
+        "",
         body,
         count=1,
         flags=re.S,
     )
     return body
+
+def split_body_and_toc(body):
+    """Return the body without the inline TOC and a sidebar TOC fragment."""
+    return remove_inline_toc_placeholder(body), build_nested_toc(body)
 
 def render_mermaid_blocks(body):
     """Convert fenced mermaid code blocks into Mermaid render targets."""
@@ -214,10 +229,38 @@ body {
 }
 
 /* ─── Layout ─── */
+.doc-page {
+  max-width: 1360px;
+  margin: 0 auto;
+}
+.doc-shell {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 960px);
+  gap: 40px;
+  align-items: start;
+  justify-content: center;
+  padding: 0 32px 120px;
+}
 .doc-container {
   max-width: 960px;
   margin: 0 auto;
   padding: 40px 32px 120px;
+}
+.doc-hero-container {
+  padding-bottom: 0;
+}
+.doc-shell .doc-container {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+.doc-sidebar {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding-bottom: 24px;
 }
 
 /* ─── Hero ─── */
@@ -286,6 +329,44 @@ a {
   transition: border-color 0.2s;
 }
 a:hover { border-bottom-color: var(--accent); }
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ─── Floating Home Link ─── */
+.home-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(22, 27, 34, 0.92);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.95em;
+  line-height: 1;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+}
+.home-fab:hover {
+  border-color: var(--accent-dim);
+  background: rgba(88, 166, 255, 0.16);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+.home-fab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
 
 /* ─── Blockquotes ─── */
 blockquote {
@@ -407,6 +488,20 @@ hr {
   max-height: min(72vh, 760px);
   overflow: auto;
 }
+.doc-sidebar .toc {
+  margin: 0;
+  padding: 20px 18px;
+  max-height: none;
+}
+.doc-sidebar .toc-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: -20px -18px 12px;
+  padding: 16px 18px 10px;
+  background: var(--bg-card);
+  border-bottom: 1px solid rgba(48, 54, 61, 0.7);
+}
 .toc.toc-nested > ul > li {
   padding: 10px 0;
   border-bottom: 1px solid rgba(48, 54, 61, 0.7);
@@ -519,8 +614,34 @@ details > *:not(summary) {
 
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
-  .doc-container { padding: 20px 16px 80px; }
+  .doc-container { padding: 20px 16px 104px; }
+  .doc-hero-container { padding-bottom: 0; }
+  .doc-shell {
+    display: block;
+    padding: 0 16px 104px;
+  }
+  .doc-shell .doc-container {
+    padding: 0;
+  }
+  .doc-sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    padding: 0 0 24px;
+  }
+  .doc-sidebar .toc {
+    max-height: 360px;
+    overflow: auto;
+  }
   .doc-hero h1 { font-size: 1.8em; }
+  .home-fab {
+    right: 14px;
+    bottom: 14px;
+    min-width: 64px;
+    height: 40px;
+    padding: 0 14px;
+    font-size: 0.9em;
+  }
   h2 { font-size: 1.4em; }
   .doc-grid { grid-template-columns: 1fr; }
   table { font-size: 0.82em; }
@@ -558,7 +679,12 @@ def render_doc(doc):
         extension_configs=extension_configs,
     )
     body = render_mermaid_blocks(body)
-    body = inject_nested_toc(body)
+    body, toc_html = split_body_and_toc(body)
+    sidebar_html = (
+        f'<aside class="doc-sidebar" aria-label="文档目录">\n{toc_html}\n</aside>'
+        if toc_html
+        else ""
+    )
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -569,16 +695,24 @@ def render_doc(doc):
 <style>{CSS}</style>
 </head>
 <body>
-<div class="doc-container">
+<a class="home-fab" href="/" aria-label="返回文档首页" title="返回文档首页">首页</a>
+<div class="doc-page">
+<div class="doc-container doc-hero-container">
   <div class="doc-hero">
     <h1>{doc["hero"]}</h1>
     <p class="subtitle">{doc["subtitle"]}</p>
     <p class="meta">{doc["meta"]}</p>
   </div>
+</div>
+<div class="doc-shell">
+  {sidebar_html}
+  <main class="doc-container">
   {body}
   <div class="doc-footer">
     <p>{doc["footer"]}</p>
   </div>
+  </main>
+</div>
 </div>
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';

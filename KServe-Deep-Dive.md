@@ -606,7 +606,65 @@ flowchart TB
 | 多租户隔离 | 跨 namespace 可用 `LocalModelNamespaceCache` 做隔离 |
 | 节点调度耦合 | 模型服务 Pod 需要调度到已有缓存的节点，否则仍可能下载或 miss |
 
-### 6.5 冷启动治理建议
+### 6.5 LocalModelCache 清理与防误删策略
+
+LocalModelCache 的清理不能简单理解成“目录旧了就删”。KServe 当前实现里，真正落到节点本地盘的目录不是直接用 `LocalModelCache.metadata.name`，而是根据 `sourceModelUri` 生成稳定的 storage key。相同 `sourceModelUri` 可以共享同一个本地目录，因此清理对象应按：
+
+```text
+sourceModelUri -> storageKey(hash) -> 节点本地目录
+```
+
+来判断，而不是按缓存 CR 名称、目录 mtime 或人工命名直接删除。
+
+KServe 控制面提供了几个必须纳入判断的状态源：
+
+| 状态源 | 用途 |
+|--------|------|
+| `LocalModelCache.status.inferenceServices` | 哪些 `InferenceService` 正在引用该缓存 |
+| `LocalModelCache.status.llmInferenceServices` | 哪些 `LLMInferenceService` 正在引用该缓存 |
+| `LocalModelNode.spec.localModels` | 某个节点期望保留哪些模型 |
+| `LocalModelNode.status.modelStatus` | 某个节点上模型是否 `ModelDownloaded`、`ModelDownloading` 或失败 |
+| download Job | 是否还有作业正在向目标目录写入 |
+| Pod / PVC / PV | 是否还有运行中、待调度或 terminating 的 Pod 挂载目标模型卷 |
+
+一个安全的删除条件应至少满足：
+
+```text
+1. 没有任何 LocalModelCache / LocalModelNamespaceCache 指向相同 sourceModelUri
+2. 没有任何 InferenceService / LLMInferenceService 的 storageUri 匹配该模型
+3. 目标节点的 LocalModelNode.spec.localModels 已不再包含该模型
+4. 没有 active download Job 正在写入该目录
+5. 没有 Running / Pending / Terminating Pod 挂载目标 PVC 或运行在目标节点并声明使用该模型
+6. 上述状态连续多个 reconcile 周期成立，并经过 grace period
+```
+
+推荐使用两阶段清理：
+
+```text
+Mark/Evicting
+  -> 从调度可用集合摘除
+  -> 禁止新 Pod 绑定该缓存
+  -> 等待 grace period
+  -> 再次检查 CRD / Service / Pod / Job 引用
+  -> rename 到 quarantine 或 trash 目录
+  -> 延迟物理删除
+```
+
+生产上不要直接执行按时间清理的脚本，例如 `find /mnt/models -mtime +7 -delete`。这类脚本无法识别模型是否仍被 Pod mmap、是否被另一个 namespace 的缓存复用、是否处在滚动更新或 terminating 阶段。更稳妥的做法是由清理控制器维护引用计数或 lease，并把每次删除的 `sourceModelUri`、storage key、节点、引用检查结果和原因写入审计日志。
+
+容量压力下的淘汰顺序也要保守：
+
+| 优先级 | 可淘汰对象 |
+|--------|------------|
+| 1 | 下载失败且没有 active Job 的半成品目录 |
+| 2 | 不在任何 `LocalModelNode.spec.localModels` 中的孤儿目录 |
+| 3 | 无任何 CRD、服务、Pod 引用且超过 grace period 的目录 |
+| 4 | 多副本缓存中超出需求的节点副本 |
+| 5 | 低频模型，但必须先摘除调度、等待 Pod 退出并保留最小可用副本 |
+
+核心原则是：**先证明没有引用，再隔离，最后删除**。LocalModelCache 可以降低冷启动，但不能替代平台侧的容量治理、引用校验和回收审计。
+
+### 6.6 冷启动治理建议
 
 | 场景 | 建议 |
 |------|------|
@@ -1051,7 +1109,7 @@ KServe 组件和 model server 都可能暴露指标：
 | KServe 会自动优化所有 LLM | KServe 提供编排能力，核心性能仍取决于 vLLM/Triton/GPU/网络 |
 | Knative 是默认就一定适合生产 | 默认不等于推荐；LLM 通常更适合 Standard |
 | `InferenceService` 和 `LLMInferenceService` 可以随意替换 | 两者 API、依赖和生成资源不同 |
-| LocalModelCache 等于无限缓存 | 需要容量治理、节点选择和清理策略 |
+| LocalModelCache 等于无限缓存 | 需要容量治理、引用校验和两阶段清理，避免误删仍被 Pod 或服务使用的模型 |
 | Gateway API 只是 Ingress 替代品 | 对 LLMISVC，它还是 InferencePool/EPP 的基础 |
 | 只看 QPS 就能扩容 LLM | token 长度、KV cache、queue、GPU memory 更关键 |
 
