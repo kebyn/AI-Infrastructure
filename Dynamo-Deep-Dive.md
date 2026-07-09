@@ -1395,7 +1395,7 @@ ModelExpress 在 Dynamo 中有两条典型路径，生产上可以二选一，�
 
 模型文件缓存路径的 Dynamo 示例是 `examples/dynamo_model_cache_k8s/agg.yaml`。它把 ModelExpress Server、Redis、VLLM Worker、Frontend 和共享模型缓存卷放在一个 DynamoGraphDeployment 风格的部署里：ModelExpress 先下载模型并建立 cache path，worker 再用这个路径启动。
 
-P2P 权重传输路径的 Dynamo 示例是 `examples/dynamo_p2p_transfer_k8s/`。它面向 `DynamoGraphDeployment`，让 vLLM worker 使用 `--load-format modelexpress`。第一个 replica 从磁盘加载并发布 metadata，后续 replica 发现 ready source 后从已有 worker 拉取权重；如果配置 `MX_ARTIFACT_TRANSFER=1`，兼容的 JIT cache 也可以随扩容复用。
+P2P 权重传输路径的 Dynamo 示例是 `examples/dynamo_p2p_transfer_k8s/`。它面向 `DynamoGraphDeployment`，让 vLLM worker 使用 ModelExpress load format（常见写法是 `--load-format modelexpress`，部分较新 Dynamo/ModelExpress 镜像也文档化为 `--load-format mx`）。第一个 replica 从磁盘加载并发布 metadata，后续 replica 发现 ready source 后从已有 worker 拉取权重；如果配置 `MX_ARTIFACT_TRANSFER=1`，兼容的 JIT cache 也可以随扩容复用。
 
 ```mermaid
 flowchart TB
@@ -1506,7 +1506,7 @@ vllm serve deepseek-ai/DeepSeek-V4-Pro \
   --trust-remote-code
 ```
 
-vLLM 0.23.0 及以上已经识别 `modelexpress` load format；更旧版本通常需要安装 ModelExpress plugin，并用 `VLLM_PLUGINS=modelexpress` 或兼容 alias。Dynamo 的 P2P 示例里还提醒：Dynamo 集成当前仍会使用 `MODEL_EXPRESS_URL`，而 ModelExpress 新路径推荐 `MX_SERVER_ADDRESS`；生产部署可以两个都设置，以减少版本切换风险。
+ModelExpress 部署文档说明，vLLM 0.23.0 及以上已经原生识别 `modelexpress` load format，`mx` 仍可作为兼容 alias；更旧版本通常需要在镜像中安装 ModelExpress plugin，并用 `VLLM_PLUGINS=modelexpress` 注册 loader。Dynamo 文档中也存在使用 `mx`、`mx-source`、`mx-target` 的较新或较旧镜像说明，因此生产部署应以所选 runtime image 的 ModelExpress 文档为准。Dynamo 集成当前仍会使用 `MODEL_EXPRESS_URL`，而 ModelExpress 新路径推荐 `MX_SERVER_ADDRESS`；生产部署可以两个都设置，以减少版本切换风险。
 
 P2P transfer 的关键约束：
 

@@ -688,21 +688,21 @@ CI 中访问：
 | Gateway / VirtualService | Kubeflow 使用 `kubeflow-gateway` 和 wildcard/path-based route；KServe host-based route 可能触发匹配冲突 |
 | OAuth2-Proxy / Dex / RBAC | Kubeflow 的入口认证不等于独立 KServe endpoint 自动具备相同授权语义 |
 
-如果确实要拆分，建议按下面的边界执行：
+如果确实要拆分，先把职责边界定义清楚：
 
-| 拆分目标 | 推荐做法 |
-|----------|----------|
-| 只想独立升级 KServe | 不要直接叠加 upstream KServe；先决定由 Kubeflow 发行版还是 upstream Helm/YAML 持有 CRD、webhook 和 controller，然后禁用或移除另一套 |
-| 只想让模型流量走独立入口 | 可以保留 Kubeflow KServe controller，但把 KServe ingress/gateway 配置改到独立 Gateway；同时验证 Dashboard/KServe UI 是否仍按预期展示 endpoint |
-| 想启用 LLMISVC / Gateway API / Envoy Gateway | 优先评估独立 KServe serving 栈，避免被 Kubeflow 默认 path-based Istio/Knative 配置和安全裁剪限制 |
-| 想独立部署 Istio | 优先使用 revisioned install 和明确 namespace label；入口 Gateway、CNI、AuthorizationPolicy、VirtualService host 必须有清晰归属 |
-| 想完全隔离 serving | 使用独立集群运行 KServe，Kubeflow Pipelines 通过 kubeconfig、GitOps 或平台 API 发布 `InferenceService` |
+| 边界 | 需要明确的问题 |
+|------|----------------|
+| KServe 所有权 | CRD、webhook、controller、ClusterRole 由 Kubeflow overlay 还是独立 KServe release 持有 |
+| 流量入口 | 模型 endpoint 继续走 `kubeflow-gateway`，还是迁移到独立 Gateway / Gateway API |
+| 身份与授权 | 继续复用 Kubeflow OAuth2-Proxy/Dex/RBAC，还是让 serving 栈使用独立认证授权 |
+| 发布链路 | Kubeflow Pipelines 直接 apply `InferenceService`，还是通过 GitOps、平台 API 或独立 kubeconfig 发布 |
+| 升级节奏 | KServe、Istio、Knative、cert-manager 是否跟随 Kubeflow release，独立升级策略见第十章 `Serving 链路组件独立升级策略` |
 
 推荐结论：
 
 1. 已经部署 Kubeflow 后，**最稳妥的是复用 Kubeflow 内置 Istio，并只保留一套 KServe 控制面**。
 2. 如果目标是 LLM serving、高级 Gateway API、独立 GPU 池或快速跟进 upstream KServe，**更推荐独立 serving 集群或预先规划的平台级 Gateway/Istio**。
-3. 同集群后装第二套 Istio 或第二套 KServe 不是不可行，但它是控制面治理问题，不是普通应用部署问题；必须先定义 CRD、webhook、Gateway、auth 和升级所有权。
+3. 同集群后装第二套 Istio 或第二套 KServe 不是不可行，但它是控制面治理问题，不是普通应用部署问题；本节只判断部署边界，独立升级流程由第 10.4 节承载。
 
 ---
 
@@ -915,7 +915,49 @@ KServe 节点升级时要特别关注：
 | webhook 证书 | namespace、SAN、`inject-ca-from` |
 | 安全裁剪 | LLMISVC/LocalModel 补丁是否仍符合企业策略 |
 
-### 10.4 裁剪建议
+### 10.4 Serving 链路组件独立升级策略
+
+KServe 可以从 Kubeflow 发行版中拆出来独立升级，但不能只替换 controller image。生产上应把 Serving 链路拆成几个升级单元，并为每个单元明确所有权、兼容边界和回滚方式。
+
+| 组件 | 是否适合独立升级 | 升级边界 | 必须验证 |
+|------|------------------|----------|----------|
+| KServe CRD + controller + webhook | 适合，但必须成组升级 | `InferenceService`、`LLMInferenceService`、runtime CRD、controller manager、admission webhook、ClusterRole | CRD conversion、webhook TLS、现有 `InferenceService` reconcile、controller 日志 |
+| KServe UI | 可相对独立 | Dashboard 菜单、`/kserve-endpoints/` route、UI backend API、RBAC | 用户只能看到有权限的 namespace，旧 `kserve-models-web-app` 不占用路由 |
+| ServingRuntime / ClusterServingRuntime | 可单独调整 | runtime image、protocol、resource、storage initializer 参数 | 字段兼容目标 KServe release，已有模型服务能重建 pod |
+| Knative Serving | 有条件独立升级 | 仅在 KServe serverless 模式下强相关 | Knative Service、cluster-local gateway、KPA/HPA、KServe path-based route |
+| Istio | 不建议只为 KServe 单独升级 | Istio CRD、CNI、sidecar injector、Gateway、VirtualService、AuthorizationPolicy | Dashboard、KServe endpoint、M2M auth、wildcard/specific-host route |
+| cert-manager | 可独立升级 | Certificate、Issuer、CA injection、webhook caBundle | KServe webhook 证书 SAN、`inject-ca-from` namespace、caBundle 自动注入 |
+| Gateway API / Ingress provider | 视部署模式独立升级 | GatewayClass、Gateway、HTTPRoute、Ingress controller、Envoy Gateway | KServe Standard/Gateway API、LLMISVC、streaming 请求、路由权重 |
+
+推荐升级路径：
+
+1. **先建立版本矩阵**：记录当前 Kubeflow release、KServe release、KServe UI、Knative、Istio、cert-manager、Gateway API CRD 和 runtime image 版本，不混用 master 字段与旧 release YAML。
+2. **先升级 CRD，再升级 controller/webhook**：KServe 跨 minor 升级时，先 apply 新 CRD 并确认 conversion/served/storage version，再滚动升级 controller manager 和 webhook。
+3. **再升级 runtime/UI**：runtime image 和 `ServingRuntime` 字段变化会直接影响 predictor pod；KServe UI 升级后要验证 `/kserve-endpoints/` 和 namespace RBAC。
+4. **基础设施组件走平台级流程**：Istio、Knative、cert-manager 不应作为 KServe 的普通依赖热替换；应有 staging、canary/revision、回滚窗口和入口流量验证。
+5. **LLM 高级能力单独评估**：如果升级目标是 LLMISVC、Gateway API Inference Extension、Envoy Gateway 或 LocalModelCache，优先评估独立 serving 栈或独立集群。
+
+升级前检查：
+
+| 检查项 | 说明 |
+|--------|------|
+| 所有权 | 明确 CRD、webhook、controller、Gateway、auth policy 由 Kubeflow overlay 还是独立 KServe release 持有 |
+| 备份 | 导出现有 `InferenceService`、`ServingRuntime`、`ClusterServingRuntime`、KServe ConfigMap、VirtualService/HTTPRoute |
+| 兼容 | 对照目标 release 的 breaking changes、CRD 字段变化、webhook 证书 namespace patch |
+| 回滚 | 保留旧 release manifests、runtime image、ConfigMap 和 controller image；确认 CRD 降级是否可行 |
+
+升级后 smoke test 至少覆盖：
+
+| 场景 | 验证点 |
+|------|--------|
+| predictive `InferenceService` | Ready condition、predictor pod、storage initializer、`/serving/<namespace>/<name>/...` |
+| KServe UI | Dashboard 菜单、`/kserve-endpoints/api/namespaces/<ns>/inferenceservices`、RBAC 403/200 |
+| host-based route | `Host: <name>.<namespace>.example.com` 与 Kubeflow wildcard VirtualService 不冲突 |
+| webhook | 创建/更新非法资源能被拒绝，合法资源不出现 TLS 或 EOF 错误 |
+| serverless 模式 | Knative Service、Revision、Activator、cluster-local gateway |
+| LLM/LocalModel | LLMISVC、Gateway API、LocalModelCache agent 和 PSS/securityContext 是否符合企业策略 |
+
+### 10.5 裁剪建议
 
 如果资源有限或只需要部分能力，可从 `example/kustomization.yaml` 注释组件：
 
@@ -955,6 +997,7 @@ KServe 节点升级时要特别关注：
 | 独立 KServe | 同集群只能保留一个 CRD/controller 所有者；需要独立升级时优先规划替换而不是叠加安装 |
 | 独立 Istio | 避免在已部署 Kubeflow 的集群直接后装第二套 control plane；必要时使用 revision、独立 Gateway 和明确 namespace label |
 | 独立 serving 集群 | 适合 LLM、高级 Gateway API、独立 GPU 池和独立升级节奏；Kubeflow 通过 Pipeline/GitOps/API 发布 |
+| 独立升级 | 在 staging 先验证版本矩阵、CRD/webhook/controller 成组升级、入口路由和 KServe UI RBAC；不要在生产只替换单个 manifest |
 | 多租户模型服务 | 每个 Profile namespace 中部署 `InferenceService`，通过 Kubeflow RBAC 控制 UI/API |
 | 路由 | 同时验证 `/serving/<namespace>/<name>/...` 和 host-based route |
 

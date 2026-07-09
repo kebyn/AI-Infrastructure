@@ -815,11 +815,11 @@ NVIDIA 路径常见前置条件：
 | nvidia-docker / nvidia-container-toolkit | 需要配置 NVIDIA runtime |
 | Kubernetes | README 写 >= 1.23；官网 Helm guide 对 kubectl 写 v1.16+ |
 | Helm | v3+ |
-| 节点标签 | 默认需要 `gpu=on` |
+| 节点标签 | 可按示例使用 `gpu=on` 限制调度范围；chart 默认 selector 为空 |
 
 ### 10.2 Helm 安装
 
-标记 GPU 节点：
+如果希望 HAMi 只处理显式标记的 GPU 节点，可以先标记节点：
 
 ```bash
 kubectl label nodes <node-name> gpu=on
@@ -1172,4 +1172,3 @@ curl http://<scheduler-ip>:31993/metrics
 | Scheduler Policy | <https://github.com/Project-HAMi/HAMi/blob/master/docs/develop/scheduler-policy.md> |
 | Dynamic MIG | <https://github.com/Project-HAMi/HAMi/blob/master/docs/develop/dynamic-mig.md> |
 | Helm Chart Values | <https://github.com/Project-HAMi/HAMi/blob/master/charts/hami/README.md> |
-

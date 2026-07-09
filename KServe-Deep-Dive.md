@@ -1024,7 +1024,7 @@ spec:
 
 ### 8.1 当前 master 快照中的版本信号
 
-当前 `kserve-deps.env` 中包含：
+当前 `kserve-deps.env` 中的关键值包括：
 
 | 项 | 当前值 |
 |----|--------|
@@ -1036,6 +1036,10 @@ spec:
 | `WVA_VERSION` | `v0.7.0` |
 | `KEDA_VERSION` | `2.18.0` |
 | `KNATIVE_SERVING_VERSION` | `1.21.1` |
+| `ISTIO_VERSION` | `1.27.1` |
+| `CERT_MANAGER_VERSION` | `v1.17.0` |
+| `ENVOY_GATEWAY_VERSION` | `v1.8.1` |
+| `ENVOY_AI_GATEWAY_VERSION` | `v1.0.0` |
 
 官网部分安装页面仍展示 `v0.18.0` 命令；这不代表当前 master 还停留在 v0.18。生产安装应固定一个 KServe release，并使用同版本 CRD、chart、runtime image 和文档。
 

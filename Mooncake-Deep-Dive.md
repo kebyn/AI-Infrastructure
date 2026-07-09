@@ -711,6 +711,8 @@ Mooncake Store 支持 5 种存储类型，从高速内存到持久化存储，�
 | `MOONCAKE_OFFLOAD_BUCKET_MAX_TOTAL_SIZE` | 0（磁盘容量 90%） | 驱逐阈值（字节） |
 | `MOONCAKE_OFFLOAD_BUCKET_EVICTION_POLICY` | fifo | 驱逐策略：`none` / `fifo` / `lru` |
 
+> 官方部署页的环境变量表把 `MOONCAKE_OFFLOAD_BUCKET_EVICTION_POLICY` 默认值写为 `fifo`，设计页同时说明 `BucketEvictionPolicy::NONE` 是后端内部默认。实际部署应显式设置该变量，并以目标版本的配置解析结果为准。
+
 **适用场景**：通用大规模部署
 
 **2. `file_per_key_storage_backend`**
