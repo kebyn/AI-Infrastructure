@@ -37,6 +37,24 @@ DOCS = [
         ),
     },
     {
+        "src": "/data/LLM-Benchmark-Deep-Dive.md",
+        "dst": "/data/LLM-Benchmark-Deep-Dive.html",
+        "href": "/LLM-Benchmark-Deep-Dive.html",
+        "title": "LLM 压测工具深度对比",
+        "hero": "LLM 压测工具深度对比",
+        "subtitle": "AIPerf、GuideLLM、inference-perf、genai-bench、LLMPerf、vLLM Bench、EvalScope 与 Ollama Benchmark 选型解析",
+        "meta": "基于 8 个官方仓库快照 · 2026-07-09",
+        "summary": "覆盖指标口径、负载模型、工具选型、vLLM 可比压测模板、SLO/goodput、trace replay 与生产落地建议。",
+        "footer": (
+            '基于 <a href="https://github.com/ai-dynamo/aiperf">AIPerf</a>、'
+            '<a href="https://github.com/vllm-project/guidellm">GuideLLM</a>、'
+            '<a href="https://github.com/kubernetes-sigs/inference-perf">inference-perf</a>、'
+            '<a href="https://github.com/sgl-project/genai-bench">genai-bench</a>、'
+            '<a href="https://github.com/vllm-project/vllm/tree/main/benchmarks">vLLM Bench</a> 与 '
+            '<a href="https://github.com/modelscope/evalscope">EvalScope</a> 等官方资料整理'
+        ),
+    },
+    {
         "src": "/data/HAMi-Deep-Dive.md",
         "dst": "/data/HAMi-Deep-Dive.html",
         "href": "/HAMi-Deep-Dive.html",
@@ -610,7 +628,7 @@ def render_index():
 <div class="doc-container">
   <div class="doc-hero">
     <h1>AI 基础设施深度文档</h1>
-    <p class="subtitle">Mooncake、Dynamo、HAMi、KServe 与 Kubeflow 技术分析入口</p>
+    <p class="subtitle">Mooncake、Dynamo、LLM 压测、HAMi、KServe 与 Kubeflow 技术分析入口</p>
     <p class="meta">统一运行在 80 端口</p>
   </div>
   <div class="doc-grid">
