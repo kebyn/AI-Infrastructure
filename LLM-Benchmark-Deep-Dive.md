@@ -1,6 +1,6 @@
 # LLM 压测工具深度对比
 
-> **AIPerf、GuideLLM、inference-perf、genai-bench、LLMPerf、Ollama Benchmark、vLLM Bench 与 EvalScope 的定位、指标、负载模型和选型解析**
+> **AIPerf、GuideLLM、inference-perf、genai-bench、SGLang Bench、LLMPerf、Ollama Benchmark、vLLM Bench 与 EvalScope 的定位、指标、负载模型和选型解析**
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
@@ -133,6 +133,7 @@ LLM 压测至少应报告：
 | GuideLLM | SLO-aware LLM benchmarking 平台 | vLLM/OpenAI-compatible 服务优化、sweep、安全工作点、标准 JSON/CSV/HTML 报告 | Kubernetes 原生部署和 WG Serving 标准化不是重点 |
 | inference-perf | Kubernetes SIG/WG Serving 背景的生产压测工具 | K8s 集群、vLLM/SGLang/TGI、公平横评、10k+ QPS、goodput、OTel/trace replay | 只做本地单机小模型体验测试时偏重 |
 | genai-bench | SGLang 生态友好的 token-level benchmark | SGLang/OpenAI-compatible、多任务、Live UI、Excel/plot 报告 | 复杂 trace replay 和 K8s 标准化能力不如前几类 |
+| SGLang Bench | SGLang 仓库原生 `bench_serving` 在线压测脚本 | SGLang 服务回归、后端对比、Mooncake trace、PD disaggregation fake prefill、cache/profile 调试 | 跨团队报表治理和 K8s goodput 平台 |
 | LLMPerf | Ray 生态早期 LLM API benchmark | 多云 API 简单横评、load test + correctness smoke test | 现代 SLO、trace、多模态和可视化能力有限 |
 | ollama-benchmark | 本地 Ollama 吞吐测试 | 个人机器、本地模型 tokens/s 快速体验 | 生产 LLM serving、K8s、OpenAI-compatible 压测 |
 | vLLM Bench | vLLM 内置 benchmark 工具集 | vLLM 开发、回归、serve/latency/throughput/prefix cache/multi-turn 专项 | 跨框架生产压测平台 |
@@ -140,20 +141,20 @@ LLM 压测至少应报告：
 
 ### 4.1 能力对比
 
-| 维度 | AIPerf | GuideLLM | inference-perf | genai-bench | LLMPerf | Ollama Bench | vLLM Bench | EvalScope |
-|------|--------|----------|----------------|-------------|---------|--------------|------------|-----------|
-| OpenAI-compatible | 支持 | 支持 | 支持 | 支持 | 支持 | 不主打 | 支持 | 支持 |
-| vLLM 专项 | 可测 | 强 | 已验证 | 可测 | 可测 API | 不适用 | 最强 | 强 |
-| SGLang 专项 | 有教程/endpoint | 可测 | 已验证 | 强 | 可测 API | 不适用 | 不主打 | 可测 |
-| K8s 生产压测 | 可用 | 非重点 | 强 | 非重点 | 非重点 | 不适用 | 非重点 | 可用 |
-| fixed concurrency | 支持 | 支持 | 支持 | 支持 | 支持 | 极简 | 支持 | 支持 |
-| request rate | 支持 | 支持 | 支持 | 较弱 | 不主打 | 不适用 | 支持 | 支持 |
-| Poisson | 支持 | 支持 | 支持 | 不主打 | 不主打 | 不适用 | 支持 | 支持 |
-| sweep | 支持 | 强 | 支持 | 支持 | 不主打 | 不适用 | 部分支持 | 支持 |
-| trace replay | 强 | 发展中 | 强 | 弱 | 弱 | 无 | 部分脚本 | 支持 agentic/multi-turn |
-| goodput/SLO | 支持 | 强 | 强 | 基础 | 弱 | 无 | 弱 | SLA auto tune |
-| 多模态 | 强 | 强 | 支持 | 支持 | 弱 | 弱 | 部分 | 强 |
-| 可视化 | dashboard/plot/telemetry | HTML/CSV/JSON | analysis/png | Live UI/Excel/plot | JSON | console/json | console/png | WebUI/W&B/SwanLab/ClearML |
+| 维度 | AIPerf | GuideLLM | inference-perf | genai-bench | SGLang Bench | LLMPerf | Ollama Bench | vLLM Bench | EvalScope |
+|------|--------|----------|----------------|-------------|--------------|---------|--------------|------------|-----------|
+| OpenAI-compatible | 支持 | 支持 | 支持 | 支持 | 支持 | 支持 | 不主打 | 支持 | 支持 |
+| vLLM 专项 | 可测 | 强 | 已验证 | 可测 | 可测后端 | 可测 API | 不适用 | 最强 | 强 |
+| SGLang 专项 | 有教程/endpoint | 可测 | 已验证 | 强 | 原生最强 | 可测 API | 不适用 | 不主打 | 可测 |
+| K8s 生产压测 | 可用 | 非重点 | 强 | 非重点 | 非重点 | 非重点 | 不适用 | 非重点 | 可用 |
+| fixed concurrency | 支持 | 支持 | 支持 | 支持 | 支持 | 支持 | 极简 | 支持 | 支持 |
+| request rate | 支持 | 支持 | 支持 | 较弱 | 支持 | 不主打 | 不适用 | 支持 | 支持 |
+| Poisson | 支持 | 支持 | 支持 | 不主打 | 支持 | 不主打 | 不适用 | 支持 | 支持 |
+| sweep | 支持 | 强 | 支持 | 支持 | 需脚本封装 | 不主打 | 不适用 | 部分支持 | 支持 |
+| trace replay | 强 | 发展中 | 强 | 弱 | Mooncake/agentic | 弱 | 无 | 部分脚本 | 支持 agentic/multi-turn |
+| goodput/SLO | 支持 | 强 | 强 | 基础 | 弱 | 弱 | 无 | 弱 | SLA auto tune |
+| 多模态 | 强 | 强 | 支持 | 支持 | 支持 image/MMMU | 弱 | 弱 | 部分 | 强 |
+| 可视化 | dashboard/plot/telemetry | HTML/CSV/JSON | analysis/png | Live UI/Excel/plot | console/JSONL/term plot | JSON | console/json | console/png | WebUI/W&B/SwanLab/ClearML |
 
 ### 4.2 简化选型图
 
@@ -164,7 +165,8 @@ flowchart TD
     Q1 -->|"Kubernetes 生产容量/SLO"| IP["inference-perf"]
     Q1 -->|"综合生产压测/trace/telemetry"| AP["AIPerf"]
     Q1 -->|"SLO sweep / vLLM 优化报告"| GL["GuideLLM"]
-    Q1 -->|"SGLang 生态/Excel/UI"| GB["genai-bench"]
+    Q1 -->|"SGLang 生态报表/Excel/UI"| GB["genai-bench"]
+    Q1 -->|"SGLang 原生回归/native endpoint"| SB["SGLang Bench"]
     Q1 -->|"能力评测 + 性能压测"| ES["EvalScope"]
     Q1 -->|"本地 Ollama 体验"| OB["ollama-benchmark"]
     Q1 -->|"云 API 简单横评"| LP["LLMPerf"]
@@ -173,6 +175,7 @@ flowchart TD
     GL --> Common
     IP --> Common
     GB --> Common
+    SB --> Common
     ES --> Common
     VLLM --> Common
 ```
@@ -422,9 +425,236 @@ genai-bench benchmark \
 
 ---
 
-## 第九章：LLMPerf
+## 第九章：SGLang Bench
 
 ### 9.1 定位
+
+SGLang Bench 指 SGLang 仓库内置的 online serving benchmark，官方入口是 `python -m sglang.bench_serving`。在当前 main 快照中，`sglang.bench_serving` 仍可用，但源码已提示实现迁移到 `sglang.benchmark.serving`，新自动化脚本建议优先使用：
+
+```bash
+python3 -m sglang.benchmark.serving
+```
+
+一句话概括：
+
+> **SGLang Bench 适合做 SGLang 服务开发、版本回归、后端 endpoint 对比、缓存/Profiler 调试和 PD disaggregation 专项压测。**
+
+它和 genai-bench 都来自 SGLang 生态，但侧重点不同：genai-bench 更偏“可视化报告和业务交付”，SGLang Bench 更偏“服务端开发者直接测 serving 行为”。
+
+### 9.2 支持的后端与 endpoint
+
+| backend | endpoint | 典型用途 |
+|---------|----------|----------|
+| `sglang` / `sglang-native` | `POST /generate` | SGLang native serving 压测，最直接 |
+| `sglang-oai` | `POST /v1/completions` | SGLang OpenAI-compatible completions |
+| `sglang-oai-chat` | `POST /v1/chat/completions` | SGLang OpenAI-compatible chat |
+| `sglang-embedding` | `POST /v1/embeddings` | embedding 服务压测 |
+| `vllm` / `vllm-chat` | `POST /v1/completions` 或 `/v1/chat/completions` | 用同一脚本测 vLLM endpoint |
+| `lmdeploy` / `lmdeploy-chat` | `POST /v1/completions` 或 `/v1/chat/completions` | LMDeploy endpoint 对比 |
+| `trt` | `POST /v2/models/ensemble/generate_stream` | TensorRT-LLM streaming endpoint |
+| `truss` | `POST /v1/models/model:predict` | Truss endpoint |
+| `gserver` | custom | 脚本中保留接口，但当前未实现 |
+
+连接目标有两种写法：
+
+| 参数 | 用法 |
+|------|------|
+| `--host` + `--port` | 用默认 backend endpoint path 拼 URL，例如 SGLang native 的 `http://host:port/generate` |
+| `--base-url` | 直接指定服务 base URL，例如 `http://127.0.0.1:8000`，脚本再按 backend 补 endpoint path |
+
+`--model` 未指定时，OpenAI-compatible endpoint 会尝试查询 `GET /v1/models` 获取模型 ID。生产压测建议显式写 `--model` 和 `--tokenizer`，避免服务端别名、tokenizer 和报告口径不一致。
+
+### 9.3 数据集与负载模型
+
+| dataset | 说明 | 关键参数 |
+|---------|------|----------|
+| `sharegpt` | 默认数据集，加载 ShareGPT 风格问答对 | `--dataset-path`、`--sharegpt-context-len`、`--sharegpt-output-len` |
+| `random` | 随机文本长度，适合固定 ISL/OSL 基准 | `--random-input-len`、`--random-output-len`、`--random-range-ratio` |
+| `random-ids` | 随机 token id，长度控制更直接但文本可能无意义 | 同 `random` |
+| `generated-shared-prefix` | 合成长共享 system prompt + 短问题，用于 prefix/KV cache 压测 | `--gsp-num-groups`、`--gsp-prompts-per-group`、`--gsp-system-prompt-len`、`--gsp-question-len`、`--gsp-output-len` |
+| `image` | 构造 VLM 图像请求 | `--image-count`、`--image-resolution`、`--image-format`、`--image-content` |
+| `mmmu` | MMMU Math split，多模态评测式请求 | 依赖 `datasets`、`pillow`、`pybase64` |
+| `mooncake` | 用 Mooncake trace 评估大规模 KVCache 共享 | `--mooncake-workload`、`--mooncake-slowdown-factor`、`--mooncake-num-rounds`、`--use-trace-timestamps` |
+| `agentic-trace` | agentic multi-turn trace | `--dataset-offset`、`--agentic-max-turns` |
+| `custom` / `openai` / `autobench` / `longbench_v2` / `speed-bench` | 面向自定义、OpenAI 格式和长上下文/速度专项 | 按数据集格式和对应参数配置 |
+
+SGLang Bench 的 `--request-rate` 是 open-loop 入口：默认 `inf` 表示起始时尽快发出所有请求；设成有限值时，请求间隔按 Poisson 过程采样。`--max-concurrency` 是最大在飞请求上限；当 `--request-rate` 与 `--max-concurrency` 同时使用时，如果服务端处理不过来，实际发送速率会被并发上限压低。
+
+### 9.4 关键运行参数
+
+| 参数 | 作用 |
+|------|------|
+| `--num-prompts` | 请求总数 |
+| `--request-rate` | 目标请求到达率；有限值使用 Poisson 到达 |
+| `--max-concurrency` | 最大并发在飞请求数 |
+| `--disable-stream` | 切换为非流式；非流式下 TTFT 口径会退化 |
+| `--warmup-requests` | 正式压测前预热请求数，默认 1 |
+| `--disable-ignore-eos` | 关闭 ignore EOS；默认更偏固定输出长度压测 |
+| `--temperature` / `--top-p` / `--seed` | sampling 与随机种子 |
+| `--extra-request-body` | 向请求体合并额外 JSON，例如 sampling、min_tokens、top_k |
+| `--apply-chat-template` | 构造 chat 请求或计数时应用 tokenizer chat template |
+| `--output-file` / `--output-details` | 输出 JSONL 汇总；开启 details 会写入逐请求长度、错误、TTFT、ITL、生成文本等数组 |
+| `--flush-cache` | 正式压测前调用 SGLang `/flush_cache` |
+| `--cache-report` | 压测后收集并展示 SGLang cache 命中统计 |
+| `--profile` | 调用 `/start_profile` 和 `/stop_profile`，服务端需启用 profiler |
+| `--profile-prefill-url` / `--profile-decode-url` | PD 分离部署下分别 profile prefill 或 decode worker |
+| `--lora-name` | 多 LoRA adapter 请求分布测试 |
+| `--tokenize-prompt` | 发送 token id 而不是文本，目前只支持 `--backend sglang` |
+| `--fake-prefill` | PD disaggregation decode-only 压测，需 decode server 使用 fake transfer backend |
+
+### 9.5 指标与输出
+
+SGLang Bench 控制台会输出：
+
+| 指标 | 含义 |
+|------|------|
+| Request throughput | 完成请求数 / wall time |
+| Input token throughput | 输入 token/s，包含 text 与 vision token |
+| Output token throughput | 输出 token/s |
+| Total token throughput | 输入 + 输出 token/s |
+| Total input text tokens / vision tokens | 文本与视觉输入 token 拆分 |
+| Concurrency | 所有请求耗时之和 / wall time，可看平均在飞请求强度 |
+| E2E latency | 请求端到端延迟，包含 mean/median/std/p90/p95/p99 |
+| TTFT | 流式首 token 延迟，包含 mean/median/std/p90/p95/p99 |
+| ITL | 相邻输出 token 间隔，包含 mean/median/std/p90/p95/p99/max |
+| TPOT | 首 token 后每个输出 token 平均耗时，`(latency - ttft)/(tokens - 1)` |
+| Accept length | SGLang speculative decoding 可用时报告接受长度 |
+| Retokenized counts | 用指定 tokenizer 重新计数生成文本，辅助发现服务端 usage 口径差异 |
+
+如果指定 `--output-file`，每次 run 会追加一个 JSON 对象；开启 `--output-details` 后还会包含 `input_lens`、`output_lens`、`ttfts`、逐请求 `itls`、`generated_texts` 和 `errors`。它适合接入 CI 或自行汇总，但不像 GuideLLM/EvalScope 那样内置完整 HTML 报告和 SLO sweep。
+
+### 9.6 典型命令
+
+启动 SGLang native 服务：
+
+```bash
+python3 -m sglang.launch_server \
+  --model-path meta-llama/Llama-3.1-8B-Instruct \
+  --host 0.0.0.0 \
+  --port 30000
+```
+
+固定输入/输出长度、固定最大并发：
+
+```bash
+python3 -m sglang.benchmark.serving \
+  --backend sglang \
+  --host 127.0.0.1 \
+  --port 30000 \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --tokenizer meta-llama/Llama-3.1-8B-Instruct \
+  --dataset-name random \
+  --random-input-len 1024 \
+  --random-output-len 256 \
+  --random-range-ratio 0.0 \
+  --num-prompts 1000 \
+  --max-concurrency 64 \
+  --warmup-requests 5 \
+  --output-file sglang_random.jsonl \
+  --output-details
+```
+
+OpenAI-compatible chat endpoint，例如用同一脚本测 vLLM：
+
+```bash
+python3 -m sglang.benchmark.serving \
+  --backend vllm-chat \
+  --base-url http://127.0.0.1:8000 \
+  --model Qwen2.5-0.5B-Instruct \
+  --tokenizer Qwen/Qwen2.5-0.5B-Instruct \
+  --dataset-name random \
+  --random-input-len 1024 \
+  --random-output-len 256 \
+  --num-prompts 1000 \
+  --max-concurrency 64 \
+  --apply-chat-template
+```
+
+open-loop Poisson 到达：
+
+```bash
+python3 -m sglang.benchmark.serving \
+  --backend sglang \
+  --host 127.0.0.1 \
+  --port 30000 \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --dataset-name random \
+  --random-input-len 1024 \
+  --random-output-len 256 \
+  --num-prompts 5000 \
+  --request-rate 100 \
+  --max-concurrency 512
+```
+
+共享前缀 / prefix cache 压测：
+
+```bash
+python3 -m sglang.benchmark.serving \
+  --backend sglang \
+  --host 127.0.0.1 \
+  --port 30000 \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --dataset-name generated-shared-prefix \
+  --gsp-num-groups 64 \
+  --gsp-prompts-per-group 16 \
+  --gsp-system-prompt-len 2048 \
+  --gsp-question-len 128 \
+  --gsp-output-len 256 \
+  --cache-report
+```
+
+Mooncake trace / KVCache sharing 压测：
+
+```bash
+python3 -m sglang.benchmark.serving \
+  --backend sglang \
+  --host 127.0.0.1 \
+  --port 30000 \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --dataset-name mooncake \
+  --mooncake-workload conversation \
+  --mooncake-slowdown-factor 1.0 \
+  --mooncake-num-rounds 1000 \
+  --use-trace-timestamps \
+  --random-output-len 256
+```
+
+PD disaggregation decode-only fake prefill：
+
+```bash
+python3 -m sglang.launch_server \
+  --model-path meta-llama/Llama-3.1-8B-Instruct \
+  --disaggregation-mode decode \
+  --disaggregation-transfer-backend fake \
+  --port 30001
+
+python3 -m sglang.benchmark.serving \
+  --backend sglang \
+  --host 127.0.0.1 \
+  --port 30001 \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --dataset-name random \
+  --num-prompts 500 \
+  --random-input-len 1024 \
+  --random-output-len 256 \
+  --fake-prefill
+```
+
+### 9.7 适用场景与限制
+
+| 类型 | 说明 |
+|------|------|
+| 适合 | SGLang 版本回归、server 参数调优、native 与 OpenAI-compatible endpoint 对比、Mooncake/KV cache、PD 分离 decode-only、Profiler 调试 |
+| 不适合 | 多团队标准报告、Kubernetes 原生容量平台、自动 SLO/goodput 搜索、复杂 dashboard 交付 |
+| 横评风险 | 必须统一 endpoint、chat template、tokenizer、输出长度、streaming、warmup、cache 状态，否则容易把工具默认差异误判为 serving 性能差异 |
+| 客户端瓶颈 | 高并发时压测机 CPU、文件描述符、端口、网络和 Python event loop 可能先到瓶颈；大规模压测要用更强客户端或分布式压测工具 |
+| 兼容性 | 官方文档仍展示 `sglang.bench_serving`；当前源码提示新路径是 `sglang.benchmark.serving`，CI 脚本应关注版本变化 |
+
+---
+
+## 第十章：LLMPerf
+
+### 10.1 定位
 
 LLMPerf 是 Ray 项目下较早的 LLM API 性能评估工具。它提供 load test 和 correctness test，支持 OpenAI-compatible、Anthropic、TogetherAI、Hugging Face、LiteLLM、Vertex AI、SageMaker 等 API 路径。
 
@@ -432,7 +662,7 @@ LLMPerf 是 Ray 项目下较早的 LLM API 性能评估工具。它提供 load t
 
 > **LLMPerf 适合简单云 API 横评和早期 smoke test，不适合作为现代生产压测主工具。**
 
-### 9.2 能力
+### 10.2 能力
 
 | 能力 | 说明 |
 |------|------|
@@ -442,7 +672,7 @@ LLMPerf 是 Ray 项目下较早的 LLM API 性能评估工具。它提供 load t
 | backend | OpenAI、Anthropic、LiteLLM、Vertex AI、SageMaker 等 |
 | tokenizer | README 描述使用 LlamaTokenizer 统一 token 计数 |
 
-### 9.3 典型命令
+### 10.3 典型命令
 
 ```bash
 python token_benchmark_ray.py \
@@ -459,7 +689,7 @@ python token_benchmark_ray.py \
   --additional-sampling-params '{}'
 ```
 
-### 9.4 适用场景与限制
+### 10.4 适用场景与限制
 
 | 类型 | 说明 |
 |------|------|
@@ -469,9 +699,9 @@ python token_benchmark_ray.py \
 
 ---
 
-## 第十章：ollama-benchmark
+## 第十一章：ollama-benchmark
 
-### 10.1 定位
+### 11.1 定位
 
 ollama-benchmark 的包名是 `llm_benchmark`，面向本地 Ollama 模型吞吐测试。它会根据本机 RAM 选择或拉取一组 Ollama 模型，然后输出 tokens/s 等结果。
 
@@ -479,7 +709,7 @@ ollama-benchmark 的包名是 `llm_benchmark`，面向本地 Ollama 模型吞吐
 
 > **ollama-benchmark 是本地 LLM 体验工具，不是生产推理服务压测工具。**
 
-### 10.2 典型命令
+### 11.2 典型命令
 
 ```bash
 llm_benchmark run
@@ -505,7 +735,7 @@ models:
 llm_benchmark run --custombenchmark=path/to/custombenchmarkmodels.yml
 ```
 
-### 10.3 适用场景与限制
+### 11.3 适用场景与限制
 
 | 类型 | 说明 |
 |------|------|
@@ -515,9 +745,9 @@ llm_benchmark run --custombenchmark=path/to/custombenchmarkmodels.yml
 
 ---
 
-## 第十一章：vLLM Bench
+## 第十二章：vLLM Bench
 
-### 11.1 定位
+### 12.1 定位
 
 vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。旧脚本已迁移到 vLLM CLI，官方 README 建议使用：
 
@@ -531,7 +761,7 @@ vllm bench throughput
 
 > **vLLM Bench 是 vLLM 自身开发和回归最直接的 benchmark 工具。**
 
-### 11.2 工具类型
+### 12.2 工具类型
 
 | 类型 | 说明 |
 |------|------|
@@ -543,7 +773,7 @@ vllm bench throughput
 | kernels | paged attention、MoE、FP8 GEMM、RMSNorm、ROPE 等 kernel 级 benchmark |
 | structured output | structured schema / guided decoding benchmark |
 
-### 11.3 典型命令
+### 12.3 典型命令
 
 ```bash
 vllm bench serve \
@@ -571,7 +801,7 @@ python benchmark_serving_multi_turn.py \
   --max-active-conversations 6
 ```
 
-### 11.4 适用场景与限制
+### 12.4 适用场景与限制
 
 | 类型 | 说明 |
 |------|------|
@@ -581,9 +811,9 @@ python benchmark_serving_multi_turn.py \
 
 ---
 
-## 第十二章：EvalScope
+## 第十三章：EvalScope
 
-### 12.1 定位
+### 13.1 定位
 
 EvalScope 是 ModelScope 社区的一站式大模型评测框架，覆盖模型能力评测、推理性能压测和可视化。它不仅能跑 MMLU、C-Eval、GSM8K、VLM/Agent/代码等能力评测，也有 `evalscope perf` 做服务压测。
 
@@ -591,7 +821,7 @@ EvalScope 是 ModelScope 社区的一站式大模型评测框架，覆盖模型�
 
 > **EvalScope 适合中文生态里把模型能力评测和推理压测放在同一套工具链里管理。**
 
-### 12.2 `evalscope perf` 能力
+### 13.2 `evalscope perf` 能力
 
 | 能力 | 说明 |
 |------|------|
@@ -603,7 +833,7 @@ EvalScope 是 ModelScope 社区的一站式大模型评测框架，覆盖模型�
 | 指标 | latency、TTFT、TPOT、ITL、RPS、output/total throughput、cache hit、speculative decode 指标 |
 | 可视化 | WebUI、W&B、SwanLab、ClearML、HTML/报告文件 |
 
-### 12.3 典型命令
+### 13.3 典型命令
 
 ```bash
 evalscope perf \
@@ -639,7 +869,7 @@ evalscope perf \
   --extra-args '{"ignore_eos": true}'
 ```
 
-### 12.4 vLLM Bench 对齐
+### 13.4 vLLM Bench 对齐
 
 EvalScope 官方文档提供了 `evalscope perf` 与 `vllm bench serve` 的参数映射，关键是：
 
@@ -654,7 +884,7 @@ EvalScope 官方文档提供了 `evalscope perf` 与 `vllm bench serve` 的参�
 
 这使 EvalScope 很适合在中文团队中做“先用 vLLM Bench 建基线，再用 EvalScope 做多并发、多轮、可视化和能力评测联动”的流程。
 
-### 12.5 限制
+### 13.5 限制
 
 | 限制 | 说明 |
 |------|------|
@@ -664,11 +894,11 @@ EvalScope 官方文档提供了 `evalscope perf` 与 `vllm bench serve` 的参�
 
 ---
 
-## 第十三章：统一 vLLM endpoint 的可比压测模板
+## 第十四章：统一 vLLM endpoint 的可比压测模板
 
 下面是一组可比性模板，用同一个 OpenAI-compatible chat endpoint 做固定输入/输出长度测试。实际运行前需替换模型名、tokenizer 和端口。
 
-### 13.1 启动 vLLM 服务
+### 14.1 启动 vLLM 服务
 
 ```bash
 vllm serve Qwen/Qwen2.5-0.5B-Instruct \
@@ -690,7 +920,7 @@ vllm serve Qwen/Qwen2.5-0.5B-Instruct \
 | tokenizer | `Qwen/Qwen2.5-0.5B-Instruct` |
 | warmup | 每轮正式压测前先跑少量请求 |
 
-### 13.2 vLLM Bench
+### 14.2 vLLM Bench
 
 ```bash
 vllm bench serve \
@@ -708,7 +938,7 @@ vllm bench serve \
   --ignore-eos
 ```
 
-### 13.3 EvalScope
+### 14.3 EvalScope
 
 ```bash
 evalscope perf \
@@ -726,7 +956,7 @@ evalscope perf \
   --extra-args '{"ignore_eos": true}'
 ```
 
-### 13.4 GuideLLM
+### 14.4 GuideLLM
 
 ```bash
 guidellm run \
@@ -737,7 +967,7 @@ guidellm run \
   --tokenizer kind=huggingface_auto,model=Qwen/Qwen2.5-0.5B-Instruct
 ```
 
-### 13.5 inference-perf
+### 14.5 inference-perf
 
 ```bash
 inference-perf \
@@ -751,7 +981,7 @@ inference-perf \
 
 如果要测 open-loop 容量，把 `load.type` 改为 `constant` 或 `poisson`，用 `rate` 和 `duration` 定义 stage。
 
-### 13.6 AIPerf
+### 14.6 AIPerf
 
 ```bash
 aiperf profile \
@@ -766,7 +996,7 @@ aiperf profile \
 
 需要严格固定输入/输出长度时，建议使用 AIPerf YAML config 或 synthetic dataset 配置，把 ISL/OSL、`ignore_eos`、warmup 和随机种子写入配置文件，而不是只靠 CLI 默认值。
 
-### 13.7 genai-bench
+### 14.7 genai-bench
 
 ```bash
 genai-bench benchmark \
@@ -780,24 +1010,46 @@ genai-bench benchmark \
   --max-requests-per-run 1000
 ```
 
+### 14.8 SGLang Bench
+
+```bash
+python3 -m sglang.benchmark.serving \
+  --backend vllm-chat \
+  --base-url http://127.0.0.1:8000 \
+  --model Qwen2.5-0.5B-Instruct \
+  --tokenizer Qwen/Qwen2.5-0.5B-Instruct \
+  --dataset-name random \
+  --random-input-len 1024 \
+  --random-output-len 256 \
+  --random-range-ratio 0.0 \
+  --num-prompts 1000 \
+  --max-concurrency 64 \
+  --warmup-requests 5 \
+  --apply-chat-template \
+  --output-file sglang_bench_vllm_chat.jsonl
+```
+
+如果测 SGLang native `/generate`，把 `--backend vllm-chat --base-url http://127.0.0.1:8000` 改为 `--backend sglang --host 127.0.0.1 --port 30000`。为了和 vLLM Bench 保持可比，必须确认 tokenizer、chat template、streaming、输出长度控制和 cache 状态一致。
+
 ---
 
-## 第十四章：生产选型建议
+## 第十五章：生产选型建议
 
-### 14.1 按目标选工具
+### 15.1 按目标选工具
 
 | 目标 | 推荐工具 | 原因 |
 |------|----------|------|
 | vLLM 版本或参数回归 | vLLM Bench | 和 vLLM 内部同步，最直接 |
+| SGLang 版本或 server 参数回归 | SGLang Bench | 和 SGLang serving 代码同仓，native endpoint、cache、profile、PD fake-prefill 支持最直接 |
 | vLLM/SGLang/KServe 生产容量 | inference-perf 或 AIPerf | 支持生产级 load、goodput、trace、报告 |
 | 找满足 SLO 的最大安全工作点 | GuideLLM、inference-perf、EvalScope SLA auto tune | sweep/goodput/SLO 更直接 |
-| 评估 prefix/KV cache 效果 | genai-bench、vLLM multi-turn、AIPerf、EvalScope multi-turn | 都能表达共享前缀或多轮 |
+| 评估 prefix/KV cache 效果 | SGLang Bench、genai-bench、vLLM multi-turn、AIPerf、EvalScope multi-turn | 都能表达共享前缀或多轮；SGLang Bench 还可结合 cache report、Mooncake trace |
 | 需要中文模型能力评测 + 压测 | EvalScope | 评测基准和 perf 在同一工具链 |
-| SGLang 服务压测和报表 | genai-bench | 生态贴合，Excel/plot 方便 |
+| SGLang 服务压测和报表 | genai-bench | 生态贴合，Excel/plot 方便；若重点是服务端回归，用 SGLang Bench |
 | 本地 Ollama 模型速度 | ollama-benchmark | 简单直接 |
 | 多云 API 粗略横评 | LLMPerf | provider 路径多，但现代能力有限 |
 
-### 14.2 建议的压测流程
+### 15.2 建议的压测流程
 
 1. 单请求 smoke test：确认 endpoint、model name、streaming、tokenizer、输出长度都正确。
 2. 低并发 warmup：排除模型加载、JIT 编译、cache 初始化。
@@ -807,7 +1059,7 @@ genai-bench benchmark \
 6. 真实 workload 回放：用 ShareGPT、业务 trace、agentic multi-turn 或 prefix cache 数据验证。
 7. 服务端指标对齐：同时采集 GPU 利用率、显存、KV cache hit、batch size、queue time。
 
-### 14.3 报告模板
+### 15.3 报告模板
 
 正式报告至少包含：
 
@@ -824,7 +1076,7 @@ genai-bench benchmark \
 
 ---
 
-## 第十五章：常见误区
+## 第十六章：常见误区
 
 | 误区 | 正确做法 |
 |------|----------|
@@ -851,6 +1103,7 @@ genai-bench benchmark \
 | GuideLLM | <https://github.com/vllm-project/guidellm> | `6ea993b` |
 | inference-perf | <https://github.com/kubernetes-sigs/inference-perf> | `fbdead7` |
 | genai-bench | <https://github.com/sgl-project/genai-bench> | `7fc8483` |
+| SGLang Bench | <https://github.com/sgl-project/sglang/blob/main/docs/developer_guide/bench_serving.md> | `a9e8046` |
 | LLMPerf | <https://github.com/ray-project/llmperf> | `f1d6bed` |
 | ollama-benchmark | <https://github.com/aidatatools/ollama-benchmark> | `f9a5edb` |
 | vLLM Bench | <https://github.com/vllm-project/vllm/tree/main/benchmarks> | `e875216` |
@@ -872,6 +1125,8 @@ genai-bench benchmark \
 | genai-bench README | <https://github.com/sgl-project/genai-bench/blob/main/README.md> |
 | genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/main/docs/getting-started/metrics-definition.md> |
 | genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/main/docs/user-guide/scenario-definition.md> |
+| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/main/docs/developer_guide/bench_serving.md> |
+| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/main/python/sglang/benchmark/serving.py> |
 | LLMPerf README | <https://github.com/ray-project/llmperf/blob/main/README.md> |
 | ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/main/README.md> |
 | vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/main/benchmarks> |
