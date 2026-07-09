@@ -650,6 +650,108 @@ Mark/Evicting
   -> 延迟物理删除
 ```
 
+#### 使用 finalizer 阻止过早删除
+
+如果平台侧要实现自己的 LocalModelCache 清理控制器，建议给 `LocalModelCache`、`LocalModelNamespaceCache` 或自定义的 cache entry 加 finalizer。这样用户删除缓存声明时，对象会先进入 `deletionTimestamp` 状态，但不会立刻从 apiserver 消失；清理控制器可以在 finalizer 阶段完成引用检查、隔离、等待和物理删除。
+
+典型流程：
+
+```text
+用户删除 LocalModelCache
+  -> deletionTimestamp 出现
+  -> finalizer 阻止对象立即消失
+  -> 清理器检查 CRD / ISVC / LLMISVC / Pod / Job 引用
+  -> 如果仍被使用：保留 finalizer，不删除本地目录
+  -> 如果无引用且超过 grace period：rename 到 quarantine
+  -> 二次确认仍无引用
+  -> 删除目录或 PVC
+  -> 移除 finalizer
+  -> CR 真正删除
+```
+
+finalizer 的价值是保留删除上下文。否则 CR 先消失，清理器只能扫描本地目录和残留状态，很容易把“仍被另一个服务、namespace 或同 URI 缓存复用”的目录误判成孤儿目录。
+
+#### 推荐的数据模型：显式引用计数
+
+仅靠目录扫描和 `mtime` 不足以判断模型是否仍在使用。更稳妥的方式是维护显式 lease 或引用计数，把“谁正在使用哪个 storage key”记录成控制面对象。示例：
+
+```yaml
+apiVersion: platform.example.com/v1
+kind: ModelCacheLease
+metadata:
+  name: llama3-prod-predictor-6f9c7d
+spec:
+  sourceModelUri: hf://meta-llama/meta-llama-3-8b-instruct
+  storageKey: 3f5a8c1e9b2d4f70
+  nodeName: gpu-node-1
+  namespace: prod
+  ownerKind: InferenceService
+  ownerName: llama3-prod
+  podName: llama3-prod-predictor-6f9c7d
+  expiresAt: "2026-07-09T12:05:00Z"
+status:
+  state: Active
+```
+
+引用计数的基本规则：
+
+| 时机 | 行为 |
+|------|------|
+| 服务或 Pod 计划使用本地缓存 | 创建或续约 `ModelCacheLease` |
+| Pod 正常退出 | 释放对应 lease |
+| Pod 异常退出或节点失联 | 依靠 `expiresAt` 超时回收 lease |
+| 清理器准备删除目录 | 只删除没有 Active lease 的 storage key |
+
+实现上可以用独立 CRD、ConfigMap 或平台数据库承载 lease，但 CRD 更容易和 Kubernetes watch、RBAC、审计、finalizer 集成。即使采用 lease，也仍要在物理删除前重新检查实际 Pod 和 Job 状态，避免 lease 延迟或控制器故障造成误判。
+
+#### 推荐的删除算法
+
+清理器应把“是否可删”实现成一个显式判定函数，而不是把判断散落在脚本里：
+
+```python
+def can_delete_model(source_model_uri, node_name):
+    storage_key = hash_source_uri(source_model_uri)
+
+    if any_local_model_cache_references(source_model_uri):
+        return False, "LocalModelCache still references sourceModelUri"
+
+    if any_local_model_namespace_cache_references(source_model_uri):
+        return False, "LocalModelNamespaceCache still references sourceModelUri"
+
+    if any_isvc_storage_uri_matches(source_model_uri):
+        return False, "InferenceService still uses model"
+
+    if any_llmisvc_storage_uri_matches(source_model_uri):
+        return False, "LLMInferenceService still uses model"
+
+    if any_local_model_node_spec_contains(node_name, source_model_uri):
+        return False, "LocalModelNode spec still expects model"
+
+    if any_active_download_job(source_model_uri, node_name):
+        return False, "Download job still active"
+
+    if any_active_lease(storage_key, node_name):
+        return False, "ModelCacheLease still active"
+
+    if any_pod_mounts_model_volume(source_model_uri, node_name):
+        return False, "Pod still mounts model volume"
+
+    if not grace_period_elapsed(storage_key, node_name):
+        return False, "Grace period not elapsed"
+
+    return True, "safe to delete"
+```
+
+物理删除建议使用可回滚的三步：
+
+```text
+1. rename /mnt/models/<storageKey> -> /mnt/models/.trash/<storageKey>.<timestamp>
+2. 等待一个短周期，再次执行 can_delete_model()
+3. 仍然可删时才 rm -rf；如果发现新引用，则把目录移回原位
+```
+
+删除器还应限制单轮删除数量，例如每个节点每轮只删一个大模型目录，并记录 `sourceModelUri`、storage key、节点、引用检查结果、触发原因和操作时间。这样即使策略有问题，也能把影响面限制在单个模型副本，并能追溯为什么删除。
+
 生产上不要直接执行按时间清理的脚本，例如 `find /mnt/models -mtime +7 -delete`。这类脚本无法识别模型是否仍被 Pod mmap、是否被另一个 namespace 的缓存复用、是否处在滚动更新或 terminating 阶段。更稳妥的做法是由清理控制器维护引用计数或 lease，并把每次删除的 `sourceModelUri`、storage key、节点、引用检查结果和原因写入审计日志。
 
 容量压力下的淘汰顺序也要保守：
