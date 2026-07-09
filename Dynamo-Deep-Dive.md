@@ -1047,16 +1047,294 @@ Dynamo 不替代推理引擎：
 
 粗略理解：Mooncake 更像 KV cache 与数据移动基础设施的深挖，Dynamo 更像完整推理服务控制平面和运行时编排层。
 
-### 11.3 Dynamo 与 LMCache / FlexKV / HiCache
+### 11.3 vLLM KV cache offloading 总览
 
-Dynamo vLLM 文档列出了 LMCache 和 FlexKV 集成路径。SGLang 文档则更强调 SGLang HiCache。实际选择取决于：
+Dynamo vLLM backend 把 KV cache offloading 明确拆成三条路径：
 
-| 选择因素 | 影响 |
-|----------|------|
-| 后端框架 | vLLM 可选 KVBM/LMCache/FlexKV；SGLang 更关注 HiCache |
-| 缓存层级 | 只需 Host offload，还是需要 SSD/远端对象存储 |
-| 复用模式 | 单 worker、多 worker、跨节点、跨会话 |
-| 运维模型 | 是否需要外部存储系统参与容量治理 |
+| 路径 | 来源 | 核心定位 |
+|------|------|----------|
+| KVBM | Dynamo 内置 | Dynamo 自带 KV Block Manager，和 Dynamo routing、P/D disaggregation、NIXL 原生集成 |
+| LMCache | LMCache 项目 | prefill-once、reuse-everywhere 的通用 KV cache engine |
+| FlexKV | Tencent Cloud TACO / FlexKV | 分布式多级 KV cache runtime，面向 CPU、SSD、云存储和跨节点复用 |
+
+三者都通过 vLLM connector 接入 Dynamo vLLM worker，但边界不同：
+
+| 维度 | KVBM | LMCache | FlexKV |
+|------|------|---------|--------|
+| Dynamo 亲和度 | 最高，Dynamo built-in | 中等，通过 vLLM connector 与 sidecar/connector 集成 | 中等，通过 vLLM connector 与 FlexKV runtime 集成 |
+| 典型缓存层 | GPU、CPU、Disk | L1 memory、L2 POSIX/GDS/HF3FS/Object/Azure 等 | GPU、CPU、SSD、scalable/cloud storage |
+| 典型复用目标 | Dynamo 内 worker KV block 复用、offload/onboard | 跨请求、跨实例复用重复文本的 KV | 跨节点分布式 KV 复用和多级存储 |
+| P/D 分离 | 原生支持 | 需要和 NIXL connector 组合 | 实验性，需要 `PdConnector` 组合 FlexKV 和 NIXL |
+| 适合场景 | 想先用 Dynamo 官方内置能力 | 已采用 LMCache 生态或强调 repeated context reuse | 需要 SSD/GDS/io_uring、分布式 RadixTree、多节点 KV 池 |
+
+```mermaid
+flowchart TB
+    Router["Dynamo Frontend / KV Router<br/>KV events + worker scoring"]
+    VLLM["vLLM backend"]
+    SGLang["SGLang backend"]
+
+    subgraph VLLMCache["vLLM KV offloading paths"]
+        KVBM["KVBM<br/>Dynamo built-in block manager"]
+        LMCache["LMCache<br/>prefill-once / reuse-everywhere"]
+        FlexKV["FlexKV<br/>distributed multi-level cache"]
+    end
+
+    subgraph SGLangCache["SGLang KV cache path"]
+        HiCache["HiCache<br/>RadixAttention hierarchical cache"]
+    end
+
+    subgraph DataPlane["KV data movement / storage"]
+        NIXL["NIXL<br/>P/D transfer / memory transport"]
+        CPU["Host CPU memory"]
+        SSD["SSD / local storage"]
+        External["Mooncake / object store / shared FS"]
+    end
+
+    Router --> VLLM
+    Router --> SGLang
+    VLLM --> KVBM
+    VLLM --> LMCache
+    VLLM --> FlexKV
+    SGLang --> HiCache
+    KVBM --> NIXL
+    LMCache --> NIXL
+    FlexKV --> NIXL
+    HiCache --> NIXL
+    KVBM --> CPU
+    KVBM --> SSD
+    LMCache --> CPU
+    LMCache --> External
+    FlexKV --> CPU
+    FlexKV --> SSD
+    FlexKV --> External
+    HiCache --> CPU
+    HiCache --> External
+```
+
+这张图的重点是：**Dynamo Router 负责让缓存状态进入调度决策，KVBM/LMCache/FlexKV/HiCache 负责不同层级和不同后端的 KV 存储与搬运。**不要把 KV-aware routing 和具体 offloading backend 混为一谈。
+
+### 11.4 KVBM：Dynamo 内置 KV Block Manager
+
+KVBM 是 Dynamo 自带的 KV cache offloading 系统。官方 vLLM 文档把它定义为 Dynamo built-in KV cache offloading，提供三层结构：
+
+| 层 | 作用 |
+|----|------|
+| LLM runtime layer | vLLM、TensorRT-LLM 等 runtime 通过 connector 接入 KVBM |
+| KVBM logic layer | 管理 table lookup、block layout、allocation、状态转换、reuse、eviction |
+| NIXL transport layer | 负责跨设备、跨节点、跨内存层的数据移动 |
+
+KVBM 的价值在于它和 Dynamo 的控制面天然对齐：
+
+| 维度 | 说明 |
+|------|------|
+| KV-aware routing | Router 可以把 worker 事件和 block residency 用于调度 |
+| P/D disaggregation | Prefill worker 可以用 KVBM offload KV，Decode 通过 NIXL 拉取 |
+| 多级容量 | 支持 CPU cache 和 disk cache |
+| 观测 | 有 KVBM metrics 和 Grafana dashboard |
+| 内置发布 | Dynamo vLLM/TRT-LLM 容器路径中可直接使用 |
+
+KVBM cache tier 主要用环境变量配置：
+
+```bash
+export DYN_KVBM_CPU_CACHE_GB=4
+export DYN_KVBM_DISK_CACHE_GB=8
+```
+
+也可以用 block 数覆盖：
+
+```bash
+export DYN_KVBM_CPU_CACHE_OVERRIDE_NUM_BLOCKS=<blocks>
+export DYN_KVBM_DISK_CACHE_OVERRIDE_NUM_BLOCKS=<blocks>
+```
+
+KVBM 是 write-through cache，容量配置不能只看“可用多少 CPU/SSD”。官方 guide 特别提醒：开启更多层级时容量应逐层增加。如果 GPU KV 容量是 100GB，而 `DYN_KVBM_CPU_CACHE_GB` 小于 100GB，KVBM 可能在每次 forward 后反复从 GPU offload 到 CPU，导致 churn 和性能下降，而不是收益。
+
+Disk offloading 默认带 SSD lifespan protection：只有频率满足条件的 block 才会从 CPU 写到 disk。需要关闭时可以设置：
+
+```bash
+export DYN_KVBM_DISABLE_DISK_OFFLOAD_FILTER=true
+```
+
+对 DeepSeek 等 MLA 模型，KVBM 还提供 NCCL replicated mode：rank 0 从 G2/G3 加载 KV block，再通过 NCCL 广播给其他 GPU，避免每张 GPU 重复加载。
+
+### 11.5 LMCache：vLLM 侧 prefill-once / reuse-everywhere 缓存层
+
+LMCache 是独立 KV cache engine。Dynamo 的 LMCache integration 重点不是替代 Dynamo Router，而是让 vLLM worker 通过 LMCache connector 获得重复文本 KV 复用能力。
+
+LMCache 的核心语义是：
+
+| 能力 | 说明 |
+|------|------|
+| prefill-once | 同一段可复用文本只做一次 prefill |
+| reuse-everywhere | KV 可以被其他请求或 engine instance 复用，不限于严格前缀 |
+| 多级存储 | CPU RAM、local storage、Redis、GDS、InfiniStore、Mooncake 等 |
+| MP sidecar | Dynamo 推荐 out-of-process `lmcache server` 模式 |
+
+聚合式 serving 推荐路径是启动 `lmcache server`，再让 vLLM worker 使用 `LMCacheMPConnector`：
+
+```bash
+lmcache server --l1-size-gb 100 --eviction-policy LRU &
+
+python -m dynamo.vllm \
+  --model <model_name> \
+  --disable-hybrid-kv-cache-manager \
+  --kv-transfer-config '{"kv_connector":"LMCacheMPConnector","kv_role":"kv_both"}'
+```
+
+MP sidecar 模式的结构是：
+
+| 组件 | 作用 |
+|------|------|
+| `lmcache server` | 独立 cache engine，提供 L1 memory 和可选 L2 adapter |
+| vLLM worker | 通过 `LMCacheMPConnector` 读写 KV |
+| Dynamo frontend/router | 仍负责请求入口、routing 和 worker 选择 |
+
+LMCache MP server 的 L2 adapter 可接 POSIX、GDS/GDS_MT、HF3FS、Object Store、Azure Blob 等。Dynamo 文档还保留 legacy in-process 和 multiprocess metrics 脚本，但当前推荐路径是 MP sidecar。
+
+在 P/D 分离中，LMCache 通常需要和 NIXL 组合：
+
+| Worker | Connector 语义 |
+|--------|----------------|
+| Decode worker | 主要依赖 NIXL 拉取 Prefill 产生的 KV |
+| Prefill worker | `PdConnector` 包装 LMCache connector 和 `NixlConnector`，既做 KV offloading，也服务 P/D transfer |
+
+需要注意版本兼容：Dynamo 文档指出 `LMCacheMPConnector` 对 vLLM 0.20+ 的 GPU KV format 需要 LMCache 侧对应修复；在正式 release 尚未包含修复时，需要从 LMCache main 或指定 PR 构建。
+
+### 11.6 FlexKV：分布式多级 KV cache runtime
+
+FlexKV 是面向推理引擎的分布式 KV cache runtime。Dynamo FlexKV integration 侧重把 FlexKV 接入 vLLM backend，让 worker 获得 CPU/SSD/scalable storage 的分层 offloading 和跨节点复用能力。
+
+FlexKV 的核心模块：
+
+| 模块 | 作用 |
+|------|------|
+| StorageEngine | 初始化 GPU -> CPU -> SSD/Cloud 三级缓存，以 block 粒度保存 KV |
+| GlobalCacheEngine | 控制面，负责 RadixTree prefix matching、空间管理和 eviction |
+| TransferEngine | 数据面，执行多线程、异步、高性能 I/O 数据搬运 |
+
+启用 FlexKV 的最小方式：
+
+```bash
+export DYNAMO_USE_FLEXKV=1
+python -m dynamo.vllm \
+  --model Qwen/Qwen3-0.6B \
+  --kv-transfer-config '{"kv_connector":"FlexKVConnectorV1","kv_role":"kv_both"}'
+```
+
+常见配置：
+
+| 配置 | 作用 |
+|------|------|
+| `DYNAMO_USE_FLEXKV=1` | 启用 Dynamo vLLM FlexKV integration |
+| `FLEXKV_CPU_CACHE_GB` | CPU memory cache 容量 |
+| `FLEXKV_CONFIG_PATH` | 指向 FlexKV YAML 配置 |
+| `ssd_cache_gb` / `ssd_cache_dir` | SSD tier 容量和目录 |
+| `enable_gds` | SSD I/O 启用 GPU Direct Storage |
+
+FlexKV 的差异化在跨节点复用：
+
+| 能力 | 说明 |
+|------|------|
+| Distributed RadixTree | 各节点维护全局索引的本地快照 |
+| Lease mechanism | 保障跨节点数据有效性 |
+| RDMA transfer | 分布式复用可借助 Mooncake Transfer Engine |
+| io_uring / GDS | 提升 SSD 和 GPU 相关数据路径性能 |
+
+P/D 分离下 FlexKV 仍属实验性路径。官方文档强调 Prefill worker 不能只把 `FlexKVConnectorV1` 放在顶层，而要用 `PdConnector` 包装两个子 connector：
+
+```json
+{
+  "kv_connector": "PdConnector",
+  "kv_role": "kv_both",
+  "kv_connector_extra_config": {
+    "connectors": [
+      {"kv_connector": "FlexKVConnectorV1", "kv_role": "kv_both"},
+      {"kv_connector": "NixlConnector", "kv_role": "kv_both"}
+    ]
+  },
+  "kv_connector_module_path": "kvbm.vllm_integration.connector"
+}
+```
+
+这里 FlexKV 负责 KV offload/onboard，NIXL 负责 P/D worker 之间的 KV transfer。
+
+### 11.7 SGLang HiCache：RadixAttention 的分层缓存扩展
+
+SGLang 路径与 vLLM 不同。Dynamo SGLang integration 更强调 SGLang 原生 HiCache，而不是 vLLM connector 生态。
+
+HiCache 是 SGLang 对 RadixAttention 的分层扩展：
+
+| Tier | 作用 |
+|------|------|
+| L1 GPU HBM | 热 KV page，最快访问 |
+| L2 Host memory | GPU cache 满时透明 demote 到 host |
+| L3 External backend | 可选外部后端，例如 Mooncake |
+
+启动 SGLang HiCache 的参数是 SGLang-native，Dynamo 透传：
+
+```bash
+python -m dynamo.sglang \
+  --model-path Qwen/Qwen3-0.6B \
+  --page-size 64 \
+  --enable-hierarchical-cache \
+  --hicache-ratio 2 \
+  --hicache-write-policy write_through \
+  --hicache-storage-backend nixl \
+  --skip-tokenizer-init
+```
+
+如果只是单 worker、无 shared external pool，Dynamo 不需要额外配置；worker 正常上报 KV events，Router 按已有逻辑工作。
+
+多 worker 共享 Mooncake 等外部池时，Dynamo 可以做 tier-aware shared cache routing：
+
+| Dynamo 增强 | 说明 |
+|-------------|------|
+| tier-aware routing | Router 识别 block 位于 GPU、Host、External 哪个 tier |
+| shared-pool awareness | Router 并行查询 Mooncake 等共享池，把“可从外部取回”的 block 纳入评分 |
+| scoring discount | `shared-cache-multiplier` 表示 shared hit 相对重新 prefill 的成本折扣 |
+
+默认 Router 的 radix tree 只看 worker GPU HBM 上的 block。HiCache 会把 block demote 到 host 或 Mooncake，如果 Router 不知道这些 tier，就会把“可毫秒级取回的 block”和“必须重新 prefill 的 block”都当成 cold miss。Dynamo 的 HiCache integration 通过 tier 事件和 shared-pool 查询修正这个问题。
+
+启用 shared cache routing 的前端参数：
+
+```bash
+python -m dynamo.frontend \
+  --http-port 8000 \
+  --router-mode kv \
+  --shared-cache-type hicache \
+  --shared-cache-multiplier 0.5
+```
+
+前提是 SGLang worker 以 Mooncake backend 启动，并在 registration metadata 中发布 `sglang_hicache_mooncake` 相关信息。Dynamo 文档要求 SGLang 0.5.11 或更高版本，因为早期版本不会为 host-tier residency 发送 `medium=CPU_PINNED` 事件。
+
+### 11.8 四种路径对比与选型
+
+| 场景 | 推荐起点 | 原因 |
+|------|----------|------|
+| vLLM + Dynamo 官方内置路径 | KVBM | 和 Dynamo Router、NIXL、P/D 分离、metrics 集成最直接 |
+| vLLM + 重复上下文/RAG/多轮对话 | LMCache | prefill-once / reuse-everywhere 语义更贴合重复文本复用 |
+| vLLM + SSD/GDS/io_uring/跨节点 KV runtime | FlexKV | 分布式 RadixTree、多级存储和高性能 I/O 是核心优势 |
+| SGLang backend + 分层 RadixAttention cache | HiCache | SGLang-native，Dynamo 主要增强 tier-aware routing |
+| 单 worker、短 prompt、低复用率 | 不一定开启 offload | offload/onboard 和事件维护可能超过收益 |
+
+落地时应先回答四个问题：
+
+| 问题 | 决策影响 |
+|------|----------|
+| 后端是 vLLM 还是 SGLang？ | vLLM 选 KVBM/LMCache/FlexKV，SGLang 优先看 HiCache |
+| 缓存命中来自哪里？ | 前缀复用、重复文本、跨会话、跨节点，分别适合不同路径 |
+| 容量瓶颈在哪？ | GPU HBM、Host memory、SSD、外部共享池 |
+| Router 是否知道缓存位置？ | 不知道 tier/location 时，offloading 只能省显存，不能充分优化调度 |
+
+共性风险：
+
+| 风险 | 说明 |
+|------|------|
+| KV-aware routing 不等于 offloading backend | Router 需要事件视图，backend 负责存储和搬运 |
+| 多级缓存不是免费扩容 | CPU/SSD/L3 onboard/offload 会影响 TTFT/ITL |
+| 外部池需要一致元数据 | page size、TP/PP layout、split-head layout、master address 等必须一致 |
+| connector 组合容易配错 | P/D 场景通常要组合 offload connector 与 NIXL connector |
+| 版本强相关 | Dynamo、vLLM、SGLang、LMCache、FlexKV 的 connector API 都会随 release 演进 |
 
 ---
 
@@ -1153,8 +1431,12 @@ helm install dynamo-platform \
 | Planner Design | <https://github.com/ai-dynamo/dynamo/blob/main/docs/design-docs/planner-design.md> |
 | Router Component | <https://github.com/ai-dynamo/dynamo/blob/main/docs/components/router/README.md> |
 | KVBM Component | <https://github.com/ai-dynamo/dynamo/blob/main/docs/components/kvbm/README.md> |
+| vLLM KV Cache Offloading | <https://github.com/ai-dynamo/dynamo/blob/main/docs/backends/vllm/vllm-kv-offloading.md> |
+| LMCache Integration | <https://github.com/ai-dynamo/dynamo/blob/main/docs/integrations/lmcache-integration.md> |
+| FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/main/docs/integrations/flexkv-integration.md> |
+| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/main/docs/backends/sglang/sglang-hicache.md> |
+| SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
 | Planner Component | <https://github.com/ai-dynamo/dynamo/blob/main/docs/components/planner/README.md> |
 | Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/main/docs/kubernetes/dynamo-operator.md> |
 | Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/main/docs/kubernetes/README.md> |
 | Container Quickstart | <https://github.com/ai-dynamo/dynamo/blob/main/docs/getting-started/quickstart.mdx> |
-
