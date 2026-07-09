@@ -1336,6 +1336,228 @@ python -m dynamo.frontend \
 | connector 组合容易配错 | P/D 场景通常要组合 offload connector 与 NIXL connector |
 | 版本强相关 | Dynamo、vLLM、SGLang、LMCache、FlexKV 的 connector API 都会随 release 演进 |
 
+### 11.9 Dynamo 与 ModelExpress
+
+ModelExpress 是 Dynamo 生态里的**模型权重生命周期与冷启动加速组件**。它关注的是模型文件、权重、JIT 编译产物如何更快到达新 worker；KVBM、LMCache、FlexKV、HiCache 关注的是请求运行期间产生的 KV block 如何复用、迁移和分层存储。两者都能降低延迟或扩容成本，但服务的对象完全不同。
+
+| 维度 | ModelExpress | KV cache/offloading 系统 |
+|------|--------------|--------------------------|
+| 管理对象 | 模型权重、模型文件、JIT artifact、下载状态 | runtime KV block、prefix/page/block residency |
+| 主要收益 | 降低冷启动、扩容、模型下载和 warmup 成本 | 降低 TTFT、减少重复 prefill、扩大有效上下文容量 |
+| 典型路径 | HuggingFace/NGC/GCS -> cache -> worker，或 GPU-to-GPU RDMA | GPU HBM -> CPU -> SSD -> 外部池，或跨 worker KV transfer |
+| 关键接口 | ModelExpress gRPC、CLI、vLLM/SGLang loader | vLLM connector、SGLang HiCache、Dynamo Router events |
+| 与 Dynamo 的关系 | 服务于 DGD/worker 启动与扩容 | 服务于请求调度、P/D 分离与运行期缓存复用 |
+
+#### 核心定位
+
+Dynamo 负责把推理服务组织成 Frontend、Router、runtime worker、Planner、Operator 和 Kubernetes CRD。ModelExpress 则补上“worker 拿到模型之前”的生命周期管理：
+
+| 问题 | ModelExpress 的作用 |
+|------|---------------------|
+| 多个 worker 同时从外部仓库拉模型 | 用分布式 registry 协调下载状态，避免重复下载和外部入口流量放大 |
+| 新 replica 扩容时磁盘加载慢 | 已有 replica 可作为 source，通过 NIXL/RDMA 直接传权重 |
+| vLLM/Triton/DeepGEMM 等 JIT warmup 慢 | 兼容的编译缓存可作为 artifact 从 ready source 传给新 replica |
+| 无共享存储或共享存储性能差 | 支持 gRPC streaming、P2P transfer、ModelStreamer/object storage 等路径 |
+| Kubernetes 中需要统一模型缓存状态 | Redis 或 Kubernetes CRD 保存模型生命周期和 P2P source metadata |
+
+这意味着 ModelExpress 不决定某个请求路由到哪个 worker，也不维护 per-request KV 命中视图。Dynamo Router 仍然根据 worker、endpoint、KV events、load metrics 等信息做调度；ModelExpress 主要影响 worker 的 ready 时间和 scale-out 成本。
+
+#### 组件结构
+
+ModelExpress 当前实现以 Rust server 和 Python/Rust client 为核心：
+
+| 组件 | 作用 |
+|------|------|
+| `modelexpress-server` | gRPC server，负责模型下载、cache registry、LRU eviction、P2P source metadata 协调 |
+| Rust CLI/client | `modelexpress-cli health/download/list/validate/clear`，可用于 init container 或运维操作 |
+| Python client | vLLM、SGLang、TRT-LLM loader/adapters，负责 source 发布、P2P 拉取和 artifact 安装 |
+| metadata backend | Redis、Kubernetes CRD，或特定 P2P 场景下的 `k8s-service` 去中心发现 |
+| cache directory | 模型文件缓存根目录，可落在本地盘、PVC、RWX 共享卷或临时卷 |
+
+ModelExpress gRPC 面可以分成两类：
+
+| 服务 | 关键 RPC | 用途 |
+|------|---------|------|
+| `ModelService` | `EnsureModelDownloaded`、`StreamModelFiles`、`ListModelFiles`、`DeleteModel` | 管理模型文件下载、状态流、无共享存储 streaming、清理模型记录 |
+| `P2pService` | `PublishMetadata`、`ListSources`、`GetMetadata`、`UpdateStatus` | 发布和查询可作为 P2P source 的 worker metadata |
+| `WorkerService` | `GetTensorManifest`、`GetArtifactManifestHeader`、`GetArtifactManifestChunks`、`PrepareArtifactChunk`、`ReleaseArtifactChunk` | source worker 侧暴露 tensor/artifact manifest，并为 NIXL chunk transfer 准备 registered buffer |
+
+`ModelService` 解决“模型文件在不在本地 cache 里”的问题；`P2pService` 和 `WorkerService` 解决“哪一个 running worker 已经有可复用权重或 artifact，以及如何传给目标 worker”的问题。
+
+#### 两种 Dynamo 集成路径
+
+ModelExpress 在 Dynamo 中有两条典型路径，生产上可以二选一，也可以组合使用。
+
+| 路径 | 适合场景 | 数据流 | 关键代价 |
+|------|----------|--------|----------|
+| 模型文件缓存 | 小中模型、共享 PVC 可接受、主要瓶颈是外部下载 | ModelExpress server 下载到 cache，Dynamo worker 从 cache path 加载 | 仍然需要 worker 从磁盘/PVC 读权重 |
+| P2P 权重传输 | 大模型、多副本、扩容频繁、磁盘读或 JIT warmup 成本高 | 首个 worker 加载并发布 source，后续 worker 通过 RDMA 接收权重和 JIT artifact | 需要 RDMA/NIXL、rank/layout/identity 严格一致 |
+
+模型文件缓存路径的 Dynamo 示例是 `examples/dynamo_model_cache_k8s/agg.yaml`。它把 ModelExpress Server、Redis、VLLM Worker、Frontend 和共享模型缓存卷放在一个 DynamoGraphDeployment 风格的部署里：ModelExpress 先下载模型并建立 cache path，worker 再用这个路径启动。
+
+P2P 权重传输路径的 Dynamo 示例是 `examples/dynamo_p2p_transfer_k8s/`。它面向 `DynamoGraphDeployment`，让 vLLM worker 使用 `--load-format modelexpress`。第一个 replica 从磁盘加载并发布 metadata，后续 replica 发现 ready source 后从已有 worker 拉取权重；如果配置 `MX_ARTIFACT_TRANSFER=1`，兼容的 JIT cache 也可以随扩容复用。
+
+```mermaid
+flowchart TB
+    Client["Client / OpenAI API"] --> FE["Dynamo Frontend"]
+    FE --> Router["Dynamo Router"]
+    Router --> W0["VllmWorker replica 0<br/>first disk load"]
+    Router --> W1["VllmWorker replica 1<br/>scale-out target"]
+
+    DGD["DynamoGraphDeployment<br/>Dynamo Operator"] --> FE
+    DGD --> W0
+    DGD --> W1
+    DGD --> MX
+
+    subgraph MXPlane["ModelExpress control plane"]
+        MX["modelexpress-server<br/>gRPC :8001"]
+        Meta["Redis or K8s CRD<br/>ModelMetadata / ModelCacheEntry"]
+    end
+
+    subgraph Storage["model artifact sources"]
+        HF["HuggingFace / NGC / GCS"]
+        PVC["PVC / local NVMe cache"]
+        OBJ["S3 / Azure Blob / GCS via ModelStreamer"]
+    end
+
+    MX <--> Meta
+    MX --> HF
+    MX --> PVC
+    MX --> OBJ
+    W0 -->|"publish source metadata"| MX
+    W1 -->|"discover ready source"| MX
+    W0 -.->|"NIXL / RDMA weights + JIT artifacts"| W1
+    W0 -->|"load from cache"| PVC
+    W1 -->|"fallback load / staged files"| PVC
+```
+
+这张图的重点是：ModelExpress 的 metadata/control path 经过 server 和 Redis/CRD；真正的大块权重传输不经过 server，而是在 source worker 与 target worker 之间通过 NIXL/RDMA 走数据面。
+
+#### metadata 与生命周期
+
+ModelExpress 保存两类 metadata：
+
+| metadata | Redis key/CRD | 生命周期 |
+|----------|---------------|----------|
+| P2P source metadata | Redis `mx:source:*` 或 `ModelMetadata` CRD | source worker 发布，heartbeat 刷新，停止后进入 stale 并被 reaper 清理 |
+| 模型下载/cache lifecycle | Redis `mx:model:*` 或 `ModelCacheEntry` CRD | server 记录 `DOWNLOADING`、`DOWNLOADED`、`ERROR`，供多副本协调下载和 LRU eviction |
+
+P2P source 的身份不是简单的 model name，而是 `SourceIdentity` 的内容哈希。它包含 model、backend framework、TP/PP/EP degree、dtype、quantization、revision、framework/CUDA/Triton/GPU arch 等影响兼容性的字段。server 计算 `mx_source_id = SHA256(canonical_json(identity))[:16]`，相同 identity 的 source 才会被视为可互相复用。
+
+这个设计很重要：如果两个 worker 的模型名相同，但量化方式、TP 切分、revision 或编译环境不同，直接复用 GPU tensor 或 JIT artifact 可能造成错误权重、layout 错位或运行时崩溃。ModelExpress 用 identity hash 把这些差异前置到发现阶段。
+
+source 状态大致是：
+
+| 状态 | 含义 |
+|------|------|
+| `INITIALIZING` | worker 已发布 metadata，但 NIXL 或 runtime readiness 尚未确认 |
+| `READY` | source 可被 target 拉取权重或 artifact |
+| `STALE` | source 已退出或 heartbeat 超时，metadata 等待 GC |
+
+需要注意：Redis metadata 不依赖 Redis TTL 自动过期。P2P stale detection 和清理由 server-side reaper 处理；模型生命周期记录会在 cache eviction 删除模型时被删除。对运维来说，清理策略应看 ModelExpress registry/eviction，而不是只看 Redis key TTL。
+
+#### cache、存储与清理策略
+
+ModelExpress 的模型文件 cache 由 `MODEL_EXPRESS_CACHE_DIRECTORY` 指定，默认是 `./cache`。部署形态不同，cache volume 的含义也不同：
+
+| 部署形态 | cache 形态 | 说明 |
+|----------|------------|------|
+| 单副本或单节点 | 本地盘或 RWO PVC | 简单，适合开发或单节点服务 |
+| 多 worker 共享模型文件 | RWX PVC 或共享文件系统 | 多个 worker 可直接读同一份模型文件，但共享存储性能会成为瓶颈 |
+| 多 ModelExpress server，无共享存储 | 每个 server 自己的 RWO/ephemeral cache，加 gRPC streaming | 适合不想依赖 RWX 的集群，但 client/init container 需要配合 |
+| ModelStreamer | object storage 或 PVC/local path | client 侧从 S3、Azure Blob、GCS、本地路径流式加载 |
+| P2P RDMA receiver | receiver 不一定需要模型落盘 | target 可直接接收 GPU 权重；source 仍通常需要磁盘或预加载来源 |
+
+cache eviction 是 ModelExpress 自己的 registry 驱动逻辑，默认启用 LRU 方向的清理。常见配置包括：
+
+| 配置 | 作用 |
+|------|------|
+| `MODEL_EXPRESS_CACHE_EVICTION_ENABLED` | 启用或关闭 cache eviction |
+| `cache.max_size_bytes` | 限制 cache 总大小 |
+| `eviction.policy.unused_threshold` | 删除超过指定时长未使用的模型，默认配置示例为 7 天 |
+| `eviction.policy.max_models` | 限制保留模型数量 |
+| `eviction.check_interval` | eviction 检查周期，默认配置示例为 1 小时 |
+| `modelexpress-cli model clear <model>` | 手工删除模型 registry 记录和对应 cache |
+
+这和 Mooncake DFS 持久化或 KV cache SSD offload 的容量治理不同。ModelExpress 清理的是模型文件和模型生命周期记录；KV cache 系统清理的是请求运行期 block/page。不要把二者的容量、命中率和驱逐策略合并成一个指标。
+
+部署时最常见的变量如下：
+
+| 配置 | 作用 |
+|------|------|
+| `MX_METADATA_BACKEND` | 选择 metadata backend，常见值为 `redis`、`kubernetes`，特定 P2P 路径可用 `k8s-service` |
+| `REDIS_URL` / `MX_REDIS_HOST` / `MX_REDIS_PORT` | Redis backend 的连接配置 |
+| `POD_NAMESPACE` / `MX_METADATA_NAMESPACE` | Kubernetes CRD backend 使用的 namespace |
+| `MX_SERVER_ADDRESS` | ModelExpress client 推荐使用的 server 地址 |
+| `MODEL_EXPRESS_URL` | 旧变量；Dynamo 示例仍会使用，和 `MX_SERVER_ADDRESS` 并设更稳妥 |
+| `MODEL_EXPRESS_CACHE_DIRECTORY` | 模型文件 cache 根目录 |
+| `MODEL_EXPRESS_NO_SHARED_STORAGE` | 无共享存储时走 gRPC streaming |
+| `MODEL_EXPRESS_CACHE_EVICTION_ENABLED` | 启用或关闭模型 cache eviction |
+| `MX_ARTIFACT_TRANSFER` | 启用兼容 JIT artifact transfer |
+
+#### P2P 权重和 JIT artifact 传输
+
+vLLM 路径中，ModelExpress 通过 load format 接入：
+
+```bash
+vllm serve deepseek-ai/DeepSeek-V4-Pro \
+  --load-format modelexpress \
+  --tensor-parallel-size 8 \
+  --trust-remote-code
+```
+
+vLLM 0.23.0 及以上已经识别 `modelexpress` load format；更旧版本通常需要安装 ModelExpress plugin，并用 `VLLM_PLUGINS=modelexpress` 或兼容 alias。Dynamo 的 P2P 示例里还提醒：Dynamo 集成当前仍会使用 `MODEL_EXPRESS_URL`，而 ModelExpress 新路径推荐 `MX_SERVER_ADDRESS`；生产部署可以两个都设置，以减少版本切换风险。
+
+P2P transfer 的关键约束：
+
+| 约束 | 原因 |
+|------|------|
+| RDMA/NIXL 可用 | 大块 GPU-to-GPU 权重传输依赖高速数据面 |
+| source 与 target 的 TP/PP/EP、dtype、quantization、revision 一致 | tensor layout 和内容必须兼容 |
+| source 必须保持 READY 且 rkey 有效 | source 重启会让远端 key 失效，需要 reaper/重试/清理 |
+| worker rank 匹配 | target 通常要找相同 rank 的 source 拉取对应 shard |
+| artifact 与编译环境匹配 | torch/Triton/CUDA/GPU arch/compile config 不一致时不能安全复用 |
+
+JIT artifact transfer 覆盖的不只是权重，还包括 TorchInductor、Triton、DeepGEMM、TileLang、CuTe DSL、FlashInfer 等 cache source type。它的价值在于扩容时不用每个新 replica 都重新编译 kernel 或重新构建 warmup 产物。
+
+SGLang 路径中，ModelExpress 作为 `remote_instance` 的 weight loader backend：
+
+```bash
+python -m sglang.launch_server \
+  --model-path deepseek-ai/DeepSeek-V3 \
+  --tp 8 \
+  --load-format remote_instance \
+  --remote-instance-weight-loader-backend modelexpress \
+  --modelexpress-config '{"transport": "nixl"}'
+```
+
+如果使用 Mooncake TransferEngine，可把 `transport` 改成 `transfer_engine`，但镜像中需要安装对应 Mooncake 包。Dynamo 自身仍负责 SGLang worker 的 runtime 接入和路由，ModelExpress 只负责权重加载路径。
+
+#### backend 选择
+
+ModelExpress 的 metadata backend 选择会影响可支持的工作负载：
+
+| backend | 适合场景 | 不适合场景 |
+|---------|----------|------------|
+| Redis | 通用生产路径、动态 worker、多 revision、多 source | 需要额外 Redis 运维 |
+| Kubernetes CRD | K8s-native、希望用 `ModelMetadata` 和 `ModelCacheEntry` 做状态对象 | 需要 CRD、RBAC、controller/runtime 权限配置 |
+| `k8s-service` | stable-weight inference、无中心 server、只想依赖 Service 负载均衡 | RL live refit、hot swap、长时间 mixed revision、异构 pool、per-worker 精确寻址 |
+
+`k8s-service` 后端容易被误用。它不是 Redis/CRD 的等价轻量替代，而是为“pod 生命周期内权重不变”的同质 serving pool 做的去中心发现路径。只要需要 live weight update、训练循环 refit、同一服务内长期混跑多个模型 revision，就应选 Redis 或 Kubernetes CRD 这类 central coordinator。
+
+#### 与 KVBM、LMCache、FlexKV、HiCache 的组合
+
+ModelExpress 与 KV cache 系统可以叠加：
+
+| 组合 | 效果 |
+|------|------|
+| ModelExpress + KVBM | worker 更快 ready，运行期 KV block 可在 GPU/CPU/disk/NIXL 路径中复用和 offload |
+| ModelExpress + LMCache | 扩容时权重和 JIT cache 更快到位，请求间重复上下文由 LMCache 复用 |
+| ModelExpress + FlexKV | 权重冷启动和分布式 KV 多级存储分别优化，适合大模型、多节点、SSD/GDS 场景 |
+| ModelExpress + SGLang HiCache | ModelExpress 加速 SGLang replica 权重加载，HiCache 处理 RadixAttention 的分层 KV |
+
+如果系统瓶颈是“新 pod 启动几十分钟才 ready”，优先评估 ModelExpress。如果瓶颈是“ready 后长上下文 prefill 太贵或多轮会话重复计算”，优先评估 KV-aware routing 与 KV cache/offloading。两类优化不要互相替代。
+
 ---
 
 ## 第十二章：实践建议
@@ -1346,6 +1568,7 @@ python -m dynamo.frontend \
 |------|----------|
 | 快速试用 | container quickstart + `--discovery-backend file` |
 | 单后端生产服务 | Kubernetes DGD + Dynamo-native Frontend |
+| 模型冷启动或扩容慢 | ModelExpress model cache 或 P2P weight transfer |
 | 长上下文服务 | KV Router + KVBM 或后端对应 KV offload |
 | Prefill/Decode 压力明显不同 | Disaggregated serving + Planner |
 | 平台统一入口 | Gateway API + GAIE + EPP |
@@ -1357,6 +1580,7 @@ python -m dynamo.frontend \
 |------|----------|
 | Dynamo 可以替代 vLLM/SGLang/TRT-LLM | Dynamo 是上层编排层，仍依赖后端引擎执行模型 |
 | KV-aware routing 等于 KVBM | Router 负责路由可见性，KVBM 负责 block 存储与迁移 |
+| ModelExpress 等于 KV cache | ModelExpress 管理模型权重、模型文件和 JIT artifact；KV block 仍由 KVBM、LMCache、FlexKV、HiCache 等路径处理 |
 | P/D 分离一定更快 | 小模型或短 prompt 中传输开销可能超过收益 |
 | 开启 KVBM 就能无限上下文 | 容量扩大不等于零成本，onboard/offload 会影响延迟 |
 | 用 QPS 扩缩即可 | LLM 需要考虑 ISL、OSL、KV hit、TTFT、ITL |
@@ -1369,6 +1593,7 @@ python -m dynamo.frontend \
 | 后端 | 确认所选 release 的 backend feature matrix |
 | 路由 | 动态 endpoint、`ModelInput.Tokens`、worker KV events 配置正确 |
 | 缓存 | 明确 G1/G2/G3/G4 容量、清理策略、offload 成本 |
+| ModelExpress | 明确 metadata backend、模型 cache 路径/PVC、provider 凭据、LRU 清理、RDMA/NIXL、vLLM/SGLang load format、CRD/RBAC |
 | 网络 | 确认 NIXL 所需 RDMA/NVLink/UCX/GDS 等能力 |
 | Kubernetes | GPU Operator、Dynamo Operator、CRD、webhook、Prometheus 可用 |
 | Planner | SLA 目标、GPU budget、`min_endpoint`、scale-down sensitivity 合理 |
@@ -1436,6 +1661,14 @@ helm install dynamo-platform \
 | FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/main/docs/integrations/flexkv-integration.md> |
 | SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/main/docs/backends/sglang/sglang-hicache.md> |
 | SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
+| ModelExpress GitHub | <https://github.com/ai-dynamo/modelexpress> |
+| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/ARCHITECTURE.md> |
+| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/DEPLOYMENT.md> |
+| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/metadata.md> |
+| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/K8S_SERVICE_BACKEND.md> |
+| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/SGLANG.md> |
+| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/main/examples/dynamo_model_cache_k8s/README.md> |
+| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/main/examples/dynamo_p2p_transfer_k8s/README.md> |
 | Planner Component | <https://github.com/ai-dynamo/dynamo/blob/main/docs/components/planner/README.md> |
 | Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/main/docs/kubernetes/dynamo-operator.md> |
 | Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/main/docs/kubernetes/README.md> |
