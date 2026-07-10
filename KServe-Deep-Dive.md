@@ -18,7 +18,7 @@
 
 ### 1.1 KServe 是什么
 
-用户写的 “kserver” 对应的官方项目名是 **KServe**。KServe 是一个 Kubernetes 原生的 AI 推理平台，目标是用 Kubernetes CRD 把模型服务声明成资源对象，再由控制器自动生成 Deployment、Service、Gateway/Ingress、Autoscaler、Storage Initializer、Model Cache 等运行时资源。
+KServe 是一个 Kubernetes 原生的 AI 推理平台，目标是用 Kubernetes CRD 把模型服务声明成资源对象，再由控制器自动生成 Deployment、Service、Gateway/Ingress、Autoscaler、Storage Initializer、Model Cache 等运行时资源。
 
 一句话概括：
 

@@ -16,9 +16,9 @@
 
 ## 第一章：定位与阅读方式
 
-### 1.1 本文如何理解 kserver / KServe
+### 1.1 本文如何理解 KServe
 
-用户语境中的 `kserver` 按 Kubeflow 生态语义理解为 **KServe**。本文主线不会把 KServe 当成独立于 Kubeflow 的外部系统来讲，而是把它作为 Kubeflow Community Distribution 里的一个正式应用节点；同时在第七章单独分析部署 Kubeflow 后再拆分 KServe / Istio 的可行性和风险：
+KServe 在 Kubeflow 生态中是在线推理节点。本文主线不会把 KServe 当成独立于 Kubeflow 的外部系统来讲，而是把它作为 Kubeflow Community Distribution 里的一个正式应用节点；同时在第七章单独分析部署 Kubeflow 后再拆分 KServe / Istio 的可行性和风险：
 
 | 角色 | 在 Kubeflow 中的位置 |
 |------|----------------------|
