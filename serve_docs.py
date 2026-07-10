@@ -334,38 +334,11 @@ a:focus-visible {
   outline-offset: 3px;
 }
 
-/* ─── Floating Home Link ─── */
-.home-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 72px;
-  height: 44px;
-  padding: 0 18px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(22, 27, 34, 0.92);
-  color: var(--text);
-  font-weight: 600;
-  font-size: 0.95em;
-  line-height: 1;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(10px);
-  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+.toc-fab {
+  display: none;
 }
-.home-fab:hover {
-  border-color: var(--accent-dim);
-  background: rgba(88, 166, 255, 0.16);
-  color: var(--accent);
-  transform: translateY(-2px);
-}
-.home-fab:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
+.toc-backdrop {
+  display: none;
 }
 
 /* ─── Blockquotes ─── */
@@ -487,6 +460,24 @@ hr {
 .toc.toc-nested {
   max-height: min(72vh, 760px);
   overflow: auto;
+}
+.doc-sidebar .toc-home-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  margin: 0 0 12px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(88, 166, 255, 0.08);
+  color: var(--text);
+  font-weight: 600;
+}
+.doc-sidebar .toc-home-link:hover {
+  border-color: var(--accent-dim);
+  color: var(--accent);
 }
 .doc-sidebar .toc {
   margin: 0;
@@ -623,25 +614,70 @@ details > *:not(summary) {
   .doc-shell .doc-container {
     padding: 0;
   }
+  body.toc-open {
+    overflow: hidden;
+  }
   .doc-sidebar {
-    position: static;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 42;
+    width: min(86vw, 340px);
+    height: 100dvh;
     max-height: none;
-    overflow: visible;
-    padding: 0 0 24px;
+    overflow: auto;
+    padding: 16px;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    box-shadow: 20px 0 44px rgba(0, 0, 0, 0.45);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    overscroll-behavior: contain;
+  }
+  body.toc-open .doc-sidebar {
+    transform: translateX(0);
   }
   .doc-sidebar .toc {
-    max-height: 360px;
-    overflow: auto;
+    min-height: calc(100dvh - 32px);
+    max-height: none;
   }
-  .doc-hero h1 { font-size: 1.8em; }
-  .home-fab {
-    right: 14px;
+  .toc-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 41;
+    background: rgba(1, 4, 9, 0.68);
+    backdrop-filter: blur(2px);
+  }
+  body.toc-open .toc-backdrop {
+    display: block;
+  }
+  .toc-fab {
+    position: fixed;
+    left: 14px;
     bottom: 14px;
+    z-index: 43;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-width: 64px;
     height: 40px;
     padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(22, 27, 34, 0.92);
+    color: var(--text);
+    font: inherit;
     font-size: 0.9em;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(10px);
   }
+  .toc-fab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .doc-hero h1 { font-size: 1.8em; }
   h2 { font-size: 1.4em; }
   .doc-grid { grid-template-columns: 1fr; }
   table { font-size: 0.82em; }
@@ -681,7 +717,16 @@ def render_doc(doc):
     body = render_mermaid_blocks(body)
     body, toc_html = split_body_and_toc(body)
     sidebar_html = (
-        f'<aside class="doc-sidebar" aria-label="文档目录">\n{toc_html}\n</aside>'
+        '<aside id="doc-sidebar" class="doc-sidebar" aria-label="文档目录">\n'
+        '<a class="toc-home-link" href="/">首页</a>\n'
+        f'{toc_html}\n</aside>'
+        if toc_html
+        else ""
+    )
+    mobile_toc_controls = (
+        '<button class="toc-fab" type="button" aria-controls="doc-sidebar" '
+        'aria-expanded="false">目录</button>\n'
+        '<div class="toc-backdrop" hidden></div>'
         if toc_html
         else ""
     )
@@ -695,7 +740,7 @@ def render_doc(doc):
 <style>{CSS}</style>
 </head>
 <body>
-<a class="home-fab" href="/" aria-label="返回文档首页" title="返回文档首页">首页</a>
+{mobile_toc_controls}
 <div class="doc-page">
 <div class="doc-container doc-hero-container">
   <div class="doc-hero">
@@ -731,6 +776,34 @@ def render_doc(doc):
       fontFamily: 'Inter, Noto Sans SC, sans-serif'
     }}
   }});
+</script>
+<script>
+  const tocButton = document.querySelector('.toc-fab');
+  const tocBackdrop = document.querySelector('.toc-backdrop');
+  const tocSidebar = document.querySelector('#doc-sidebar');
+
+  if (tocButton && tocBackdrop && tocSidebar) {{
+    function setTocOpen(open) {{
+      document.body.classList.toggle('toc-open', open);
+      tocButton.setAttribute('aria-expanded', String(open));
+      tocBackdrop.hidden = !open;
+    }}
+
+    tocButton.addEventListener('click', () => {{
+      setTocOpen(!document.body.classList.contains('toc-open'));
+    }});
+    tocBackdrop.addEventListener('click', () => setTocOpen(false));
+    tocSidebar.addEventListener('click', (event) => {{
+      if (event.target.closest('a')) {{
+        setTocOpen(false);
+      }}
+    }});
+    document.addEventListener('keydown', (event) => {{
+      if (event.key === 'Escape') {{
+        setTocOpen(false);
+      }}
+    }});
+  }}
 </script>
 </body>
 </html>"""
