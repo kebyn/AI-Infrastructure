@@ -37,6 +37,20 @@ DOCS = [
         ),
     },
     {
+        "src": "/data/E2B-Deep-Dive.md",
+        "dst": "/data/E2B-Deep-Dive.html",
+        "href": "/E2B-Deep-Dive.html",
+        "title": "E2B 深度技术文档",
+        "hero": "E2B 深度技术文档",
+        "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
+        "meta": "基于 e2b-dev/infra main@7a65575 · 参考 kebyn/e2b master@c59dae5 · 2026-07-10",
+        "summary": "覆盖控制面/数据面、sandbox 生命周期、模板构建、网络隔离、状态存储、Terraform/Nomad 自托管与私有化部署取舍。",
+        "footer": (
+            '基于 <a href="https://github.com/e2b-dev/infra">e2b-dev/infra</a> 官方仓库整理 · '
+            '参考 <a href="https://github.com/kebyn/e2b">kebyn/e2b</a> 中文私有化资料'
+        ),
+    },
+    {
         "src": "/data/LLM-Benchmark-Deep-Dive.md",
         "dst": "/data/LLM-Benchmark-Deep-Dive.html",
         "href": "/LLM-Benchmark-Deep-Dive.html",
