@@ -6,6 +6,17 @@ import serve_docs
 
 
 class RenderDocLayoutTest(unittest.TestCase):
+    def test_lustre_3fs_doc_is_registered(self):
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+
+        self.assertIn("Lustre-3FS-Deep-Dive.md", docs_by_src)
+
+        doc = docs_by_src["Lustre-3FS-Deep-Dive.md"]
+        self.assertEqual(Path(doc["dst"]).name, "Lustre-3FS-Deep-Dive.html")
+        self.assertEqual(doc["href"], "/Lustre-3FS-Deep-Dive.html")
+        self.assertIn("Lustre", doc["title"])
+        self.assertIn("3FS", doc["title"])
+
     def test_render_doc_moves_generated_toc_into_sidebar(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)

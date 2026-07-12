@@ -70,6 +70,21 @@ DOCS = [
         ),
     },
     {
+        "src": "/data/Lustre-3FS-Deep-Dive.md",
+        "dst": "/data/Lustre-3FS-Deep-Dive.html",
+        "href": "/Lustre-3FS-Deep-Dive.html",
+        "title": "Lustre 与 3FS 深度技术文档",
+        "hero": "Lustre 与 3FS 深度技术文档",
+        "subtitle": "HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析",
+        "meta": "基于 Lustre Wiki 与 deepseek-ai/3fs main@22fca04 · 2026-07-10",
+        "summary": "覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV cache 与生产选型。",
+        "footer": (
+            '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、'
+            '<a href="https://github.com/deepseek-ai/3fs">deepseek-ai/3fs</a> 与 '
+            '<a href="https://arxiv.org/html/2408.14158v1">Fire-Flyer AI-HPC 论文</a> 整理'
+        ),
+    },
+    {
         "src": "/data/HAMi-Deep-Dive.md",
         "dst": "/data/HAMi-Deep-Dive.html",
         "href": "/HAMi-Deep-Dive.html",
