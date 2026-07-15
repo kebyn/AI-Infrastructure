@@ -99,6 +99,39 @@ DOCS = [
         ),
     },
     {
+        "src": "/data/Kubernetes-AI-Schedulers-Deep-Dive.md",
+        "dst": "/data/Kubernetes-AI-Schedulers-Deep-Dive.html",
+        "href": "/Kubernetes-AI-Schedulers-Deep-Dive.html",
+        "title": "Kubernetes AI 调度器深度对比",
+        "hero": "Kubernetes AI 调度器深度对比",
+        "subtitle": "Koordinator、Kueue、Grove、KAI-Scheduler 与 Volcano 架构、能力边界和生产选型解析",
+        "meta": "基于 5 个官方仓库主线快照 · 2026-07-15",
+        "summary": "覆盖队列准入、Gang Scheduling、GPU/拓扑、配额公平、Grove 调度后端、组合架构、升级治理与场景化选型。",
+        "footer": (
+            '基于 <a href="https://github.com/koordinator-sh/koordinator">Koordinator</a>、'
+            '<a href="https://github.com/kubernetes-sigs/kueue">Kueue</a>、'
+            '<a href="https://github.com/ai-dynamo/grove">Grove</a>、'
+            '<a href="https://github.com/kai-scheduler/KAI-Scheduler">KAI-Scheduler</a> 与 '
+            '<a href="https://github.com/volcano-sh/volcano">Volcano</a> 官方资料整理'
+        ),
+    },
+    {
+        "src": "/data/Volcano-Upgrade-Compatibility-Deep-Dive.md",
+        "dst": "/data/Volcano-Upgrade-Compatibility-Deep-Dive.html",
+        "href": "/Volcano-Upgrade-Compatibility-Deep-Dive.html",
+        "title": "Volcano 升级与 Feature 兼容性",
+        "hero": "Volcano 升级与 Feature 兼容性",
+        "subtitle": "v1.8.2 到 v1.15.0 的 Helm、Webhook、Queue 语义与 Cloud Native Colocation 兼容边界",
+        "meta": "基于 Volcano、Website 与 Helm Charts 官方快照 · 2026-07-15",
+        "summary": "覆盖六层升级判定、逐版本矩阵、proportion/capacity 迁移、已确认故障、Agent 节点边界、DRA quota 与 gang-aware eviction。",
+        "footer": (
+            '基于 <a href="https://github.com/volcano-sh/volcano">Volcano</a>、'
+            '<a href="https://volcano.sh/docs/keyfeatures/cloudnativecolocation/">Cloud Native Colocation</a>、'
+            '<a href="https://volcano.sh/docs/keyfeatures/queueresourcemanagement/">Queue Resource Management</a> 与 '
+            '<a href="https://github.com/volcano-sh/helm-charts">Helm Charts</a> 官方资料整理'
+        ),
+    },
+    {
         "src": "/data/KServe-Deep-Dive.md",
         "dst": "/data/KServe-Deep-Dive.html",
         "href": "/KServe-Deep-Dive.html",
@@ -865,7 +898,7 @@ def render_index():
 <div class="doc-container">
   <div class="doc-hero">
     <h1>AI 基础设施深度文档</h1>
-    <p class="subtitle">Mooncake、Dynamo、LLM 压测、HAMi、KServe 与 Kubeflow 技术分析入口</p>
+    <p class="subtitle">LLM 推理、压测、存储、Sandbox、异构设备、AI 调度、模型服务与 MLOps 技术分析入口</p>
     <p class="meta">统一运行在 80 端口</p>
   </div>
   <div class="doc-grid">
