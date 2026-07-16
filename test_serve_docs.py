@@ -7,6 +7,75 @@ import serve_docs
 
 
 class RenderDocLayoutTest(unittest.TestCase):
+    def test_nvidia_gpu_operator_doc_is_registered(self):
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+
+        self.assertIn("NVIDIA-GPU-Operator-Deep-Dive.md", docs_by_src)
+
+        doc = docs_by_src["NVIDIA-GPU-Operator-Deep-Dive.md"]
+        self.assertEqual(
+            Path(doc["dst"]).name,
+            "NVIDIA-GPU-Operator-Deep-Dive.html",
+        )
+        self.assertEqual(doc["href"], "/NVIDIA-GPU-Operator-Deep-Dive.html")
+        self.assertEqual(doc["title"], "NVIDIA GPU Operator 深度技术文档")
+        self.assertIn("v26.3.3", doc["meta"])
+        self.assertIn("b0a49c0", doc["meta"])
+        self.assertIn(
+            "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/overview.html",
+            doc["footer"],
+        )
+        self.assertIn(
+            "https://github.com/NVIDIA/gpu-operator/tree/"
+            "b0a49c0e7b2e061dcd83f2bb2fe4fe960c5d0338",
+            doc["footer"],
+        )
+
+    def test_render_index_includes_nvidia_gpu_operator_doc(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            original_index = serve_docs.INDEX
+            serve_docs.INDEX = str(Path(tmpdir) / "index.html")
+            try:
+                serve_docs.render_index()
+                html = Path(serve_docs.INDEX).read_text(encoding="utf-8")
+            finally:
+                serve_docs.INDEX = original_index
+
+        self.assertIn("NVIDIA GPU Operator 深度技术文档", html)
+        self.assertIn('/NVIDIA-GPU-Operator-Deep-Dive.html', html)
+        self.assertIn("GPU Operator v26.3.3", html)
+
+    def test_render_nvidia_gpu_operator_doc_includes_toc_and_mermaid(self):
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "NVIDIA-GPU-Operator-Deep-Dive.md"
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc)
+            rendered_doc["dst"] = str(Path(tmpdir) / "gpu-operator.html")
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        self.assertIn(
+            '<a class="toc-chapter" href="#第一章定位与边界">',
+            html,
+        )
+        self.assertIn(
+            '<a href="#4-1-两个配置层不要混淆">4.1 两个配置层不要混淆</a>',
+            html,
+        )
+        self.assertIn(
+            '<a class="toc-chapter" href="#第十二章故障排查方法">',
+            html,
+        )
+        self.assertGreaterEqual(html.count('<div class="mermaid">'), 5)
+        self.assertIn("flowchart TB", html)
+        self.assertIn("flowchart LR", html)
+        self.assertIn("sequenceDiagram", html)
+        self.assertNotIn('class="language-mermaid"', html)
+
     def test_lustre_3fs_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 

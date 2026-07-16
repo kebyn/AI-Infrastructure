@@ -13,6 +13,7 @@
 | [E2B-Deep-Dive.md](E2B-Deep-Dive.md) | E2B AI Sandbox 与自托管架构 | 关注代码执行沙箱、microVM、安全隔离和私有化部署的工程师 | Firecracker microVM、Orchestrator、envd、模板构建、网络隔离、状态存储、Terraform/Nomad 自托管 |
 | [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md) | LLM 压测工具深度对比 | 需要选择或设计推理压测方案的工程师 | AIPerf、GuideLLM、inference-perf、genai-bench、SGLang Bench、LLMPerf、vLLM Bench、EvalScope、Ollama Benchmark |
 | [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md) | Lustre 与 3FS 深度技术文档 | 关注 AI 存储、HPC 并行文件系统、RDMA/NVMe 共享存储和 KVCache 落盘的工程师 | Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、dataloader、checkpoint、KV cache、生产选型 |
+| [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md) | NVIDIA GPU Operator 节点软件栈与生命周期管理 | 负责 Kubernetes GPU 驱动、设备接入、共享隔离和生产运维的平台工程师 | Controller 调谐、ClusterPolicy、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级排障 |
 | [HAMi-Deep-Dive.md](HAMi-Deep-Dive.md) | Kubernetes 异构 AI 设备虚拟化与调度 | 关注 GPU 共享、设备隔离、多厂商设备管理的 Kubernetes 平台工程师 | MutatingWebhook、Scheduler Extender、Device Plugin、HAMi-Core、Annotation 协议、多厂商设备 |
 | [Kubernetes-AI-Schedulers-Deep-Dive.md](Kubernetes-AI-Schedulers-Deep-Dive.md) | Kubernetes AI 调度器深度对比 | 负责 GPU 集群、训练/推理平台、批任务队列和调度器选型的平台工程师 | Koordinator、Kueue、Grove、KAI-Scheduler、Volcano、Gang、队列公平、拓扑、组合架构、升级治理 |
 | [Volcano-Upgrade-Compatibility-Deep-Dive.md](Volcano-Upgrade-Compatibility-Deep-Dive.md) | Volcano 升级与 Feature 兼容性 | 负责 Volcano 升级、Queue 治理、Webhook 和共置能力的平台工程师 | v1.8.2→v1.15.0、Helm/Manifest、proportion/capacity、Agent、Cloud Native Colocation、DRA、gang-aware eviction |
@@ -24,7 +25,7 @@
 - LLM 推理架构：先读 [Mooncake-Deep-Dive.md](Mooncake-Deep-Dive.md)，再读 [Dynamo-Deep-Dive.md](Dynamo-Deep-Dive.md)。前者聚焦 KVCache 与分离式推理机制，后者聚焦数据中心级编排和路由。
 - 压测与容量评估：读 [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md)。它适合在选型推理引擎、比较吞吐/延迟指标、设计 SLO/goodput 压测方案前阅读。
 - AI 存储与文件系统：读 [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md)。它适合理解 Lustre、3FS、RDMA/NVMe 共享存储、checkpoint、dataloader 和 KV cache on disk 的架构取舍。
-- Kubernetes AI 平台：按 [HAMi-Deep-Dive.md](HAMi-Deep-Dive.md)、[Kubernetes-AI-Schedulers-Deep-Dive.md](Kubernetes-AI-Schedulers-Deep-Dive.md)、[Volcano-Upgrade-Compatibility-Deep-Dive.md](Volcano-Upgrade-Compatibility-Deep-Dive.md)、[KServe-Deep-Dive.md](KServe-Deep-Dive.md)、[Kubeflow-Deep-Dive.md](Kubeflow-Deep-Dive.md) 的顺序阅读。它们分别覆盖底层异构设备、队列与调度、Volcano 升级兼容、模型推理服务和上层 MLOps 平台。
+- Kubernetes AI 平台：按 [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md)、[HAMi-Deep-Dive.md](HAMi-Deep-Dive.md)、[Kubernetes-AI-Schedulers-Deep-Dive.md](Kubernetes-AI-Schedulers-Deep-Dive.md)、[Volcano-Upgrade-Compatibility-Deep-Dive.md](Volcano-Upgrade-Compatibility-Deep-Dive.md)、[KServe-Deep-Dive.md](KServe-Deep-Dive.md)、[Kubeflow-Deep-Dive.md](Kubeflow-Deep-Dive.md) 的顺序阅读。它们依次覆盖 NVIDIA 驱动与设备栈、GPU 共享和异构设备、队列与调度、Volcano 升级兼容、模型推理服务以及上层 MLOps 平台。
 - Sandbox 与执行环境：读 [E2B-Deep-Dive.md](E2B-Deep-Dive.md)。它适合理解 AI Agent 代码执行环境、隔离边界和自托管部署取舍。
 
 ## 本地预览

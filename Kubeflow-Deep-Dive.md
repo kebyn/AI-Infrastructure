@@ -4,7 +4,7 @@
 >
 > 基于 Kubeflow Community Distribution 官方仓库整理：<https://github.com/kubeflow/community-distribution>
 >
-> 文档快照：master 分支 `80bb48d6888d7be2df0b01f8fa67c01e8447c554`，整理日期：2026-07-09
+> 稳定版本基线：Community Distribution `26.03.1@f09f3eeaa25cc852665f460497a42b7fc68639ac`，审校日期：2026-07-16。组件矩阵以该 release 的 manifests 为准。
 
 ---
 
@@ -123,21 +123,21 @@ community-distribution/
 
 ### 2.2 文档快照组件矩阵
 
-第 7 行标注的 `80bb48d6888d7be2df0b01f8fa67c01e8447c554` 快照中，README 给出的主要组件版本和资源信号如下：
+`26.03.1@f09f3eeaa25cc852665f460497a42b7fc68639ac` 的 README 给出的主要组件版本和资源信号如下：
 
 | 组件 | 本地路径 | 上游版本 | 角色 |
 |------|----------|----------|------|
 | Training Operator | `applications/training-operator/upstream` | `v1.9.2` | 训练任务 CRD |
-| Trainer | `applications/trainer/upstream` | `v2.2.1` | 新一代训练控制面 |
+| Trainer | `applications/trainer/upstream` | `v2.2.0` | 新一代训练控制面 |
 | Kubeflow Notebooks | `applications/notebooks-v1/upstream` | `v1.11.0` | 交互式开发 |
 | Kubeflow Dashboard | `applications/dashboard/upstream` | `v2.0.0` | 平台门户 |
 | Katib | `applications/katib/upstream` | `v0.19.0` | HPO / NAS |
-| KServe UI | `applications/kserve/kserve-ui` | `v1.0.0` | 模型 endpoint UI |
-| KServe | `applications/kserve/kserve` | `v0.19.0` | 在线推理节点 |
-| Kubeflow Pipelines | `applications/pipeline/upstream` | `release-2.17` | 工作流和 artifact |
-| Kubeflow Hub | `applications/hub/upstream` | `v0.3.10` | Model Registry / Catalog |
-| Spark Operator | `applications/spark/spark-operator` | `2.5.1` | Spark 任务 |
-| Istio | `common/istio` | `1.30.2` | 网格、入口、授权 |
+| KServe Models Web App | `applications/kserve/models-web-app` | `v0.18.0` | 模型 endpoint UI |
+| KServe | `applications/kserve/kserve` | `v0.18.0` | 在线推理节点 |
+| Kubeflow Pipelines | `applications/pipeline/upstream` | `2.16.1` | 工作流和 artifact |
+| Kubeflow Hub | `applications/hub/upstream` | `v0.3.9` | Model Registry / Catalog |
+| Spark Operator | `applications/spark/spark-operator` | `2.5.0` | Spark 任务 |
+| Istio | `common/istio` | `1.30.1` | 网格、入口、授权 |
 | Knative | `common/knative` | `v1.22.0` | KServe serverless 基础 |
 | cert-manager | `common/cert-manager` | `1.20.2` | webhook 证书 |
 | Dex | `common/dex` | `2.45.1` | 默认 OIDC IdP |
@@ -439,7 +439,7 @@ Dashboard 是 Kubeflow 的平台门面。当前 overlay 中菜单包含：
 
 ### 6.2 Kubeflow Pipelines
 
-Pipelines 当前 master 使用 `release-2.17`。Community Distribution 默认使用 SeaweedFS 作为 S3-compatible artifact store，而不是旧 MinIO。
+Community Distribution 26.03.1 使用 Kubeflow Pipelines `2.16.1`。该 release 默认使用 SeaweedFS 作为 S3-compatible artifact store，而不是旧 MinIO。
 
 Pipelines 的技术角色：
 
@@ -600,7 +600,7 @@ Kubeflow 发行版对 KServe 做了安全相关裁剪：
 | 删除不安全 `LLMInferenceServiceConfig` | 涉及 `IPC_LOCK`、`SYS_RAWIO`、`NET_RAW`、`runAsNonRoot: false` |
 | 删除 LLM config validating webhook | 注释说明 webhook server 未运行会产生 EOF |
 
-结论：Kubeflow Community Distribution 中的 KServe v0.19.0 不能简单等同于“完整启用所有 KServe LLM 高级能力”。生产如果要启用 LLMISVC、LocalModelCache、节点本地模型缓存，需要重新评估 PSS、安全上下文、DaemonSet 权限和 webhook 可用性。
+结论：Kubeflow Community Distribution 26.03.1 中固定的是 KServe v0.18.0，不能等同于独立安装 KServe v0.19.0，也不能据此假设已完整启用其 LLM 高级能力。生产如果要独立升级并启用 LLMISVC、LocalModelCache 或节点本地模型缓存，需要重新评估 CRD/controller 所有权、PSS、安全上下文、DaemonSet 权限和 webhook 可用性。
 
 ### 7.5 Path-based routing
 
@@ -1224,6 +1224,7 @@ KServe 安装和测试：
 | 主题 | 链接 |
 |------|------|
 | Community Distribution 仓库 | <https://github.com/kubeflow/community-distribution> |
+| 26.03.1 源码快照 | <https://github.com/kubeflow/community-distribution/tree/26.03.1> |
 | Kubeflow 官网 | <https://www.kubeflow.org/> |
 | Kubeflow Community | <https://www.kubeflow.org/docs/about/community/> |
 | Kubeflow Releases | <https://github.com/kubeflow/community-distribution/releases> |
@@ -1232,6 +1233,6 @@ KServe 安装和测试：
 | Kubeflow Notebooks | <https://www.kubeflow.org/docs/components/notebooks/> |
 | Kubeflow Katib | <https://www.kubeflow.org/docs/components/katib/> |
 | Kubeflow Training | <https://www.kubeflow.org/docs/components/training/> |
-| Istio VirtualService 与 KServe path routing 排障 | <https://github.com/kubeflow/community-distribution/blob/master/common/istio/README.md#virtualservice-conflicts-with-kserve-path-based-routing> |
+| Istio VirtualService 与 KServe path routing 排障 | <https://github.com/kubeflow/community-distribution/blob/26.03.1/common/istio/README.md#virtualservice-conflicts-with-kserve-path-based-routing> |
 | KServe Kubernetes Deployment Installation Guide | <https://kserve.github.io/website/docs/admin-guide/kubernetes-deployment> |
 | Istio Kubernetes Gateway API | <https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/> |

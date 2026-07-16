@@ -4,6 +4,8 @@
 >
 > 基于 Mooncake 官方文档 (https://kvcache-ai.github.io/Mooncake) 整理编写
 >
+> 稳定版本基线：`v0.3.11.post1@e9c61075720039bcfc5fffd19f847608402be3d0`，审校日期：2026-07-16。论文结论与软件实现会明确区分。
+>
 > FAST 2025 最佳论文 | Moonshot AI 的 Kimi 服务平台
 
 ---
@@ -2751,8 +2753,8 @@ Mooncake 已适配以下硬件平台：
 
 ---
 
-> **文档版本**：基于 Mooncake 官方文档 2026 年 7 月版本整理
+> **文档版本**：基于 Mooncake `v0.3.11.post1@e9c61075720039bcfc5fffd19f847608402be3d0` 与该版本官方文档审校，2026-07-16
 >
-> **项目地址**：https://github.com/kvcache-ai/Mooncake
+> **项目源码**：https://github.com/kvcache-ai/Mooncake/tree/v0.3.11.post1
 >
 > **官方文档**：https://kvcache-ai.github.io/Mooncake/

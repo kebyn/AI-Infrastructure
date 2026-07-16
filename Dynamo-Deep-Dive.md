@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 文档快照：main 分支 `cc5cf40db46a673bd0087dd1a34eda7a80000813`，整理日期：2026-07-09
+> 稳定版本基线：`v1.2.1@919682da679aa699d5bca9c872f4c1d9a530bbc0`，审校日期：2026-07-16。未发布主线能力会单独标注，不计入该版本的兼容承诺。
 
 ---
 
@@ -1648,28 +1648,28 @@ helm install dynamo-platform \
 |------|------|
 | GitHub 仓库 | <https://github.com/ai-dynamo/dynamo> |
 | 官方文档 | <https://docs.nvidia.com/dynamo/> |
-| README | <https://github.com/ai-dynamo/dynamo/blob/main/README.md> |
-| Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/main/docs/design-docs/architecture.md> |
-| Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/main/docs/design-docs/disagg-serving.md> |
-| Router Design | <https://github.com/ai-dynamo/dynamo/blob/main/docs/design-docs/router-design.md> |
-| KVBM Design | <https://github.com/ai-dynamo/dynamo/blob/main/docs/design-docs/kvbm-design.md> |
-| Planner Design | <https://github.com/ai-dynamo/dynamo/blob/main/docs/design-docs/planner-design.md> |
-| Router Component | <https://github.com/ai-dynamo/dynamo/blob/main/docs/components/router/README.md> |
-| KVBM Component | <https://github.com/ai-dynamo/dynamo/blob/main/docs/components/kvbm/README.md> |
-| vLLM KV Cache Offloading | <https://github.com/ai-dynamo/dynamo/blob/main/docs/backends/vllm/vllm-kv-offloading.md> |
-| LMCache Integration | <https://github.com/ai-dynamo/dynamo/blob/main/docs/integrations/lmcache-integration.md> |
-| FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/main/docs/integrations/flexkv-integration.md> |
-| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/main/docs/backends/sglang/sglang-hicache.md> |
+| README | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/README.md> |
+| Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/architecture.md> |
+| Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/disagg-serving.md> |
+| Router Design | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/router-design.md> |
+| KVBM Design | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/kvbm-design.md> |
+| Planner Design | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/planner-design.md> |
+| Router Component | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/components/router/README.md> |
+| KVBM Component | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/components/kvbm/README.md> |
+| vLLM KV Cache Offloading | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/backends/vllm/vllm-kv-offloading.md> |
+| LMCache Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/integrations/lmcache-integration.md> |
+| FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/integrations/flexkv-integration.md> |
+| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/integrations/sglang-hicache.md> |
 | SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
 | ModelExpress GitHub | <https://github.com/ai-dynamo/modelexpress> |
-| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/ARCHITECTURE.md> |
-| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/DEPLOYMENT.md> |
-| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/metadata.md> |
-| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/K8S_SERVICE_BACKEND.md> |
-| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/main/docs/SGLANG.md> |
-| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/main/examples/dynamo_model_cache_k8s/README.md> |
-| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/main/examples/dynamo_p2p_transfer_k8s/README.md> |
-| Planner Component | <https://github.com/ai-dynamo/dynamo/blob/main/docs/components/planner/README.md> |
-| Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/main/docs/kubernetes/dynamo-operator.md> |
-| Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/main/docs/kubernetes/README.md> |
-| Container Quickstart | <https://github.com/ai-dynamo/dynamo/blob/main/docs/getting-started/quickstart.mdx> |
+| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/ARCHITECTURE.md> |
+| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/DEPLOYMENT.md> |
+| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/metadata.md> |
+| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/K8S_SERVICE_BACKEND.md> |
+| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/SGLANG.md> |
+| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/examples/dynamo_model_cache_k8s/README.md> |
+| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/examples/dynamo_p2p_transfer_k8s/README.md> |
+| Planner Component | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/components/planner/README.md> |
+| Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/kubernetes/dynamo-operator.md> |
+| Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/kubernetes/README.md> |
+| Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/v1.2.1#quick-start> |

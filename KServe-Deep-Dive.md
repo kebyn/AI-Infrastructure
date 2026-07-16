@@ -4,7 +4,7 @@
 >
 > 基于 KServe 官方仓库与官网文档整理：<https://github.com/kserve/kserve>
 >
-> 文档快照：`kserve/kserve` master 分支 `9f680738c3e09f57bbee4336e9e2401a99202fd7`，`kserve/website` main 分支 `f4f7147b9c6401a91ee94af9ddd4ba0f9fb0937a`，整理日期：2026-07-09
+> 稳定版本基线：`kserve/kserve v0.19.0@b0eda63d2c105479140af8ec9149d992b7e44be5`；官网快照：`kserve/website main@f4f7147b9c6401a91ee94af9ddd4ba0f9fb0937a`；审校日期：2026-07-16。
 
 ---
 
@@ -52,9 +52,9 @@ KServe 当前呈现明显的双轨策略：
 | 资源 | API 版本 | 面向场景 | 是否推荐给 LLM |
 |------|----------|----------|----------------|
 | `InferenceService` | `serving.kserve.io/v1beta1` | 通用单模型 serving，预测式模型，标准 LLM serving | 可以用于基础 LLM |
-| `LLMInferenceService` | 当前 master storage version 为 `serving.kserve.io/v1alpha2` | 高级 LLM serving，prefix-aware routing，P/D 分离，多节点 | 高级 LLM 推荐 |
+| `LLMInferenceService` | v0.19.0 storage version 为 `serving.kserve.io/v1alpha2` | 高级 LLM serving，prefix-aware routing，P/D 分离，多节点 | 高级 LLM 推荐 |
 
-官网部分示例仍使用 `v1alpha1` 的 `LLMInferenceService`，而当前 master 代码已经包含 `v1alpha2` 类型与转换逻辑。实际落地时应以目标 release 的 CRD 和文档为准，不要混用 master 字段和旧 release YAML。
+官网部分旧示例仍使用 `v1alpha1` 的 `LLMInferenceService`，而 v0.19.0 CRD 已将 `v1alpha2` 设为 storage version，并包含 `v1alpha1`/`v1alpha2` 转换配置。实际落地时应使用同一 release 的 CRD、示例和 Chart。
 
 ### 1.4 KServe 不是什么
 
@@ -1022,26 +1022,25 @@ spec:
 
 ## 第八章：部署与依赖
 
-### 8.1 当前 master 快照中的版本信号
+### 8.1 v0.19.0 release 的版本信号
 
-当前 `kserve-deps.env` 中的关键值包括：
+`v0.19.0` tag 的 `kserve-deps.env` 关键值包括：
 
 | 项 | 当前值 |
 |----|--------|
 | `KSERVE_VERSION` | `v0.19.0` |
-| `GATEWAY_API_VERSION` | `v1.5.1` |
-| `GIE_VERSION` | `v1.5.0` |
+| `GATEWAY_API_VERSION` | `v1.4.1` |
+| `GIE_VERSION` | `v1.3.1` |
 | `LWS_VERSION` | `v0.8.0` |
-| `LLMD_ROUTER_VERSION` | `v0.9.0` |
 | `WVA_VERSION` | `v0.7.0` |
 | `KEDA_VERSION` | `2.18.0` |
 | `KNATIVE_SERVING_VERSION` | `1.21.1` |
 | `ISTIO_VERSION` | `1.27.1` |
 | `CERT_MANAGER_VERSION` | `v1.17.0` |
-| `ENVOY_GATEWAY_VERSION` | `v1.8.1` |
-| `ENVOY_AI_GATEWAY_VERSION` | `v1.0.0` |
+| `ENVOY_GATEWAY_VERSION` | `v1.7.0` |
+| `ENVOY_AI_GATEWAY_VERSION` | `v0.6.0` |
 
-官网部分安装页面仍展示 `v0.18.0` 命令；这不代表当前 master 还停留在 v0.18。生产安装应固定一个 KServe release，并使用同版本 CRD、chart、runtime image 和文档。
+官网部分安装页面仍可能展示 `v0.18.0` 命令；不能把这些命令与 v0.19.0 CRD 或 Chart 混用。生产安装应固定一个 KServe release，并使用同版本 CRD、Chart、runtime image 和依赖清单。
 
 ### 8.2 Standard InferenceService 安装依赖
 
@@ -1360,14 +1359,15 @@ kubectl get daemonset -n kserve kserve-localmodelnode-agent
 | 主题 | 链接 |
 |------|------|
 | GitHub 仓库 | <https://github.com/kserve/kserve> |
+| v0.19.0 源码快照 | <https://github.com/kserve/kserve/tree/v0.19.0> |
 | 官网文档 | <https://kserve.github.io/website/> |
 | KServe Concepts | <https://kserve.github.io/website/docs/concepts> |
 | Control Plane | <https://kserve.github.io/website/docs/concepts/architecture/control-plane> |
-| Data Plane | <https://kserve.github.io/website/docs/concepts/architecture/data-plane/data-plane> |
+| Data Plane | <https://kserve.github.io/website/docs/concepts/architecture/data-plane> |
 | Resources | <https://kserve.github.io/website/docs/concepts/resources> |
 | Standard Kubernetes Deployment | <https://kserve.github.io/website/docs/admin-guide/kubernetes-deployment> |
 | LLMInferenceService 安装 | <https://kserve.github.io/website/docs/admin-guide/kubernetes-deployment-llmisvc> |
 | LLMInferenceService Overview | <https://kserve.github.io/website/docs/model-serving/generative-inference/llmisvc/llmisvc-overview> |
 | Local Model Cache | <https://kserve.github.io/website/docs/model-serving/generative-inference/modelcache/localmodel> |
-| KV Cache Offloading | <https://kserve.github.io/website/docs/model-serving/generative-inference/kvcache-offloading/kvcache-offloading> |
+| KV Cache Offloading | <https://kserve.github.io/website/docs/model-serving/generative-inference/kvcache-offloading> |
 | API Reference | <https://kserve.github.io/website/docs/reference/crd-api> |

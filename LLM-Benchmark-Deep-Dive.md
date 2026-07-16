@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 文档快照：2026-07-09，基于各官方仓库 main/master 当前 HEAD 整理。
+> 稳定版本基线：AIPerf `v0.11.0`、GuideLLM `v0.7.1`、inference-perf `v0.6.0`、genai-bench `v0.0.4`、SGLang `v0.5.15.post1`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.25.1`、EvalScope `v1.9.0`；审校日期：2026-07-16。
 
 ---
 
@@ -429,7 +429,7 @@ genai-bench benchmark \
 
 ### 9.1 定位
 
-SGLang Bench 指 SGLang 仓库内置的 online serving benchmark，官方入口是 `python -m sglang.bench_serving`。在当前 main 快照中，`sglang.bench_serving` 仍可用，但源码已提示实现迁移到 `sglang.benchmark.serving`，新自动化脚本建议优先使用：
+SGLang Bench 指 SGLang 仓库内置的 online serving benchmark，官方入口是 `python -m sglang.bench_serving`。在 v0.5.15.post1 中，`sglang.bench_serving` 仍可用，但源码已提示实现迁移到 `sglang.benchmark.serving`，新自动化脚本建议优先使用：
 
 ```bash
 python3 -m sglang.benchmark.serving
@@ -1095,43 +1095,43 @@ python3 -m sglang.benchmark.serving \
 
 ## 附录：官方参考与当前快照
 
-### A.1 仓库快照
+### A.1 稳定版本快照
 
-| 工具 | 仓库 | 快照 |
-|------|------|------|
-| AIPerf | <https://github.com/ai-dynamo/aiperf> | `d41bd50` |
-| GuideLLM | <https://github.com/vllm-project/guidellm> | `6ea993b` |
-| inference-perf | <https://github.com/kubernetes-sigs/inference-perf> | `fbdead7` |
-| genai-bench | <https://github.com/sgl-project/genai-bench> | `7fc8483` |
-| SGLang Bench | <https://github.com/sgl-project/sglang/blob/main/docs/developer_guide/bench_serving.md> | `a9e8046` |
-| LLMPerf | <https://github.com/ray-project/llmperf> | `f1d6bed` |
-| ollama-benchmark | <https://github.com/aidatatools/ollama-benchmark> | `f9a5edb` |
-| vLLM Bench | <https://github.com/vllm-project/vllm/tree/main/benchmarks> | `e875216` |
-| EvalScope | <https://github.com/modelscope/evalscope> | `7ceef84` |
+| 工具 | Release | 提交 |
+|------|---------|------|
+| AIPerf | `v0.11.0` | `38687855e98044fcf12ee48c6794128f10b6780b` |
+| GuideLLM | `v0.7.1` | `93e55769dee8709f9f319e6cf3ba6a327e3059c8` |
+| inference-perf | `v0.6.0` | `e28d9a0bf5cefa743910b73057b3b686f0a94b98` |
+| genai-bench | `v0.0.4` | `e11e3fd6548b079a331366d7ecd74bda9213e2f0` |
+| SGLang Bench | `v0.5.15.post1` | `0b3bb0cbe31873994c9f989fddfe2f87ca839fdd` |
+| LLMPerf | `v2.0` | `1eac866f91773bff401f96e74c1cf20c38778329` |
+| ollama-benchmark | `v0.5.2` | `f9a5edb6554be2d425d6b16f7b740c1524d062a0` |
+| vLLM Bench | `v0.25.1` | `752a3a504485790a2e8491cacbb35c137339ad34` |
+| EvalScope | `v1.9.0` | `6c86bf5c84a250cea32a866b1a4f8bc5c6fe0106` |
 
 ### A.2 关键参考
 
 | 主题 | 链接 |
 |------|------|
-| AIPerf README | <https://github.com/ai-dynamo/aiperf/blob/main/README.md> |
-| AIPerf Metrics | <https://github.com/ai-dynamo/aiperf/blob/main/docs/metrics-reference.md> |
-| AIPerf Benchmark Datasets | <https://github.com/ai-dynamo/aiperf/blob/main/docs/benchmark-datasets.md> |
-| GuideLLM README | <https://github.com/vllm-project/guidellm/blob/main/README.md> |
-| GuideLLM Metrics | <https://github.com/vllm-project/guidellm/blob/main/docs/guides/metrics.md> |
-| GuideLLM Backends | <https://github.com/vllm-project/guidellm/blob/main/docs/guides/backends.md> |
-| inference-perf README | <https://github.com/kubernetes-sigs/inference-perf/blob/main/README.md> |
-| inference-perf Loadgen | <https://github.com/kubernetes-sigs/inference-perf/blob/main/docs/loadgen.md> |
-| inference-perf Goodput | <https://github.com/kubernetes-sigs/inference-perf/blob/main/docs/goodput.md> |
-| genai-bench README | <https://github.com/sgl-project/genai-bench/blob/main/README.md> |
-| genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/main/docs/getting-started/metrics-definition.md> |
-| genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/main/docs/user-guide/scenario-definition.md> |
-| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/main/docs/developer_guide/bench_serving.md> |
-| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/main/python/sglang/benchmark/serving.py> |
-| LLMPerf README | <https://github.com/ray-project/llmperf/blob/main/README.md> |
-| ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/main/README.md> |
-| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/main/benchmarks> |
-| vLLM Benchmark CLI | <https://docs.vllm.ai/en/latest/benchmarking/cli/> |
-| EvalScope README | <https://github.com/modelscope/evalscope/blob/main/README_zh.md> |
-| EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/main/docs/zh/user_guides/stress_test/quick_start.md> |
-| EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/main/docs/zh/user_guides/stress_test/parameters.md> |
-| EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/main/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
+| AIPerf README | <https://github.com/ai-dynamo/aiperf/blob/v0.11.0/README.md> |
+| AIPerf Metrics | <https://github.com/ai-dynamo/aiperf/blob/v0.11.0/docs/metrics-reference.md> |
+| AIPerf Benchmark Datasets | <https://github.com/ai-dynamo/aiperf/blob/v0.11.0/docs/benchmark-datasets.md> |
+| GuideLLM README | <https://github.com/vllm-project/guidellm/blob/v0.7.1/README.md> |
+| GuideLLM Metrics | <https://github.com/vllm-project/guidellm/blob/v0.7.1/docs/guides/metrics.md> |
+| GuideLLM Backends | <https://github.com/vllm-project/guidellm/blob/v0.7.1/docs/guides/backends.md> |
+| inference-perf README | <https://github.com/kubernetes-sigs/inference-perf/blob/v0.6.0/README.md> |
+| inference-perf Loadgen | <https://github.com/kubernetes-sigs/inference-perf/blob/v0.6.0/docs/loadgen.md> |
+| inference-perf Goodput | <https://github.com/kubernetes-sigs/inference-perf/blob/v0.6.0/docs/goodput.md> |
+| genai-bench README | <https://github.com/sgl-project/genai-bench/blob/v0.0.4/README.md> |
+| genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/v0.0.4/docs/getting-started/metrics-definition.md> |
+| genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/v0.0.4/docs/user-guide/scenario-definition.md> |
+| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/v0.5.15.post1/docs/developer_guide/bench_serving.md> |
+| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/v0.5.15.post1/python/sglang/benchmark/serving.py> |
+| LLMPerf README | <https://github.com/ray-project/llmperf/blob/v2.0/README.md> |
+| ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/v0.5.2/README.md> |
+| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/v0.25.1/benchmarks> |
+| vLLM Benchmark CLI | <https://docs.vllm.ai/en/v0.25.1/benchmarking/cli/> |
+| EvalScope README | <https://github.com/modelscope/evalscope/blob/v1.9.0/README_zh.md> |
+| EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/v1.9.0/docs/zh/user_guides/stress_test/quick_start.md> |
+| EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/v1.9.0/docs/zh/user_guides/stress_test/parameters.md> |
+| EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/v1.9.0/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |

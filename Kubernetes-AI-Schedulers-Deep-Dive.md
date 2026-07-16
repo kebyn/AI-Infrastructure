@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 文档快照：Koordinator `main@5ec5cd0`、Kueue `main@06ba649`、Grove `main@2197ac6`、KAI-Scheduler `main@92128ed`、Volcano `master@c3598d1`，整理日期：2026-07-15
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.18.3@afd60c3`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.16.4@50303cd`、Volcano `v1.15.0@8fc394c`；审校日期：2026-07-16。
 
 ---
 
@@ -184,7 +184,7 @@ flowchart LR
 
 ### 3.3 Scheduler Framework 插件
 
-当前主线中的关键 scheduler plugins 包括：
+Koordinator v1.8.0 中的关键 scheduler plugins 包括：
 
 | 插件 | 作用 |
 |------|------|
@@ -490,7 +490,7 @@ Grove scheduler backend 的职责是：
 - 同步创建、更新和删除后端资源。
 - 将 Grove 的拓扑绑定映射到后端 topology API。
 
-Grove 主线正在把后端做成可插拔框架。KAI backend 的设计和实现最贴近 Grove 的层次化 PodGroup 语义；Volcano backend 也在演进。文档中的 proposal 或 roadmap 不能等同于所有 release 已具备同等成熟度，部署前必须检查目标 Grove release 的 backend 支持矩阵。
+Grove v0.1.0-alpha.11 已提供可插拔 scheduler backend profile，API 列出的有效 profile 包括 `default-scheduler`、`kai-scheduler`、`volcano` 和 `lpx-scheduler`。该版本仍是 Alpha，各 backend 对 Gang、拓扑和状态回传的语义并不完全等价，部署前必须按固定 release 的 backend 文档和 CRD 验证。
 
 ### 5.4 启动顺序与服务发现
 
@@ -506,7 +506,7 @@ PodClique 支持同配置 Pod 的稳定命名，Grove 还能注入环境变量�
 
 Grove 通过 ClusterTopologyBinding 建立自己的拓扑层级与后端 topology resource 的映射。它可以描述从广到窄的层级，例如 zone、rack、host、NVLink domain，并决定后端资源由 Grove 管理还是由平台外部管理。
 
-对 GB200/GB300 等 Multi-Node NVLink 场景，Grove 还在扩展 DRA `ResourceClaimTemplate`、ComputeDomain 和多 Pod 共享 claim 的能力。这里涉及三层契约：
+对 GB200/GB300 等 Multi-Node NVLink 场景，v0.1.0-alpha.11 的 API 和设计文档已经包含 DRA `ResourceClaimTemplate`、ComputeDomain 和多 Pod 共享 claim，但 `autoMNNVLEnabled` 默认关闭。这类 Alpha 能力涉及三层契约：
 
 1. Grove 表达哪些组件共享资源声明。
 2. scheduler backend 保证这些组件按 Gang 和拓扑放置。
@@ -757,7 +757,7 @@ Volcano Job 可以包含多个 Task，例如 parameter server、worker 和 chief
 
 每个调度周期创建 Session，加载当前 Node、Queue、Job/PodGroup 和 Task 快照。Action 决定调度周期做什么，Plugin 为 Action 提供排序、过滤、资源公平和可抢占判断。
 
-当前主线的主要 actions 包括：
+Volcano v1.15.0 的主要 actions 包括：
 
 | Action | 作用 |
 |--------|------|
@@ -1166,17 +1166,17 @@ Workload API / PodSets
 
 ## 附录：快照、命令与官方参考
 
-### A.1 仓库快照
+### A.1 稳定版本快照
 
-| 项目 | 分支 | 提交 |
-|------|------|------|
-| Koordinator | `main` | `5ec5cd01e5e755989e98f791de162b61ee73fa56` |
-| Kueue | `main` | `06ba6498d9b9641df9c718b789151767eb165cfa` |
-| Grove | `main` | `2197ac698a10dcfbdfbceb5e65aa40b2071e17d7` |
-| KAI-Scheduler | `main` | `92128ed1bc114df35c6980d2994056d5842e6ba3` |
-| Volcano | `master` | `c3598d1927e12393490501b0b81a61982a8cddff` |
+| 项目 | Release | 提交 |
+|------|---------|------|
+| Koordinator | `v1.8.0` | `989ca85c62abcca92b303aa12fd2ccff2ed30fed` |
+| Kueue | `v0.18.3` | `afd60c37e0c86de83dc0e708f76016b8debe1498` |
+| Grove | `v0.1.0-alpha.11` | `8fa3ece93434d7c0005605b7dc4b0e23610af88b` |
+| KAI-Scheduler | `v0.16.4` | `50303cdfe273f2bb4c445ecd987177f383d38745` |
+| Volcano | `v1.15.0` | `8fc394c11e8db0d0ada5c17816b58bced9d7213d` |
 
-这些是文档整理时的主线快照，不代表推荐直接部署主线镜像。生产应选择项目支持的稳定 release，并重新核对 API、Kubernetes compatibility 和 migration guide。
+除明确标为 Alpha 的 Grove 外，正文按表中稳定 release 审校。生产仍须核对各项目的 Kubernetes compatibility、migration guide、Chart 和镜像 digest。
 
 ### A.2 通用排障命令
 
@@ -1231,25 +1231,25 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/ai-dynamo/grove> |
-| Core Concepts | <https://github.com/ai-dynamo/grove/tree/main/docs/user-guide/01_core-concepts> |
-| Operator API | <https://github.com/ai-dynamo/grove/blob/main/docs/api-reference/operator-api.md> |
-| Scheduler API | <https://github.com/ai-dynamo/grove/blob/main/docs/api-reference/scheduler-api.md> |
-| Topology-Aware Scheduling | <https://github.com/ai-dynamo/grove/blob/main/docs/user-guide/topology-aware-scheduling.md> |
-| KAI Backend Proposal | <https://github.com/ai-dynamo/grove/blob/main/docs/proposals/525-KAI-Scheduler-Backend/README.md> |
-| Volcano Backend Proposal | <https://github.com/ai-dynamo/grove/blob/main/docs/proposals/376-volcano-scheduler-backend/README.md> |
+| Core Concepts | <https://github.com/ai-dynamo/grove/tree/v0.1.0-alpha.11/docs/user-guide/01_core-concepts> |
+| Operator API | <https://github.com/ai-dynamo/grove/blob/v0.1.0-alpha.11/docs/api-reference/operator-api.md> |
+| Scheduler API | <https://github.com/ai-dynamo/grove/blob/v0.1.0-alpha.11/docs/api-reference/scheduler-api.md> |
+| Topology-Aware Scheduling | <https://github.com/ai-dynamo/grove/blob/v0.1.0-alpha.11/docs/user-guide/topology-aware-scheduling.md> |
+| Scheduler Backend Framework | <https://github.com/ai-dynamo/grove/blob/v0.1.0-alpha.11/docs/proposals/375-scheduler-backend-framework/README.md> |
+| Volcano Backend Proposal | <https://github.com/ai-dynamo/grove/blob/v0.1.0-alpha.11/docs/proposals/376-volcano-scheduler-backend/README.md> |
 
 ### A.6 KAI-Scheduler 官方参考
 
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kai-scheduler/KAI-Scheduler> |
-| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/main/docs/quickstart> |
-| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/main/docs/batch> |
-| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/main/docs/queues> |
-| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/main/docs/fairness> |
-| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/main/docs/topology> |
-| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/main/docs/gpu-sharing> |
-| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/main/docs/migrationguides> |
+| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/quickstart> |
+| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/batch> |
+| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/queues> |
+| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/fairness> |
+| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/topology> |
+| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/gpu-sharing> |
+| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/migrationguides> |
 | CNCF Sandbox 申请 | <https://github.com/cncf/sandbox/issues/372> |
 | CNCF Landscape | <https://landscape.cncf.io/?item=orchestration-management--scheduling-orchestration--kai-scheduler> |
 

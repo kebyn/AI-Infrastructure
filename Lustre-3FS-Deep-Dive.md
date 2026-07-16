@@ -4,7 +4,7 @@
 >
 > 基于 Lustre Wiki、DeepSeek 3FS 官方仓库、3FS Design Notes、USRBIO API Reference 与 Fire-Flyer AI-HPC 论文整理
 >
-> 文档快照：deepseek-ai/3fs main@22fca04 · 2026-07-10
+> 版本基线：deepseek-ai/3fs `main@22fca04564c7cc230fd8b9523b8b92864e1dad47`（项目尚无 GitHub Release）；Lustre 以官方 Wiki/手册为准；审校日期：2026-07-16。
 
 ---
 
@@ -784,8 +784,7 @@ Lustre 和 3FS 都是高性能共享文件系统，但它们的工程重心不�
 |------|------|------|
 | Lustre Wiki: Introduction to Lustre | <https://wiki.lustre.org/Introduction_to_Lustre> | Lustre 定位、MDS/MDT、OSS/OST、MGS/MGT、Client、LNet、HA building blocks |
 | DeepSeek 3FS GitHub README | <https://github.com/deepseek-ai/3fs> | 3FS 定位、目标 workload、性能数据、构建依赖 |
-| 3FS Design Notes | <https://github.com/deepseek-ai/3fs/blob/main/docs/design_notes.md> | 3FS 组件、metadata store、CRAQ、chain table、FUSE 限制、native client |
-| 3FS USRBIO API Reference | <https://github.com/deepseek-ai/3fs/blob/main/src/lib/api/UsrbIo.md> | Iov、Ior、fd registration、异步 I/O API |
-| 3FS Setup Guide | <https://github.com/deepseek-ai/3fs/blob/main/deploy/README.md> | 部署组件、mgmtd/meta/storage/client、FoundationDB、ClickHouse、RDMA 前提 |
+| 3FS Design Notes | <https://github.com/deepseek-ai/3fs/blob/22fca04564c7cc230fd8b9523b8b92864e1dad47/docs/design_notes.md> | 3FS 组件、metadata store、CRAQ、chain table、FUSE 限制、native client |
+| 3FS USRBIO API Reference | <https://github.com/deepseek-ai/3fs/blob/22fca04564c7cc230fd8b9523b8b92864e1dad47/src/lib/api/UsrbIo.md> | Iov、Ior、fd registration、异步 I/O API |
+| 3FS Setup Guide | <https://github.com/deepseek-ai/3fs/blob/22fca04564c7cc230fd8b9523b8b92864e1dad47/deploy/README.md> | 部署组件、mgmtd/meta/storage/client、FoundationDB、ClickHouse、RDMA 前提 |
 | Fire-Flyer AI-HPC Paper | <https://arxiv.org/html/2408.14158v1> | Fire-Flyer 中 3FS 的硬件规模、网络设计、request-to-send、3FS-KV、checkpoint 经验 |
-

@@ -4,9 +4,7 @@
 >
 > 基于 E2B 官方基础设施仓库整理：<https://github.com/e2b-dev/infra>
 >
-> 参考中文私有化整理仓库：<https://github.com/kebyn/e2b>
->
-> 文档快照：`e2b-dev/infra` main 分支 `7a65575114ca006ce0e34eb66c4413e66488c465`，`kebyn/e2b` master 分支 `c59dae5e26575ec889dd785f2e3d0f3f96cb0df5`，整理日期：2026-07-10
+> 稳定版本基线：`2026.28@fda7bef1095afb909197e272c0a8a123797f0bfb`，审校日期：2026-07-16。正文中的产品能力与支持状态仅以 E2B 官方仓库和官方文档为依据。
 
 ---
 
@@ -471,7 +469,7 @@ Redis 存的是运行态和快速查询数据。对多节点 E2B 来说，它是
 | Rate limiting | API 或团队级限流 |
 | P2P chunk registry | 节点之间共享模板 chunk 信息 |
 
-参考私有化材料里提到：单节点可以用内存 catalog 做降级，但多节点必须有共享 Redis。若使用 Redis Sentinel，应用侧仍应暴露一个稳定的主节点访问入口；如果源码只按普通/cluster client 连接，就不能直接把 Sentinel 端口当成 `REDIS_URL`。
+官方 release 的服务配置和源码把 Redis 用于运行态 catalog、路由和缓存。生产多节点部署应提供所有 API/Proxy 实例都能访问的共享 Redis，并按该 release 实际使用的客户端模式配置普通、Cluster 或其他高可用入口；官方自托管配置未声明支持的连接模式不能仅凭 Redis 服务端能力推定可用。
 
 ### 6.3 ClickHouse 与 Loki
 
@@ -628,16 +626,11 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 
 ## 第九章：私有化部署取舍
 
-### 9.1 官方路径与参考路径的边界
+### 9.1 官方支持路径与二次工程边界
 
-`e2b-dev/infra` 官方支持的主路径是 Terraform + Nomad + 云 provider。`kebyn/e2b` 提供了大量中文私有化参考材料，包括不修改代码的手工部署、K8s 改造思路、Ansible 角色、组件必要性分析、启动参数解释和高可用验证。
+`e2b-dev/infra` 2026.28 的官方自托管路径是 Terraform + Nomad + 云 provider。仓库 README 将 GCP 标为支持、AWS 标为 Beta，同时把 Azure 和通用 Linux 机器列为未完成。Kubernetes、Ansible 或纯手工部署属于自行维护的二次工程，不能视为该 release 的官方交付路径。
 
-这两类材料应这样使用：
-
-| 来源 | 适合作为 | 不应作为 |
-|------|----------|----------|
-| `e2b-dev/infra` | 官方事实、源码行为、Terraform/Nomad 云部署基线 | 手工私有化每一种环境的现成答案 |
-| `kebyn/e2b` | 中文理解、组件取舍、私有化落地参考、K8s/Ansible 方案草案 | 官方支持声明或无需验证即可上线的配置 |
+本文后续的组件取舍和 Kubernetes 改造内容是基于官方组件边界给出的工程分析，不构成 E2B 官方支持声明。涉及字段、端口、服务发现或高可用模式时，仍须回到固定 release 的 Terraform、Nomad job 和组件源码验证。
 
 ### 9.2 组件必要性
 
@@ -664,7 +657,7 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 
 ### 9.4 Kubernetes 改造注意事项
 
-参考仓库中包含 K8s 私有化部署思路，但官方 infra 当前主路径不是 Kubernetes。要把 E2B 改造成 K8s 原生部署，至少要处理：
+官方 infra 的稳定路径不是 Kubernetes。要把 E2B 改造成 Kubernetes 原生部署，至少要自行处理：
 
 | 改造点 | 原因 |
 |--------|------|
@@ -769,7 +762,7 @@ E2B 适合这些场景：
 | 需要快速启动带完整运行环境的 sandbox | 模板快照恢复比冷启动安装依赖快 |
 | 需要文件、进程、PTY、端口访问 API | envd 和 SDK 提供了上层开发者体验 |
 | 需要暂停/恢复执行环境 | snapshot 能保存运行状态 |
-| 需要私有化运行 Agent runtime | 官方 infra 可以自托管，参考材料给出组件取舍 |
+| 需要私有化运行 Agent runtime | 官方 infra 提供 Terraform/Nomad 自托管路径，但仍需验证所选云 provider 的支持状态 |
 
 ### 11.2 什么时候要谨慎
 
