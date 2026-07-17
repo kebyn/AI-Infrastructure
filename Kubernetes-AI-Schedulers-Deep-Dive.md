@@ -34,20 +34,22 @@ Koordinator、Kueue、Grove、KAI-Scheduler 和 Volcano 经常一起出现在 Ku
 
 它们不是必然互斥。例如 Kueue 可以负责多租户队列准入，Koordinator 负责准入后的节点、NUMA 和设备放置；Grove 可以表达一个多节点 Prefill/Decode 系统，再把 PodGang 翻译成 KAI 的 PodGroup。
 
-### 1.2 Kubernetes 原生调度链路缺什么
+### 1.2 Kubernetes 原生稳定能力还缺什么
 
-标准 kube-scheduler 擅长对单个 Pending Pod 执行 Filter、Score、Reserve、Permit、PreBind 和 Bind，但 AI 与批处理工作负载通常还有六类集群级问题：
+标准 kube-scheduler 擅长对单个 Pending Pod 执行 Filter、Score、Reserve、Permit、PreBind 和 Bind。Kubernetes v1.35/v1.36 已引入 Workload/PodGroup、Gang、Topology-Aware Workload Scheduling 和 workload-aware preemption，但在 v1.36.2 中这些工作负载级能力仍为默认关闭的 Alpha feature。因此，以默认稳定能力为生产基线时，AI 与批处理工作负载通常还有六类集群级问题：
 
-| 问题 | 原生能力的缺口 |
-|------|----------------|
-| 多 Pod 原子启动 | 单 Pod 调度可能让分布式任务只启动一部分，已占资源却无法工作 |
+| 问题 | v1.36.2 默认稳定能力的缺口 |
+|------|----------------------------|
+| 多 Pod 原子启动 | 默认仍逐 Pod 调度；原生 PodGroup/Gang 可解决部分问题，但为 Alpha 且默认关闭 |
 | 团队队列和配额 | `ResourceQuota` 限制命名空间总量，但不直接提供集群队列、公平借用和排队顺序 |
-| GPU 精细语义 | 整数扩展资源不能完整表达 GPU 型号、显存份额、NVLink、NUMA 或多节点 NVLink 域 |
-| 通信拓扑 | 普通 affinity 难以表达机内、NVLink 域、机架、网络 block 的分层约束和整体可容纳性 |
+| GPU 精细语义 | DRA 核心已稳定，但具体 GPU driver、共享容量、隔离和部分高级设备能力仍需额外实现 |
+| 通信拓扑 | 普通 affinity 难以表达整体可容纳性；原生 PodGroup TAS 为 v1.36 Alpha，且拓扑标签仍需可靠数据源 |
 | 弹性任务 | 训练或推理副本往往有最小可运行规模、最大规模和成组扩缩关系 |
 | 混部治理 | 在线服务、批任务和系统进程需要不同 QoS、资源超卖、驱逐与运行时隔离策略 |
 
 这些问题分属不同控制层，不能靠一个 `schedulerName` 全部解决。
+
+kube-scheduler 的完整调度周期、默认插件、DRA、原生 PodGroup/Gang/TAS 成熟度及与本篇五个项目的逐项对比，见 [Kubernetes 原生调度器深度技术文档](/Kubernetes-Native-Scheduler-Deep-Dive.html)。
 
 ### 1.3 统一分层模型
 
@@ -1138,7 +1140,7 @@ Events 必须作为排障入口，但不能作为长期时序存储。关键 pen
 
 ### 12.2 Kubernetes 原生能力正在上移
 
-Kubernetes 的 Workload API/Gang Scheduling、DRA、ResourceSlice、DeviceClass、ResourceClaim、Pod Scheduling Readiness 和 Dynamic Resource Allocation 正在把一部分批调度与设备语义带入上游。
+Kubernetes v1.36.2 中，DRA 核心已在 v1.34 GA，并从 v1.35 起锁定为默认开启；Workload/PodGroup 与 Gang Scheduling 是 v1.35 Alpha，Topology-Aware Workload Scheduling 和 workload-aware preemption 是 v1.36 Alpha，均默认关闭。它们正在把一部分批调度与设备语义带入上游，但成熟度不能混写。
 
 这不会立刻淘汰五个项目，但会改变它们的边界：
 
@@ -1146,6 +1148,8 @@ Kubernetes 的 Workload API/Gang Scheduling、DRA、ResourceSlice、DeviceClass�
 - Koordinator、KAI 和 Volcano 可减少私有设备协议，更多复用 DRA。
 - Grove 可以用共享 ResourceClaimTemplate 表达多 Pod compute domain。
 - Gang 的基础语义可能由上游提供，第三方项目继续竞争队列、公平、拓扑和运维能力。
+
+原生能力的 API、feature gate 和算法边界见 [Kubernetes 原生调度器深度技术文档](/Kubernetes-Native-Scheduler-Deep-Dive.html)。
 
 ### 12.3 未来选型应关注接口而不是项目口号
 
@@ -1275,3 +1279,4 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | CNCF Cloud Native AI Scheduling Challenges Whitepaper | <https://github.com/cncf/toc/tree/main/initiatives/1641_Cloud_Native_AI_Scheduling_Challenges_Whitepaper> |
 | Kubernetes Scheduling, Eviction and Node Feasibility | <https://kubernetes.io/docs/concepts/scheduling-eviction/> |
 | Dynamic Resource Allocation | <https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/> |
+| Kubernetes 原生调度器深度技术文档 | [仓库内专篇](/Kubernetes-Native-Scheduler-Deep-Dive.html) |

@@ -115,6 +115,22 @@ DOCS = [
         ),
     },
     {
+        "src": "/data/Kubernetes-Native-Scheduler-Deep-Dive.md",
+        "dst": "/data/Kubernetes-Native-Scheduler-Deep-Dive.html",
+        "href": "/Kubernetes-Native-Scheduler-Deep-Dive.html",
+        "title": "Kubernetes 原生调度器深度技术文档",
+        "hero": "Kubernetes 原生调度器深度技术文档",
+        "subtitle": "kube-scheduler 架构、Scheduling Framework、工作负载级调度与 AI 调度器对比",
+        "meta": "Kubernetes v1.36.2 · source@5ecab45 · 2026-07-16",
+        "summary": "覆盖调度队列、Filter/Score/Bind、DRA 对象与生命周期、DynamicResources 调用链、PodGroup/Gang/TAS、工作负载级抢占及 AI 调度器选型。",
+        "footer": (
+            '基于 <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/">'
+            'Kubernetes Scheduling, Preemption and Eviction 官方文档</a> 与 '
+            '<a href="https://github.com/kubernetes/kubernetes/tree/v1.36.2">'
+            'kubernetes/kubernetes v1.36.2 源码</a> 整理'
+        ),
+    },
+    {
         "src": "/data/Kubernetes-AI-Schedulers-Deep-Dive.md",
         "dst": "/data/Kubernetes-AI-Schedulers-Deep-Dive.html",
         "href": "/Kubernetes-AI-Schedulers-Deep-Dive.html",

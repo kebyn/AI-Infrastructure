@@ -87,6 +87,129 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("Lustre", doc["title"])
         self.assertIn("3FS", doc["title"])
 
+    def test_kubernetes_native_scheduler_doc_is_registered(self):
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+
+        self.assertIn("Kubernetes-Native-Scheduler-Deep-Dive.md", docs_by_src)
+
+        doc = docs_by_src["Kubernetes-Native-Scheduler-Deep-Dive.md"]
+        self.assertEqual(
+            Path(doc["dst"]).name,
+            "Kubernetes-Native-Scheduler-Deep-Dive.html",
+        )
+        self.assertEqual(doc["href"], "/Kubernetes-Native-Scheduler-Deep-Dive.html")
+        self.assertEqual(doc["title"], "Kubernetes 原生调度器深度技术文档")
+        self.assertIn("v1.36.2", doc["meta"])
+        self.assertIn("5ecab45", doc["meta"])
+        self.assertIn(
+            "https://kubernetes.io/docs/concepts/scheduling-eviction/",
+            doc["footer"],
+        )
+        self.assertIn(
+            "https://github.com/kubernetes/kubernetes/tree/v1.36.2",
+            doc["footer"],
+        )
+
+    def test_render_index_includes_kubernetes_native_scheduler_doc(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            original_index = serve_docs.INDEX
+            serve_docs.INDEX = str(Path(tmpdir) / "index.html")
+            try:
+                serve_docs.render_index()
+                html = Path(serve_docs.INDEX).read_text(encoding="utf-8")
+            finally:
+                serve_docs.INDEX = original_index
+
+        self.assertIn("Kubernetes 原生调度器深度技术文档", html)
+        self.assertIn('/Kubernetes-Native-Scheduler-Deep-Dive.html', html)
+        self.assertIn("Kubernetes v1.36.2", html)
+        self.assertIn("DRA 对象与生命周期", html)
+        self.assertIn("DynamicResources 调用链", html)
+
+    def test_render_kubernetes_native_scheduler_doc(self):
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "Kubernetes-Native-Scheduler-Deep-Dive.md"
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc)
+            rendered_doc["dst"] = str(Path(tmpdir) / "kube-scheduler.html")
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        self.assertIn(
+            '<a class="toc-chapter" href="#第一章先明确-kube-scheduler-的边界">',
+            html,
+        )
+        self.assertIn(
+            '<a href="#3-1-两个周期与扩展点">3.1 两个周期与扩展点</a>',
+            html,
+        )
+        self.assertIn(
+            '<a class="toc-chapter" href="#第十章与五类-ai-调度项目对比">',
+            html,
+        )
+        self.assertIn(
+            '<a href="#8-2-dra-对象模型与-source-of-truth">'
+            "8.2 DRA 对象模型与 source of truth</a>",
+            html,
+        )
+        self.assertIn(
+            '<a href="#8-5-dynamicresources-插件调用链">'
+            "8.5 DynamicResources 插件调用链</a>",
+            html,
+        )
+        self.assertIn(
+            '<a href="#8-8-v1-36-2-feature-maturity-矩阵">'
+            "8.8 v1.36.2 feature maturity 矩阵</a>",
+            html,
+        )
+        self.assertIn(
+            '<a href="#9-2-workload-podgroup-与-pod-对象链">'
+            "9.2 Workload PodGroup 与 Pod 对象链</a>",
+            html,
+        )
+        self.assertIn(
+            '<a href="#9-4-podgroup-scheduling-cycle-源码路径">'
+            "9.4 PodGroup scheduling cycle 源码路径</a>",
+            html,
+        )
+        self.assertIn(
+            '<a href="#9-9-dra-与-gang-的联合链路">'
+            "9.9 DRA 与 Gang 的联合链路</a>",
+            html,
+        )
+        self.assertGreaterEqual(html.count('<div class="mermaid">'), 13)
+        self.assertIn("flowchart TB", html)
+        self.assertIn("flowchart LR", html)
+        self.assertIn("stateDiagram-v2", html)
+        self.assertIn("sequenceDiagram", html)
+        self.assertIn("resource.k8s.io/v1", html)
+        self.assertIn("scheduling.k8s.io/v1alpha2", html)
+        for extension_point in (
+            "PreEnqueue",
+            "PreFilter",
+            "Filter",
+            "Score",
+            "Reserve",
+            "PreBind",
+            "Unreserve",
+            "PostFilter",
+        ):
+            self.assertIn(extension_point, html)
+        for feature_gate in (
+            "DRAWorkloadResourceClaims",
+            "DRANodeAllocatableResources",
+            "DRAListTypeAttributes",
+        ):
+            self.assertIn(feature_gate, html)
+        self.assertIn("dra_grpc_operations_duration_seconds", html)
+        self.assertNotIn("kubelet_dra_grpc_operations_duration_seconds", html)
+        self.assertIn("Kubernetes-AI-Schedulers-Deep-Dive.html", html)
+        self.assertNotIn('class="language-mermaid"', html)
+
     def test_kubernetes_ai_schedulers_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 
