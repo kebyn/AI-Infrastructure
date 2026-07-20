@@ -35,6 +35,43 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("Audio Throughput", markdown_text)
         self.assertIn('A(500)', markdown_text)
 
+    def test_e2b_get_host_private_ingress_auth_is_documented(self):
+        docs_dir = Path(__file__).resolve().parent
+        markdown_text = (docs_dir / "E2B-Deep-Dive.md").read_text(encoding="utf-8")
+
+        for required_text in (
+            "https://<port>-<sandbox-id>.<sandbox-domain>",
+            "allowPublicTraffic=false",
+            "e2b-traffic-access-token",
+            "缺失或错误均返回 `403`",
+            "trafficAccessToken",
+            "envdAccessToken",
+            "SANDBOX_ACCESS_TOKEN_HASH_SEED",
+            "HMAC-SHA256",
+            "只有校验通过才允许自动恢复",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
+
+        self.assertIn(
+            "https://github.com/e2b-dev/infra/blob/"
+            "fda7bef1095afb909197e272c0a8a123797f0bfb/"
+            "packages/orchestrator/pkg/proxy/proxy.go",
+            markdown_text,
+        )
+        self.assertIn(
+            "https://github.com/e2b-dev/infra/blob/"
+            "fda7bef1095afb909197e272c0a8a123797f0bfb/"
+            "tests/integration/internal/tests/proxies/traffic_access_token_test.go",
+            markdown_text,
+        )
+        self.assertIn(
+            "https://github.com/e2b-dev/e2b/blob/"
+            "36639f532114f4b34e01b96319a7e00bf6404cf9/"
+            "packages/js-sdk/src/sandbox/index.ts",
+            markdown_text,
+        )
+
     def test_kserve_snapshot_separates_release_and_unreleased_main(self):
         doc = next(
             doc
