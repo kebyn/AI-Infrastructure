@@ -329,6 +329,84 @@ sequenceDiagram
 
 用户进程在 VM 内监听端口后，外部访问路径如下：
 
+`Sandbox.getHost(port)` 只负责把端口、Sandbox ID 和 sandbox domain 编码成可路由的主机名，不负责把凭证附加到请求上。非 debug 模式下，官方 TypeScript/Python SDK 的返回值是：
+
+```text
+<port>-<sandbox-id>.<sandbox-domain>
+```
+
+因此完整的 HTTPS 地址是：
+
+```text
+https://<port>-<sandbox-id>.<sandbox-domain>
+```
+
+例如 `sandbox.getHost(8080)` 返回 `8080-iabc123.sandbox.example.com`，调用方再组合为 `https://8080-iabc123.sandbox.example.com`。端口寻址和 ingress 鉴权是两件事，拿到 host 并不意味着请求已经通过鉴权。
+
+#### 4.2.1 Public 与 Private ingress
+
+Infra 2026.28 的 `network.allowPublicTraffic` 默认值是 `true`。未设置或显式设为 `true` 时，业务端口（非 envd 控制端口）可以匿名访问；显式设为 `false` 时，创建响应会返回 `trafficAccessToken`，每次业务端口请求都必须在 `e2b-traffic-access-token` header 中携带它。
+
+| 创建参数 | `trafficAccessToken` | 业务端口请求 | 说明 |
+| --- | --- | --- | --- |
+| 未设置或 `allowPublicTraffic=true` | 通常为 `null`/未定义 | 不需要 Traffic Token | host 仍然只负责寻址 |
+| `allowPublicTraffic=false` | 返回 Sandbox 级 bearer token | 必须发送 `e2b-traffic-access-token` | 缺失或错误均返回 `403` |
+
+私有 ingress 不能只设置 `allowPublicTraffic=false`：Infra 2026.28 还要求创建请求启用 `secure=true`，否则 API 会拒绝创建，因为 envd 控制面必须有独立的 `envdAccessToken`。这两个开关保护不同路径，不能互相替代。
+
+下面的示例使用官方 SDK 当前实现说明调用形态；SDK 示例提交固定为 `e2b-dev/e2b@36639f532114f4b34e01b96319a7e00bf6404cf9`，不改变本文的 Infra 稳定基线。
+
+```typescript
+import { Sandbox } from "e2b"
+
+const sandbox = await Sandbox.create({
+  secure: true,
+  network: { allowPublicTraffic: false },
+})
+await sandbox.commands.run("python3 -m http.server 8080", { background: true })
+
+const trafficToken = sandbox.trafficAccessToken
+if (!trafficToken) throw new Error("private sandbox did not return traffic token")
+
+const url = `https://${sandbox.getHost(8080)}`
+const response = await fetch(url, {
+  headers: { "e2b-traffic-access-token": trafficToken },
+})
+console.log(response.status)
+```
+
+```python
+import httpx
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    secure=True,
+    network={"allow_public_traffic": False},
+)
+sandbox.commands.run("python3 -m http.server 8080", background=True)
+
+traffic_token = sandbox.traffic_access_token
+if traffic_token is None:
+    raise RuntimeError("private sandbox did not return traffic token")
+
+url = f"https://{sandbox.get_host(8080)}"
+response = httpx.get(
+    url,
+    headers={"e2b-traffic-access-token": traffic_token},
+)
+print(response.status_code)
+```
+
+不使用 SDK 时，token 应由受信任的后端从创建响应中读取并注入进程环境，而不是写到 URL query：
+
+```bash
+# TRAFFIC_ACCESS_TOKEN 由后端安全注入；不要把 token 放进 URL。
+export TRAFFIC_ACCESS_TOKEN
+curl --fail-with-body \
+  -H "e2b-traffic-access-token: ${TRAFFIC_ACCESS_TOKEN}" \
+  "https://8080-<sandbox-id>.<sandbox-domain>/healthz"
+```
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -341,20 +419,37 @@ sequenceDiagram
 
     U->>CP: GET https://3000-sbxid.domain
     CP->>CP: parse host into port=3000 and sandboxID
+    CP->>CP: read e2b-traffic-access-token header
     CP->>R: lookup sandbox route
     alt running
         R-->>CP: node address
+        CP->>OP: forward request and token
+        OP->>OP: validate private-ingress token
+        OP->>VM: forward to guest port 3000
+        VM-->>U: response
     else paused or missing
-        CP->>API: gRPC ResumeSandbox
-        API-->>CP: node address after resume
+        CP->>API: gRPC ResumeSandbox with port and token
+        API->>API: validate token before auto-resume
+        alt token missing or invalid
+            API-->>CP: permission denied
+            CP-->>U: 403, sandbox remains paused
+        else token valid
+            API-->>CP: node address after resume
+            CP->>OP: forward request and token
+            OP->>OP: validate private-ingress token again
+            OP->>VM: forward to guest port 3000
+            VM-->>U: response
+        end
     end
-    CP->>OP: forward to node proxy
-    OP->>OP: validate sandbox and traffic token
-    OP->>VM: forward to guest port 3000
-    VM-->>U: response
 ```
 
-这条路径解释了为什么 Redis routing catalog 很关键：它是 Client Proxy 找到 sandbox 所在节点的快速路径。多节点部署如果没有共享 Redis，只能退回单节点或内存模式，无法可靠支撑跨节点路由。
+这条路径解释了为什么 Redis routing catalog 很关键：它是 Client Proxy 找到 sandbox 所在节点的快速路径。多节点部署如果没有共享 Redis，只能退回单节点或内存模式，无法可靠支撑跨节点路由。对于运行中的 sandbox，Orchestrator Proxy 在转发到 guest port 前校验 token；对于暂停或路由缺失的 sandbox，API 的 `ResumeSandbox` 会先校验 token，只有校验通过才允许自动恢复。缺失/错误 token 不会因为触发了 auto-resume 而绕过鉴权。
+
+#### 4.2.2 浏览器、WebSocket 与 BFF
+
+浏览器地址栏、`iframe`、`img` 和原生浏览器 `WebSocket` 构造器不能为请求附加任意 `e2b-traffic-access-token` header。浏览器 `fetch` 虽然可以设置该 header，但跨域时会触发 CORS 预检；预检请求本身不携带 Traffic Token，而 Infra 2026.28 的 Orchestrator Proxy 会在业务应用之前校验所有非 envd 请求，所以预检可能直接得到 `403`。不能假设只配置 Sandbox 应用的 CORS 就能解决。Node.js、Python 或其他服务端 HTTP/WebSocket 客户端可以显式发送 header。
+
+推荐让后端/BFF 保存短生命周期的访问上下文并代为访问 E2B，再向浏览器返回经过业务鉴权和响应过滤的数据或建立受控 WebSocket 转发。不要把 Traffic Token 放到 query、fragment、前端 bundle、localStorage 或长期 cookie 中；它是 Sandbox 级 bearer credential，没有用户级 RBAC、scope 或逐端口权限，泄露后可访问该 Sandbox 允许的所有业务端口。
 
 ### 4.3 暂停、恢复与 Checkpoint
 
@@ -528,11 +623,29 @@ E2B 中有多层 token 和凭证：
 | 层级 | 作用 |
 |------|------|
 | Team API Key | SDK/CLI 调用 E2B API |
-| Access Token | 访问具体 sandbox 或内部服务 |
-| envd token | Orchestrator 注入 VM，envd 校验调用者 |
-| Traffic access token | Orchestrator Proxy 校验 sandbox 端口访问 |
+| API access token / OAuth credential | 控制面 API 或内部 gRPC 的调用身份，具体 scope 由 API 配置决定 |
+| `envdAccessToken` | `secure=true` 时由 API/Orchestrator 注入 VM，访问 envd 控制面时通过 `X-Access-Token` 校验 |
+| `trafficAccessToken` | `allowPublicTraffic=false` 时由 Orchestrator Proxy 校验 Sandbox 业务端口访问 |
 | Volume token | 访问持久卷或相关资源 |
 | Registry credential | Docker Reverse Proxy 推送模板镜像时使用 |
+
+`secure=true` 保护的是 envd 的进程、文件、PTY 等控制 API，以及对应的 envd 端口；它不等于业务端口 ingress 已经私有化。反过来，`allowPublicTraffic=false` 只要求业务端口带 `e2b-traffic-access-token`，不替代 envd token。Infra 2026.28 在私有 ingress 创建时强制同时启用 `secure`，但两种 token 仍由不同代理和不同 header 校验。
+
+Traffic Token 的边界需要明确：它是 Sandbox 级 bearer credential，不携带用户身份，不提供用户级 RBAC、scope、租户切换或逐端口权限。拿到它的调用者可以访问该 Sandbox 所暴露的所有受保护业务端口，因此应只在受信任的服务端保存和转发。
+
+#### 7.2.1 Infra 2026.28 的生成与轮换
+
+固定 release 的实现使用部署级环境变量 `SANDBOX_ACCESS_TOKEN_HASH_SEED` 作为 HMAC-SHA256 key，并以 Sandbox ID 生成确定性 token：
+
+```text
+traffic token = HMAC-SHA256(seed, "sandbox-traffic-" + sandboxID)
+```
+
+源码返回十六进制摘要，没有 JWT `exp` 或其他显式过期字段；token 是否还能使用取决于 Sandbox 是否存在、端口路由是否有效以及部署的 seed 是否仍一致。API 在暂停态自动恢复前重新计算并比较 token，Orchestrator Proxy 在运行态转发前则比较创建/恢复时下发给该 Sandbox 的 token。
+
+更换 seed 会改变同一个 Sandbox ID 的派生值，但影响不是原子切换：尚未重建的运行态 Sandbox 可能暂时仍接受旧 token，API 的暂停态恢复校验则会按新 seed 计算，随后恢复的 Sandbox 会接收新 token。轮换必须安排所有 API 实例、Sandbox 生命周期、Orchestrator 下发配置和调用方的协调窗口，不能只滚动重启单个 API 实例。
+
+官方 2026.28 路径由 API 持有 seed、生成 Traffic Token，再把 token 配置下发给 Orchestrator；Orchestrator 不应自行生成第二套 token。若私有化改造让 Orchestrator 也参与生成或重算，API 与 Orchestrator 必须显式共享同一个 seed、算法和 Sandbox ID 规范。
 
 私有化时常见误区是只保护 API 域名，却忽略 wildcard sandbox 域名、docker registry 域名、Dashboard、Nomad UI、对象存储 bucket 和内部 gRPC 端口。生产上应把外部入口、内部服务网段、节点安全组、防火墙和 TLS 证书统一规划。
 
@@ -713,7 +826,8 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 |------|----------|
 | sandbox 创建很慢 | 模板是否命中本地缓存、对象存储延迟、UFFD/lazy restore 是否正常、节点 CPU/IO |
 | 创建失败 | Orchestrator 日志、Firecracker binary/kernel、KVM 权限、rootfs/memfile/snapfile 是否存在 |
-| 端口访问失败 | wildcard DNS、TLS、Client Proxy host 解析、Redis route、Orchestrator proxy、guest 进程监听地址 |
+| 端口访问失败 | wildcard DNS、TLS、Client Proxy host 解析、Redis route、Orchestrator proxy、guest 进程监听地址；私有 ingress 还要确认 `e2b-traffic-access-token` header 是否存在且未被代理剥离 |
+| 私有端口返回 `403` | 确认请求使用的是 `trafficAccessToken` 而不是 `envdAccessToken`，检查 token 是否属于同一个 Sandbox、API/Orchestrator 的 `SANDBOX_ACCESS_TOKEN_HASH_SEED` 是否一致；暂停态还要检查恢复前的 API 校验日志 |
 | pause/resume 失败 | snapshot row、对象存储上传、origin node 缓存、dirty block/memory diff |
 | 多节点路由错乱 | Redis routing catalog、节点 ID、服务发现、负载均衡健康检查 |
 | 模板构建失败 | Docker Reverse Proxy、registry 权限、Template Manager 节点、构建阶段日志 |
@@ -741,11 +855,12 @@ API 节点和 sandbox 节点的瓶颈不同。API 节点通常受 HTTP/gRPC、�
 |------|--------|
 | 域名 | `api.*`、sandbox wildcard、`docker.*`、Dashboard、Nomad UI |
 | TLS | 通配证书、证书续期、内部 gRPC 是否需要 TLS |
-| 认证 | API key、admin token、Dashboard/OIDC、envd token、volume token |
+| 认证 | API key、admin token、Dashboard/OIDC、`trafficAccessToken`、`envdAccessToken`、volume token；私有 ingress 不把 token 放入 URL，也不向前端暴露长期 bearer token |
+| 凭据治理 | `SANDBOX_ACCESS_TOKEN_HASH_SEED` 由 Secret Manager/Vault 等部署级密钥系统托管；所有参与创建/恢复的 API 实例使用一致 seed，Orchestrator 只接收该部署下发的 token 配置；轮换前评估既有 Sandbox token 失效影响 |
 | 数据 | PostgreSQL 备份、Redis HA、对象存储生命周期、ClickHouse TTL |
 | 节点 | KVM、nested virtualization、内核模块、cgroup、hugepages、本地磁盘 |
 | 网络 | 安全组、防火墙、egress allowlist、NAT、DNS resolver |
-| 运维 | health checks、日志、指标、告警、容量面板 |
+| 运维 | health checks、日志、指标、告警、容量面板；代理访问日志和 Sandbox 应用日志脱敏 `e2b-traffic-access-token`，不记录完整 token |
 | 演练 | sandbox create/kill、pause/resume、节点重启、对象存储慢请求、Redis failover |
 
 ---
@@ -783,3 +898,23 @@ E2B 适合这些场景：
 3. **最后做高可用和安全演练**：节点故障、Redis failover、PostgreSQL 备份恢复、对象存储慢请求、证书续期、出站网络策略。
 
 不要一开始就把 E2B 改造成 Kubernetes、替换认证、替换服务发现、替换存储和上 HA。E2B 的核心难点在 Firecracker runtime、模板快照和流量路由，先把这条主链路跑稳，再逐步替换外围依赖。
+
+---
+
+## 附录 A：固定版本与官方来源
+
+本文的服务端兼容边界固定在 E2B Infra `2026.28@fda7bef1095afb909197e272c0a8a123797f0bfb`。SDK 链接固定到 2026-07-20 审校时的官方 monorepo 提交 `36639f532114f4b34e01b96319a7e00bf6404cf9`，只用于证明 `getHost()`、`trafficAccessToken` 和示例调用形态，不把该 SDK 主线提交中的其他能力计入 Infra 2026.28 的稳定承诺。
+
+| 主题 | 官方固定快照 |
+| --- | --- |
+| Infra 2026.28 完整源码 | [e2b-dev/infra@fda7bef](https://github.com/e2b-dev/infra/tree/fda7bef1095afb909197e272c0a8a123797f0bfb) |
+| OpenAPI 默认值与响应字段 | [`spec/openapi.yml`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/spec/openapi.yml) |
+| HMAC token 生成 | [`sandbox_envd_secret.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/sandbox/sandbox_envd_secret.go) |
+| Client Proxy 路由与暂停态 token 转发 | [`client-proxy/internal/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/client-proxy/internal/proxy/proxy.go) |
+| API 自动恢复前鉴权 | [`api/internal/handlers/proxy_grpc.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/handlers/proxy_grpc.go) |
+| Orchestrator Proxy 运行态鉴权 | [`orchestrator/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/orchestrator/pkg/proxy/proxy.go) |
+| Traffic Token 集成与自动恢复测试 | [`traffic_access_token_test.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/tests/integration/internal/tests/proxies/traffic_access_token_test.go) |
+| TypeScript SDK `getHost()` 与 token 字段 | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/js-sdk/src/sandbox/index.ts) |
+| TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/js-sdk/tests/sandbox/network.test.ts) |
+| Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/python-sdk/e2b/sandbox/main.py) |
+| Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |
