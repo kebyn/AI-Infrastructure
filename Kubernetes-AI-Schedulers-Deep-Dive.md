@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.18.3@afd60c3`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.16.4@50303cd`、Volcano `v1.15.0@8fc394c`；审校日期：2026-07-16。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.18.3@afd60c3`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.16.4@50303cd`、Volcano `v1.15.0@8fc394c`；审校日期：2026-07-20。
 
 ---
 

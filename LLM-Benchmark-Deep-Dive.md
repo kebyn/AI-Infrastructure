@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.11.0`、GuideLLM `v0.7.1`、inference-perf `v0.6.0`、genai-bench `v0.0.4`、SGLang `v0.5.15.post1`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.25.1`、EvalScope `v1.9.0`；审校日期：2026-07-16。
+> 稳定版本基线：AIPerf `v0.11.0`、GuideLLM `v0.7.1`、inference-perf `v0.6.0`、genai-bench `v0.0.5`、SGLang `v0.5.15.post1`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.25.1`、EvalScope `v1.9.0`；审校日期：2026-07-20。
 
 ---
 
@@ -362,7 +362,7 @@ report:
 
 ### 8.1 定位
 
-genai-bench 是 SGLang 项目生态的 benchmark 工具，强调 token-level 指标、易用 CLI、Live UI dashboard、Excel 报告和 plot。
+genai-bench 是 SGLang 项目生态的 benchmark 工具，强调 token-level 指标、易用 CLI、Live UI dashboard、Excel 报告和 plot。本文固定到 `v0.0.5@4f873e03719c947a101647c6646954d5ebc3d35b`。
 
 一句话概括：
 
@@ -373,11 +373,13 @@ genai-bench 是 SGLang 项目生态的 benchmark 工具，强调 token-level 指
 | 能力 | 说明 |
 |------|------|
 | API backend | OpenAI-compatible、SGLang、部分 hosted cloud backend |
-| task | text-to-text、text-to-embeddings、image-text-to-text、image-to-embeddings、image generation 等 |
-| traffic scenario | `D(input,output)`、`N(mean,std)/(mean,std)`、`U(min,max)/(min,max)`、`E(tokens)`、`R(doc,query)`、`I(width,height)` |
+| task | text-to-text、text-to-image、text-to-embeddings、text-to-rerank、text-to-speech、image-text-to-text、image-to-embeddings |
+| traffic scenario | `D(input,output)`、`N(mean,std)/(mean,std)`、`U(min,max)/(min,max)`、`E(tokens)`、`R(doc,query)`、`A(chars)`、`I(width,height[,images])`，或有 dataset 时省略 scenario |
 | prefix cache | `--prefix-len`、`--prefix-ratio`，用于共享前缀压测 |
-| 指标 | TTFT、E2E latency、TPOT、output latency、input/output throughput、error rate |
+| 指标 | TTFT、E2E latency、TPOT、output latency、input/output throughput、error rate；TTS 将首响应解释为 TTFB，并报告 Audio Throughput |
 | 输出 | Live UI、rich logs、Excel、plot |
+
+`v0.0.5` 相对 `v0.0.4` 新增 OpenAI/OCI OpenAI 的 text-to-speech 路径与 `A(num_input_chars)` 场景，并改进 vLLM Harmony、gpt-oss/SMG reasoning token 的流式解析；同时修复 Matplotlib 3.9+ 已移除 API 的兼容问题。原有 text-to-text 命令和 D/N/U/E/R/I 场景没有被替换。
 
 ### 8.3 典型命令
 
@@ -407,6 +409,22 @@ genai-bench benchmark \
   --model-tokenizer meta-llama/Meta-Llama-3-8B-Instruct
 ```
 
+TTS 使用字符数而不是 token 数塑造输入；官方 OpenAI backend 示例的默认 voice 是 `alloy`，其他 voice 通过 `--additional-request-params` 传入：
+
+```bash
+genai-bench benchmark \
+  --api-backend openai \
+  --api-base https://api.openai.com \
+  --api-key "$OPENAI_API_KEY" \
+  --api-model-name tts-1 \
+  --model-tokenizer gpt2 \
+  --task text-to-speech \
+  --traffic-scenario "A(500)" \
+  --num-concurrency 1 \
+  --max-requests-per-run 10 \
+  --additional-request-params '{"voice":"nova"}'
+```
+
 ### 8.4 适用场景
 
 | 场景 | 价值 |
@@ -414,7 +432,7 @@ genai-bench benchmark \
 | SGLang 服务压测 | 生态匹配，命令直观 |
 | 报表交付 | Excel 和 plot 适合业务评审 |
 | prefix cache 对比 | scenario + prefix 参数直观 |
-| 多任务压测 | embedding、rerank、VLM 等任务可统一入口 |
+| 多任务压测 | embedding、rerank、VLM、image generation、TTS 等任务可统一入口 |
 
 ### 8.5 限制
 
@@ -1102,7 +1120,7 @@ python3 -m sglang.benchmark.serving \
 | AIPerf | `v0.11.0` | `38687855e98044fcf12ee48c6794128f10b6780b` |
 | GuideLLM | `v0.7.1` | `93e55769dee8709f9f319e6cf3ba6a327e3059c8` |
 | inference-perf | `v0.6.0` | `e28d9a0bf5cefa743910b73057b3b686f0a94b98` |
-| genai-bench | `v0.0.4` | `e11e3fd6548b079a331366d7ecd74bda9213e2f0` |
+| genai-bench | `v0.0.5` | `4f873e03719c947a101647c6646954d5ebc3d35b` |
 | SGLang Bench | `v0.5.15.post1` | `0b3bb0cbe31873994c9f989fddfe2f87ca839fdd` |
 | LLMPerf | `v2.0` | `1eac866f91773bff401f96e74c1cf20c38778329` |
 | ollama-benchmark | `v0.5.2` | `f9a5edb6554be2d425d6b16f7b740c1524d062a0` |
@@ -1122,9 +1140,11 @@ python3 -m sglang.benchmark.serving \
 | inference-perf README | <https://github.com/kubernetes-sigs/inference-perf/blob/v0.6.0/README.md> |
 | inference-perf Loadgen | <https://github.com/kubernetes-sigs/inference-perf/blob/v0.6.0/docs/loadgen.md> |
 | inference-perf Goodput | <https://github.com/kubernetes-sigs/inference-perf/blob/v0.6.0/docs/goodput.md> |
-| genai-bench README | <https://github.com/sgl-project/genai-bench/blob/v0.0.4/README.md> |
-| genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/v0.0.4/docs/getting-started/metrics-definition.md> |
-| genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/v0.0.4/docs/user-guide/scenario-definition.md> |
+| genai-bench v0.0.5 Release | <https://github.com/sgl-project/genai-bench/releases/tag/v0.0.5> |
+| genai-bench README | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/README.md> |
+| genai-bench Tasks | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/task-definition.md> |
+| genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/metrics-definition.md> |
+| genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/user-guide/scenario-definition.md> |
 | SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/v0.5.15.post1/docs/developer_guide/bench_serving.md> |
 | SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/v0.5.15.post1/python/sglang/benchmark/serving.py> |
 | LLMPerf README | <https://github.com/ray-project/llmperf/blob/v2.0/README.md> |

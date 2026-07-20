@@ -4,7 +4,7 @@
 >
 > 基于 KServe 官方仓库与官网文档整理：<https://github.com/kserve/kserve>
 >
-> 稳定版本基线：`kserve/kserve v0.19.0@b0eda63d2c105479140af8ec9149d992b7e44be5`；官网快照：`kserve/website main@f4f7147b9c6401a91ee94af9ddd4ba0f9fb0937a`；审校日期：2026-07-16。
+> 稳定版本基线：`kserve/kserve v0.19.0@b0eda63d2c105479140af8ec9149d992b7e44be5`；未发布主线快照：`kserve/kserve master@d748bd1caedfbbc1d3457d4186224c0ac11b01bd`、官网 `kserve/website main@a25437b89b60b2c0993d4a74a97a61f8290130b7`；审校日期：2026-07-20。主线快照只用于说明后续方向，不计入 v0.19.0 兼容承诺。
 
 ---
 
@@ -266,7 +266,7 @@ request -> preprocess model -> classifier -> postprocess -> response
 | `spec.router` | Gateway、HTTPRoute、InferencePool、scheduler/EPP |
 | `spec.parallelism` | tensor、pipeline、data、dataLocal、expert parallelism 等 |
 | `spec.scaling` | WVA + HPA/KEDA autoscaling |
-| `spec.kvCacheOffloading` | CPU/文件系统/PVC KV cache offloading |
+| `spec.kvCacheOffloading` | **未发布 master**：CPU/文件系统/PVC KV cache offloading；v0.19.0 CRD 不包含此字段 |
 | `spec.baseRefs` | 引用多个 `LLMInferenceServiceConfig` 做配置组合 |
 
 最小化示例：
@@ -941,14 +941,14 @@ sequenceDiagram
 
 ### 7.8 KV Cache Offloading
 
-KServe 支持两条 KV cache 路线：
+本文区分一条 v0.19.0 已发布路线与一条 release 后的主线路线：
 
 | 路线 | 适用资源 | 说明 |
 |------|----------|------|
 | LMCache integration | `InferenceService` + HuggingFace/vLLM backend | 通过 LMCache + Redis/LMCache server 做远端 KV cache |
-| `spec.kvCacheOffloading` | `LLMInferenceService` | controller 将配置转成 vLLM `--kv-transfer-config`，支持 CPU 和 filesystem/PVC tier |
+| `spec.kvCacheOffloading` | `LLMInferenceService` **未发布 master** | master controller 将配置转成 vLLM `--kv-transfer-config`，支持 CPU 和 filesystem/PVC tier；v0.19.0 release 的 CRD 没有该字段 |
 
-`LLMInferenceService` 当前 `KVCacheOffloadingSpec` 包括：
+`v0.19.0` 稳定 release 只在本文第一条路线中讨论 LMCache 集成；不要把下面的主线 schema 片段与 v0.19.0 CRD、Chart 或安装脚本混用。`master@d748bd1` 的 `KVCacheOffloadingSpec` 包括：
 
 | 字段 | 说明 |
 |------|------|
@@ -958,12 +958,12 @@ KServe 支持两条 KV cache 路线：
 | `secondary[].fileSystem.pvc.spec` | controller 管理的 ephemeral PVC |
 | `secondary[].fileSystem.pvc.ref` | 引用用户已有 PVC |
 
-示意：
+主线 v1alpha2（`WorkloadSpec` 内联到 `spec`）示意：
 
 ```yaml
 spec:
   kvCacheOffloading:
-    cpu: 20Gi
+    cpu: "20Gi"
     evictionPolicy: lru
     secondary:
       - fileSystem:
@@ -971,7 +971,7 @@ spec:
             size: 200Gi
 ```
 
-注意：KV cache offloading 不是越大越好。CPU/disk 命中会降低 GPU 重算，但也会引入序列化、传输和 IO 延迟；需要按 TTFT、ITL、吞吐和 GPU 利用率做基准测试。
+审计时两个官方主线快照暂时不一致：官网 `website@a25437b` 的完整示例使用 `serving.kserve.io/v1alpha1` 和 `spec.workload.kvCacheOffloading`；代码 `kserve@d748bd1` 则只在 v1alpha2 的内联 `spec.kvCacheOffloading` 暴露该字段，v1alpha1 `WorkloadSpec` 及其转换函数都不携带该配置。不能照抄该官网示例配合此代码快照，也不能与 v0.19.0 稳定 CRD 混用；应等待包含该字段的正式 release，或至少固定并验证同一组 controller、CRD 和示例。KV cache offloading 不是越大越好：CPU/disk 命中会降低 GPU 重算，但也会引入序列化、传输和 IO 延迟；需要按 TTFT、ITL、吞吐和 GPU 利用率做基准测试。
 
 ### 7.9 Autoscaling：WVA、HPA、KEDA
 
@@ -1360,6 +1360,9 @@ kubectl get daemonset -n kserve kserve-localmodelnode-agent
 |------|------|
 | GitHub 仓库 | <https://github.com/kserve/kserve> |
 | v0.19.0 源码快照 | <https://github.com/kserve/kserve/tree/v0.19.0> |
+| 未发布 kserve master 源码快照 | <https://github.com/kserve/kserve/tree/d748bd1caedfbbc1d3457d4186224c0ac11b01bd> |
+| master v1alpha2 KV cache offloading API | <https://github.com/kserve/kserve/blob/d748bd1caedfbbc1d3457d4186224c0ac11b01bd/pkg/apis/serving/v1alpha2/llm_inference_service_types.go> |
+| master LLMInferenceService CRD | <https://github.com/kserve/kserve/blob/d748bd1caedfbbc1d3457d4186224c0ac11b01bd/config/crd/full/llmisvc/serving.kserve.io_llminferenceservices.yaml> |
 | 官网文档 | <https://kserve.github.io/website/> |
 | KServe Concepts | <https://kserve.github.io/website/docs/concepts> |
 | Control Plane | <https://kserve.github.io/website/docs/concepts/architecture/control-plane> |
@@ -1369,5 +1372,5 @@ kubectl get daemonset -n kserve kserve-localmodelnode-agent
 | LLMInferenceService 安装 | <https://kserve.github.io/website/docs/admin-guide/kubernetes-deployment-llmisvc> |
 | LLMInferenceService Overview | <https://kserve.github.io/website/docs/model-serving/generative-inference/llmisvc/llmisvc-overview> |
 | Local Model Cache | <https://kserve.github.io/website/docs/model-serving/generative-inference/modelcache/localmodel> |
-| KV Cache Offloading | <https://kserve.github.io/website/docs/model-serving/generative-inference/kvcache-offloading> |
+| KV Cache Offloading（未发布官网源码快照） | <https://github.com/kserve/website/blob/a25437b89b60b2c0993d4a74a97a61f8290130b7/docs/model-serving/generative-inference/llmisvc/kv-cache-offloading.md> |
 | API Reference | <https://kserve.github.io/website/docs/reference/crd-api> |

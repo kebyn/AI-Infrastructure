@@ -7,6 +7,55 @@ import serve_docs
 
 
 class RenderDocLayoutTest(unittest.TestCase):
+    def test_all_deep_dives_are_registered_and_use_current_audit_date(self):
+        docs_dir = Path(__file__).resolve().parent
+        markdown_docs = {path.name for path in docs_dir.glob("*-Deep-Dive.md")}
+        registered_docs = {Path(doc["src"]).name for doc in serve_docs.DOCS}
+
+        self.assertEqual(len(markdown_docs), 12)
+        self.assertEqual(registered_docs, markdown_docs)
+        for doc in serve_docs.DOCS:
+            with self.subTest(document=Path(doc["src"]).name):
+                self.assertIn("2026-07-20", doc["meta"])
+                markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
+                self.assertIn("审校日期：2026-07-20", markdown_text)
+
+    def test_benchmark_snapshot_uses_genai_bench_v0_0_5(self):
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "LLM-Benchmark-Deep-Dive.md"
+        )
+        markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
+
+        self.assertIn("genai-bench v0.0.5", doc["meta"])
+        self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
+        self.assertIn("v0.0.5@4f873e03719c947a101647c6646954d5ebc3d35b", markdown_text)
+        self.assertIn("text-to-speech", markdown_text)
+        self.assertIn("Audio Throughput", markdown_text)
+        self.assertIn('A(500)', markdown_text)
+
+    def test_kserve_snapshot_separates_release_and_unreleased_main(self):
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "KServe-Deep-Dive.md"
+        )
+        markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
+
+        self.assertIn("KServe v0.19.0", doc["meta"])
+        self.assertIn("master@d748bd1", doc["meta"])
+        self.assertIn(
+            "v0.19.0 release 的 CRD 没有该字段",
+            markdown_text,
+        )
+        self.assertIn(
+            "kserve/website main@a25437b89b60b2c0993d4a74a97a61f8290130b7",
+            markdown_text,
+        )
+        self.assertIn("两个官方主线快照暂时不一致", markdown_text)
+        self.assertIn("v1alpha1 `WorkloadSpec` 及其转换函数都不携带", markdown_text)
+
     def test_nvidia_gpu_operator_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 
@@ -100,7 +149,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["href"], "/Kubernetes-Native-Scheduler-Deep-Dive.html")
         self.assertEqual(doc["title"], "Kubernetes 原生调度器深度技术文档")
         self.assertIn("v1.36.2", doc["meta"])
-        self.assertIn("5ecab45", doc["meta"])
+        self.assertIn("24e2b02", doc["meta"])
+        self.assertNotIn("5ecab45", doc["meta"])
         self.assertIn(
             "https://kubernetes.io/docs/concepts/scheduling-eviction/",
             doc["footer"],
