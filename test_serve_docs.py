@@ -72,6 +72,110 @@ class RenderDocLayoutTest(unittest.TestCase):
             markdown_text,
         )
 
+    def test_e2b_self_hosted_quota_and_billing_boundaries_are_documented(self):
+        docs_dir = Path(__file__).resolve().parent
+        markdown_text = (docs_dir / "E2B-Deep-Dive.md").read_text(encoding="utf-8")
+
+        for required_text in (
+            "第十章：自托管配额与计费架构",
+            "team_limits",
+            "quota_policy",
+            "tenant_policy_binding",
+            "quota_override",
+            "quota_reservation",
+            "usage_events",
+            "usage_intervals",
+            "price_book",
+            "ledger_entries",
+            "budgets",
+            "reconciliation_runs",
+            "execution_id",
+            "transactional outbox",
+            "Usage Ledger",
+            "Price Book",
+            "fail-open",
+            "fail-closed",
+            "reconciliation",
+            "不能把官方云公开价格写成自托管默认单价",
+            "不能直接充当唯一财务账本",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
+
+        self.assertNotRegex(
+            markdown_text,
+            r"github[.]com/e2b-dev/infra/(?:blob|tree)/(?:main|master)/",
+        )
+
+        infra_revisions = set(
+            re.findall(
+                r"github[.]com/e2b-dev/infra/(?:blob|tree)/([^/)]+)",
+                markdown_text,
+            )
+        )
+        self.assertEqual(
+            infra_revisions,
+            {"fda7bef1095afb909197e272c0a8a123797f0bfb"},
+        )
+
+        commit_base = (
+            "https://github.com/e2b-dev/infra/blob/"
+            "fda7bef1095afb909197e272c0a8a123797f0bfb/"
+        )
+        source_paths = (
+            "packages/db/migrations/20251011200438_create_addons_table.sql",
+            "packages/db/migrations/20260702120000_add_events_ttl_days.sql",
+            "packages/dashboard-api/internal/handlers/teams_list.go",
+            "packages/api/internal/sandbox/reservations/redis/scripts.go",
+            "packages/api/internal/middleware/ratelimit/ratelimit.go",
+            "packages/api/internal/handlers/sandbox.go",
+            "packages/shared/pkg/events/sandbox.go",
+            "packages/orchestrator/pkg/server/sandboxes.go",
+            "packages/clickhouse/migrations/20250725223340_add_sandbox_events_local.sql",
+            "packages/clickhouse/migrations/20260702120000_add_sandbox_events_ttl_days.sql",
+            "packages/clickhouse/pkg/events/delivery.go",
+            "packages/api/internal/orchestrator/analytics.go",
+        )
+        for source_path in source_paths:
+            with self.subTest(source_path=source_path):
+                self.assertIn(commit_base + source_path, markdown_text)
+
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "E2B-Deep-Dive.md"
+        )
+        for summary_term in ("状态存储", "团队配额", "可靠计量", "预算", "内部成本分摊"):
+            with self.subTest(summary_term=summary_term):
+                self.assertIn(summary_term, doc["summary"])
+        self.assertIn(
+            "https://github.com/e2b-dev/infra/tree/"
+            "fda7bef1095afb909197e272c0a8a123797f0bfb",
+            doc["footer"],
+        )
+
+    def test_render_e2b_quota_chapter_includes_toc_and_mermaid(self):
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "E2B-Deep-Dive.md"
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc)
+            rendered_doc["dst"] = str(Path(tmpdir) / "e2b.html")
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        self.assertIn(
+            '<a class="toc-chapter" href="#第十章自托管配额与计费架构">',
+            html,
+        )
+        self.assertIn("10.7 Usage Event、可靠账本与分析层", html)
+        self.assertIn('<div class="mermaid">', html)
+        self.assertIn("participant QS as Quota Service", html)
+        self.assertNotIn('class="language-mermaid"', html)
+
     def test_kserve_snapshot_separates_release_and_unreleased_main(self):
         doc = next(
             doc

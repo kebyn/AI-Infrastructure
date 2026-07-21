@@ -14,7 +14,7 @@
 | --- | --- | --- | --- |
 | [Mooncake-Deep-Dive.md](Mooncake-Deep-Dive.md) | Mooncake 分离式 LLM 推理架构 | 关注 KVCache、prefill/decode 分离、推理性能优化的工程师 | Transfer Engine、Mooncake Store、Conductor、HiCache、SSD/DFS 持久化、缓存治理 |
 | [Dynamo-Deep-Dive.md](Dynamo-Deep-Dive.md) | Dynamo 数据中心级 LLM 推理编排 | 关注多节点推理服务、KV 路由和生产编排的工程师 | Request/Control/Storage 三平面、KV-Aware Router、KVBM、Planner、Operator、部署模式 |
-| [E2B-Deep-Dive.md](E2B-Deep-Dive.md) | E2B AI Sandbox 与自托管架构 | 关注代码执行沙箱、microVM、安全隔离和私有化部署的工程师 | Firecracker microVM、Orchestrator、envd、模板构建、网络隔离、状态存储、Terraform/Nomad 自托管 |
+| [E2B-Deep-Dive.md](E2B-Deep-Dive.md) | E2B AI Sandbox 与自托管架构 | 关注代码执行沙箱、microVM、安全隔离、团队配额和私有化部署的工程师 | Firecracker microVM、Orchestrator、envd、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管 |
 | [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md) | LLM 压测工具深度对比 | 需要选择或设计推理压测方案的工程师 | AIPerf、GuideLLM、inference-perf、genai-bench v0.0.5、SGLang Bench、LLMPerf、vLLM Bench、EvalScope、Ollama Benchmark |
 | [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md) | Lustre 与 3FS 深度技术文档 | 关注 AI 存储、HPC 并行文件系统、RDMA/NVMe 共享存储和 KVCache 落盘的工程师 | Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、dataloader、checkpoint、KV cache、生产选型 |
 | [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md) | NVIDIA GPU Operator 节点软件栈与生命周期管理 | 负责 Kubernetes GPU 驱动、设备接入、共享隔离和生产运维的平台工程师 | Controller 调谐、ClusterPolicy、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级排障 |
@@ -31,30 +31,30 @@
 - 压测与容量评估：读 [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md)。它适合在选型推理引擎、比较吞吐/延迟指标、设计 SLO/goodput 压测方案前阅读。
 - AI 存储与文件系统：读 [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md)。它适合理解 Lustre、3FS、RDMA/NVMe 共享存储、checkpoint、dataloader 和 KV cache on disk 的架构取舍。
 - Kubernetes AI 平台：按 [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md)、[HAMi-Deep-Dive.md](HAMi-Deep-Dive.md)、[Kubernetes-Native-Scheduler-Deep-Dive.md](Kubernetes-Native-Scheduler-Deep-Dive.md)、[Kubernetes-AI-Schedulers-Deep-Dive.md](Kubernetes-AI-Schedulers-Deep-Dive.md)、[Volcano-Upgrade-Compatibility-Deep-Dive.md](Volcano-Upgrade-Compatibility-Deep-Dive.md)、[KServe-Deep-Dive.md](KServe-Deep-Dive.md)、[Kubeflow-Deep-Dive.md](Kubeflow-Deep-Dive.md) 的顺序阅读。它们依次覆盖 NVIDIA 驱动与设备栈、GPU 共享和异构设备、原生调度基线、AI 队列与调度扩展、Volcano 升级兼容、模型推理服务以及上层 MLOps 平台。
-- Sandbox 与执行环境：读 [E2B-Deep-Dive.md](E2B-Deep-Dive.md)。它适合理解 AI Agent 代码执行环境、隔离边界和自托管部署取舍。
+- Sandbox 与执行环境：读 [E2B-Deep-Dive.md](E2B-Deep-Dive.md)。它适合理解 AI Agent 代码执行环境、隔离边界、自托管部署取舍，以及 Team/Project 配额、可靠计量、预算与内部成本分摊的补建边界。
 
 ## 本地预览
 
 `serve_docs.py` 会把所有 `*-Deep-Dive.md` 渲染为 HTML，并生成首页 `index.html`。脚本默认监听 `80` 端口，根路径 `/` 会返回首页。
 
-首次运行可创建虚拟环境并安装依赖：
+首次运行使用 uv 创建虚拟环境并安装锁定的依赖：
 
 ```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install markdown pymdown-extensions
+uv sync --locked
 ```
+
+日常命令无需手动激活虚拟环境；如需交互式 shell，可选执行 `source .venv/bin/activate`。
 
 运行测试：
 
 ```bash
-.venv/bin/python -m unittest test_serve_docs.py
+uv run --locked python -m unittest test_serve_docs.py
 ```
 
 启动服务：
 
 ```bash
-.venv/bin/python serve_docs.py
+uv run --locked python serve_docs.py
 ```
 
 访问首页：

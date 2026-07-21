@@ -44,9 +44,9 @@ DOCS = [
         "hero": "E2B 深度技术文档",
         "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
         "meta": "E2B Infra 2026.28 · source@fda7bef · 2026-07-20",
-        "summary": "覆盖控制面/数据面、sandbox 生命周期、模板构建、网络隔离、状态存储、Terraform/Nomad 自托管与私有化部署取舍。",
+        "summary": "覆盖控制面/数据面、sandbox 生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管与私有化部署取舍。",
         "footer": (
-            '基于 <a href="https://github.com/e2b-dev/infra/tree/2026.28">'
+            '基于 <a href="https://github.com/e2b-dev/infra/tree/fda7bef1095afb909197e272c0a8a123797f0bfb">'
             'e2b-dev/infra 2026.28</a> 官方仓库与官方自托管资料整理'
         ),
     },

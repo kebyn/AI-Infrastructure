@@ -785,9 +785,383 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 
 ---
 
-## 第十章：运维、验证与排障
+## 第十章：自托管配额与计费架构
 
-### 10.1 健康检查端点
+本章先给出结论：E2B Infra 2026.28 已经具备 **Team 级规格上限、Sandbox/模板构建并发上限、创建并发预留、按 Team/路由的 API 限流，以及带 `execution_id` 的生命周期事件和 ClickHouse 分析数据**。这些能力可以作为自托管配额与计量的基础，但它们还不是一套完整的多层聚合配额、预算控制或财务计费系统。
+
+因此，下文严格使用两个标签：
+
+- **E2B 原生**：能在固定源码 `2026.28@fda7bef1095afb909197e272c0a8a123797f0bfb` 中找到实现。
+- **建议自建**：自托管方为组织/项目配额、可靠计量、内部成本分摊或商业账单补充的架构，不声称已经存在于 E2B Infra，也不推导未经源码证明的开源 API。
+
+### 10.1 配额、限流、预算、计量与计费的边界
+
+这五个概念作用在不同阶段，混在一个“余额”字段里会导致并发超卖、账单不可追溯或 Redis 故障时错误放行。
+
+| 能力 | 回答的问题 | 所在路径 | E2B Infra 2026.28 | 自托管生产建议 |
+| --- | --- | --- | --- | --- |
+| 配额（quota） | 允许创建多大、同时运行多少、总共占多少资源 | Create/Resume/Build 准入之前 | 有 Team 级单实例规格、最大时长和并发数量 | 增加组织/Team/Project 层级、聚合 vCPU/内存、存储等硬配额 |
+| 限流（rate limit） | 某条 API 在时间窗口内能调用多快 | API middleware | 有按 Team + route 的 Redis 限流 | 按路由风险分组，明确 Redis 故障时的 fail-open/fail-closed 策略 |
+| 预算（budget） | 当前周期还能承诺多少成本 | 准入与持续观察 | 固定源码未提供通用自托管预算控制器 | 基于已入账、未结区间和成本预留做软/硬阈值 |
+| 计量（metering） | 实际用了多少 vCPU-second、GiB-second、存储和流量 | 生命周期与资源采样之后 | 有生命周期事件、execution 规格/时长和 ClickHouse 指标 | 用 durable outbox、幂等事件和不可变 Usage Ledger 建财务级事实层 |
+| 计价（rating） | 每个用量单位按哪版规则换算为金额 | 计量之后 | 固定源码不构成通用自托管价格引擎 | 使用版本化 Price Book，并按生效时间切分跨版本区间 |
+| 结算/账单（settlement/invoice） | 谁承担成本、是否形成应收账款 | 月结、对账、财务系统 | 不属于自托管运行时默认能力 | 按 showback、chargeback 或商业账单选择不同控制与合规强度 |
+
+官方云的商业套餐、赠送额度、折扣和公开价格是 E2B 云服务的动态商业条款；自托管方承担的是计算节点、数据库、Redis、ClickHouse、对象存储、网络、可观测性和运维人力等基础设施成本。**不能把官方云公开价格写成自托管默认单价，也不能仅因为源码出现 tier、addon 或 billing 链接，就假设开源 Infra 已提供完整开票系统。** 本章不固定任何美元价格，Price Book 中的币种和单价由部署方自己的财务或 FinOps 规则决定。
+
+### 10.2 原生 tier、addon 与 Team limits
+
+E2B 的持久控制面以 `teams.tier` 关联 `tiers`，再通过 `addons` 为某个 Team 增加临时或长期额度。`team_limits` 是有效上限的数据库视图，不是用量账本。
+
+| 来源 | 固定版本字段 | 含义与边界 |
+| --- | --- | --- |
+| `tiers` | `max_length_hours`、`concurrent_instances`、`concurrent_template_builds`、`max_vcpu`、`max_ram_mb`、`disk_mb`、`events_ttl_days` | Team 的基础上限；CPU/内存是单 Sandbox 规格上限，磁盘额度进入模板构建/运行规格，事件 TTL 只控制事件保留 |
+| `addons` | `extra_concurrent_sandboxes`、`extra_concurrent_template_builds`、`extra_max_vcpu`、`extra_max_ram_mb`、`extra_disk_mb`、`extra_events_ttl_days` | 在基础 tier 上做加法，不记录实际消费 |
+| addon 有效期 | `valid_from`、`valid_to` | 仅聚合 `valid_from <= now()` 且 `valid_to IS NULL OR valid_to > now()` 的记录 |
+| `team_limits` | tier 基值 + 当前有效 addon 的逐项 `SUM` | API/Auth 读取的有效 Team 上限；不包含组织、Project 或成本中心层级 |
+| Dashboard Team 响应 | `concurrentSandboxes`、`concurrentTemplateBuilds`、`maxVcpu`、`maxRamMb`、`diskMb`、`maxLengthHours`、`eventsTtlDays` | 管理界面可以展示有效上限，但这些字段不是预算、已用量或剩余额度 |
+
+原生执行位置也要分开理解：
+
+- Create/Resume 在 API 中校验最大运行时长，并为每次启动生成新的 `execution_id`。
+- CPU 和内存请求会与 Team 的 `max_vcpu`、`max_ram_mb` 比较；这仍是 **单实例规格** 校验，不会限制一个 Team 所有实例的 vCPU/内存总和。
+- Sandbox 并发使用后述 Redis 原子预留；模板构建并发根据正在进行的 build 数量与 `concurrent_template_builds` 比较。
+- `events_ttl_days` 决定 ClickHouse 生命周期事件的保留时间，不代表账本或发票必须保留多久。
+
+由此可见，原生 `team_limits` 很适合表达“这个 Team 最多创建什么规格、同时启动多少个实例”，但不能回答“组织下所有 Team 合计用了多少 vCPU”“某 Project 本月还能花多少”或“上月账单为何是这个金额”。
+
+### 10.3 原生并发预留与 API 限流
+
+#### 10.3.1 Sandbox 并发预留
+
+Infra 2026.28 的 Redis reservation Lua 把两个集合放在同一次原子执行中统计：
+
+```text
+effective_concurrency = SCARD(running_storage_index) + ZCARD(pending_creation_zset)
+```
+
+在比较 Team 的 `concurrent_sandboxes` 前，脚本先清理超过 90 秒的 pending 项，再检查 Sandbox 是否已经运行或正在创建，最后才把新的 Sandbox ID 写入 pending ZSET。创建成功或失败后，完成脚本移除 pending 并写入短 TTL 结果；API 实例崩溃留下的 pending 会由后续预留清理。这个设计避免多个 API 实例同时看到相同空余名额而超卖，并能让同一 Sandbox 的并发启动请求等待同一个结果。
+
+它的边界同样明确：
+
+- 预留维度是 Team 的 **Sandbox 数量**，不是聚合 vCPU、内存、磁盘、网络或成本。
+- Redis 执行失败时 Create/Resume 返回错误，而不是绕过并发上限；这一准入路径实质上是 fail-closed。
+- pending 超时是启动协调的泄漏保护，不是财务事件保留策略；若真实启动超过清理窗口，仍要依赖 Sandbox ID 幂等和运行态索引避免重复实例。
+- Redis 数据整体丢失后，不能把空计数当成“全部有额度”，必须先从 API 状态、Orchestrator inventory 和持久快照重建。
+
+#### 10.3.2 Team + route 限流
+
+通用 rate-limit middleware 在鉴权后取得 Team，把 Gin 的完整路由模板 `c.FullPath()` 与 Team ID 组成 Redis key。每条已配置路由可以设置 `rate`、`burst` 和 `period_s`；未配置路由不施加限制。命中限制时返回 `429` 以及标准 `RateLimit-*`/`Retry-After` header。
+
+固定版本的 API 主程序以 `FailOpen: true` 初始化该 middleware：Redis 限流器故障时请求继续进入 handler。这个选择适合把限流当作抗突发和公平性保护，却不能代替硬配额或硬预算。建议采用下面的故障语义：
+
+| 控制 | Redis/Quota Service 不可用时 | 原因 |
+| --- | --- | --- |
+| 普通读取 API 限流 | 可 fail-open，并告警 | 可用性优先，放行不会分配昂贵资源 |
+| Create/Resume/Build 速率保护 | 可沿用 E2B 原生 fail-open，但后续硬配额仍必须通过 | rate limit 不是资源授权 |
+| Sandbox 数量或聚合资源硬配额 | fail-closed | 否则会在故障窗口超卖 |
+| 硬预算 | fail-closed；软预算可仅告警 | 无法确认余额时不能新增成本承诺 |
+
+### 10.4 建议的组织、Team、Project 三级模型
+
+**以下全部是建议自建扩展。** E2B 原生 Team ID 仍作为运行时租户键；组织、Project、成本中心和财务主体由企业身份/资源目录映射，不应伪装成 E2B 已有字段。
+
+推荐继承关系为 `Organization -> Team -> Project`：父级给出硬天花板，子级给出可分配份额，临时 override 必须有审批人、原因、生效时间和失效时间。一次请求的有效额度取所有适用层级中最严格的剩余额度；不能因为 Project 仍有余额就突破 Team 或 Organization 上限。
+
+| 维度 | 单实例限制 | 聚合/周期限制 | 准入动作 |
+| --- | --- | --- | --- |
+| Sandbox 规格 | max vCPU、max memory、max disk、max timeout | running + creating Sandbox 数 | Create/Resume 前拒绝超规格或超并发请求 |
+| 运行资源 | 单 Sandbox 规格上限 | reserved + running vCPU、memory MiB | 原子预留全部层级的增量 |
+| 模板构建 | 单 build 规格/超时 | pending + running builds、build vCPU/memory | Build 前预留，完成/失败后释放 |
+| API 速率 | 不适用 | Team/Project/route 的 rate、burst | 在昂贵 handler 前限流 |
+| 存储 | 单对象/卷/快照大小 | template、snapshot、volume 的 retained bytes | 写入前预估，落盘后按实际值调整 |
+| 网络 | 单请求/body 上限 | egress bytes 或带宽窗口 | 网关限速；计量层记录实际流量 |
+| 预算 | 单次预计成本上限（可选） | 日/月预算、软阈值、硬阈值 | 把已入账 + 未结用量 + 新承诺与预算比较 |
+
+建议的数据模型保持“策略、预留、用量、价格、账本”分层：
+
+| 概念表 | 最小职责 | 关键约束 |
+| --- | --- | --- |
+| `quota_policy` | 保存各资源维度的 limit、窗口和 policy version | 版本不可原地覆盖；新版本按 `effective_at` 生效 |
+| `tenant_policy_binding` | 把 Organization/Team/Project 绑定到策略 | 同一 scope、dimension、时间段的优先级确定且可审计 |
+| `quota_override` | 有时限地提升或降低某项额度 | 必须有 reason、approver、valid_from、valid_to |
+| `quota_reservation` | 记录请求预留、状态、lease、资源向量和幂等键 | `request_id`/`reservation_id` 唯一；状态单向迁移 |
+| `usage_events` | 保存去重后的标准 Usage Event | `event_id` 唯一；原始 payload 和接收时间不可丢 |
+| `usage_intervals` | 将 start/stop 事件配成 execution 计费区间 | `execution_id` 唯一；保留 estimated/reconciled 质量标记 |
+| `price_book` | 保存版本化计量单位、币种、费率和生效区间 | 已使用版本不可修改，只能新增后继版本 |
+| `ledger_entries` | 保存 rated usage、借贷/归属、调整和冲销 | append-only；修正用 reversal/adjustment，不 UPDATE 历史金额 |
+| `budgets` | 保存 scope、周期、软硬阈值和动作 | 币种、时区、窗口和预算版本必须固定 |
+| `reconciliation_runs` | 记录对账范围、输入水位、差异和修复结果 | 每次运行可重放，有 owner、状态和证据链接 |
+
+`quota_reservation` 的持久记录和 Redis 快速计数各有用途：PostgreSQL/可靠数据库负责恢复与审计，Redis 负责高并发原子准入。两者无法与远端 Orchestrator 调用组成单个 ACID 事务，所以要按 saga 处理，并让 reservation lease 与 reconciliation 收敛不确定状态。
+
+下面是 **概念级 Redis Lua 伪代码**，只说明聚合预留需要原子检查多个维度，不是 E2B Infra 已存在的脚本或 API：
+
+```lua
+-- KEYS: org/team/project counters and one reservation key
+-- ARGV: reservation_id, lease_ms, requested resource vector, policy version
+-- Redis Cluster 中所有 key 必须用同一 hash tag，或改由单租户分片执行。
+
+for each scope in {organization, team, project} do
+  for each dimension in {sandboxes, vcpu, memory_mib, builds} do
+    local used = tonumber(redis.call("HGET", scope.counter, dimension) or "0")
+    local ask = request[dimension]
+    local cap = policy[scope][dimension]
+    if used + ask > cap then
+      return {"DENIED", scope.name, dimension, used, ask, cap}
+    end
+  end
+end
+
+for each scope in {organization, team, project} do
+  redis.call("HINCRBY", scope.counter, "sandboxes", request.sandboxes)
+  redis.call("HINCRBY", scope.counter, "vcpu", request.vcpu)
+  redis.call("HINCRBY", scope.counter, "memory_mib", request.memory_mib)
+end
+redis.call("HSET", reservation_key, "state", "RESERVED", "policy_version", policy.version)
+redis.call("PEXPIRE", reservation_key, lease_ms)
+return {"RESERVED", reservation_id}
+```
+
+生产实现还要保存完整资源向量，保证 release 与 reserve 完全对称；续租、提交和释放必须按 `reservation_id` 幂等，禁止用“当前请求规格”反推释放量。
+
+### 10.5 Create/Resume/Pause/Kill 的准入与释放
+
+Create 和 Resume 都会形成新的运行区间，也都会重新占用运行资源；Pause 和 Kill 才会释放聚合运行配额。Checkpoint 在替换运行实例后继续运行，不应该释放配额或停止计费区间。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant API as E2B API
+    participant QS as Quota Service
+    participant R as Redis Counters
+    participant O as Orchestrator
+    participant M as Metering
+
+    alt Create or Resume
+        API->>QS: Admit(request_id, scope, specs, timeout)
+        QS->>QS: Resolve policy and budget versions
+        QS->>R: Atomic reserve org/team/project resources
+        R-->>QS: reservation_id or DENIED
+        QS-->>API: RESERVED with lease
+        API->>O: Create or Resume(execution_id, specs)
+        alt runtime becomes ready
+            O-->>API: READY
+            API->>QS: CommitRunning(reservation_id, execution_id)
+            QS->>R: Convert reserved counters to running
+            API->>M: usage.started via transactional outbox relay
+            API-->>API: Return success
+        else create or resume fails
+            O-->>API: ERROR
+            API->>QS: Release(reservation_id, reason)
+            QS->>R: Subtract exact reserved vector
+            API-->>API: Return error
+        end
+    else Pause or Kill or Timeout
+        API->>O: Pause or Kill(execution_id)
+        O-->>API: STOPPED with reason and time
+        API->>QS: CommitStopped(execution_id)
+        QS->>R: Release running resource vector
+        API->>M: usage.stopped via transactional outbox relay
+    end
+```
+
+推荐状态机如下：
+
+| 操作 | 准入/预留 | 提交点 | 释放点 | 异常补偿 |
+| --- | --- | --- | --- | --- |
+| Create | 校验单实例、层级聚合配额、速率和预算；写 `RESERVED` | Orchestrator READY 且运行态可寻址后转 `RUNNING` | 创建失败立即释放；成功后等 stop | API 超时但节点可能已启动时标 `UNKNOWN`，先查 inventory，不能直接释放 |
+| Resume | 与 Create 相同，并为新 execution 预留 | 新 execution READY 后提交 | 恢复失败释放；成功后等 stop | 旧快照仍保留，不计作运行资源，但继续计存储 |
+| Pause | 不新增运行预留；可预检快照存储额度 | pause 成功并确认旧 VM 停止 | 释放该 execution 的运行资源 | snapshot 已写但终止事件缺失时，由 snapshot/节点状态补发 stop |
+| Kill/Delete | 不新增预留 | VM/路由进入终态 | 释放运行资源；按对象策略另行释放存储 | 节点失联时先标 `STOP_PENDING`，由回收器确认终止时间 |
+| Timeout/Auto-pause | 使用与 Pause/Kill 相同的终止路径 | 控制面确认到期动作 | 按实际停止时间释放 | 不用 reservation lease 到期时间冒充 execution 停止时间 |
+| Checkpoint | 保持原运行资源；检查新增快照存储 | 新运行实例接管且保持同一 execution | 不释放运行资源 | 失败时按真实运行状态处理，不能生成虚假 stop/start |
+
+Quota Service 在提交/释放失败时应拒绝新的同 scope 资源承诺并进入 reconciliation，而不是“先返回成功以后再算”。对用户可见的 API 状态码和 reason code 由自托管扩展定义；不要声称这是 E2B 现有 OpenAPI 的一部分。
+
+### 10.6 以 execution_id 为运行计费区间
+
+固定版本的 API 在每次 start/resume 前生成一个新的 `execution_id`，注释也明确其范围是“from start/resume to stop/pause”。因此同一个 `sandbox_id` 可以跨多次暂停/恢复，而每个 `execution_id` 只描述一个连续运行区间：
+
+```text
+sandbox_id = sbx-1
+
+execution A: create READY ---------------- pause STOPPED
+execution B: resume READY -------- timeout/kill STOPPED
+```
+
+推荐计费边界为：
+
+| 生命周期动作 | execution_id | 运行计费处理 |
+| --- | --- | --- |
+| Create | 新建 | Sandbox READY/可用时开始；不要从收到 HTTP 请求时计费 |
+| Resume | 新建 | 恢复 READY 时开始新的 interval |
+| Pause | 结束当前 execution | VM 停止占用运行资源时停止 |
+| Kill/Delete | 结束当前 execution | 实际终止时停止，并记录 request/admin/timeout/orphaned 等原因 |
+| Timeout/Auto-pause | 结束当前 execution | 按控制面确认的实际停止时间停止 |
+| Checkpoint | 保持同一 execution | **不停止运行计费**；只增加快照写入与存储相关用量 |
+| Update timeout | 保持同一 execution | 不切 interval，只更新预计结束时间/预算承诺 |
+
+Orchestrator 生命周期事件已经携带 `sandbox_execution_id`；pause/kill 事件的 `event_data.execution` 还包含 `started_at`、`vcpu_count`、`memory_mb` 和 `execution_time`。API 侧 analytics start/stop 消息也携带 execution ID、CPU、RAM、磁盘，stop 消息带运行 duration。这些字段可以用于核验，但财务计量应优先使用可靠状态转换生成的标准 Usage Event，并把源码事件保留为 reconciliation 证据。
+
+### 10.7 Usage Event、可靠账本与分析层
+
+#### 10.7.1 为什么 ClickHouse 事件不能直接作为唯一账本
+
+Infra 2026.28 的 Orchestrator 在 Create/Resume/Pause/Kill/Checkpoint 等路径中用后台 goroutine 发布 Sandbox Event；Events Service 再扇出到 ClickHouse 或 Redis Stream，ClickHouse delivery 进入内存 batcher 后批量写入。事件有 UUID、版本、时间戳、Team/Sandbox/execution 标识，也有按 Team limit 设置并被上限截断的 TTL。
+
+这套路径适合 Dashboard 查询、使用趋势、审计展示和故障分析，但不能直接充当唯一财务账本：
+
+- 后台发布与批处理不和控制面状态转换处于同一持久事务，进程崩溃可能留下状态已变而事件未落盘的窗口。
+- delivery 错误以日志报告，固定实现没有展示财务账本所需的端到端确认、永久重试和人工挂账流程。
+- ClickHouse 行会按 `events_ttl_days` 到期删除，默认分析保留期与法务/财务留存期不是同一概念。
+- ClickHouse 适合聚合查询，不应承担不可变复式分录、冲销链和账单冻结职责。
+
+#### 10.7.2 transactional outbox 与标准事件
+
+建议 Quota/Metering 控制面在持久化 `quota_reservation` 或 `usage_intervals` 状态转换的同一个数据库事务中写 transactional outbox。Relay 至少一次投递；消费者用 `event_id` 去重。这个事务不能覆盖 Redis、Orchestrator 和数据库三方，因此外层仍是 saga，但它消除了“数据库状态已提交、进程在发消息前崩溃”的本地双写窗口。
+
+标准 Usage Event 示例：
+
+```json
+{
+  "event_id": "018f6f6a-6f7d-7b7e-9d3e-0f4b8dbd9a21",
+  "event_type": "usage.execution.stopped",
+  "event_sequence": 2,
+  "organization_id": "org-platform",
+  "team_id": "8df3e6d5-4f57-4bc2-a9d5-719a13e10291",
+  "project_id": "agent-evaluation",
+  "sandbox_id": "sbx-01J2EXAMPLE",
+  "execution_id": "5b48e99c-9170-45af-9305-b5ad73985162",
+  "occurred_at": "2026-07-20T10:42:31.482Z",
+  "observed_at": "2026-07-20T10:42:31.731Z",
+  "server_time_source": "quota-control-plane",
+  "stop_reason": "pause",
+  "resources": {
+    "vcpu": 4,
+    "memory_mib": 8192,
+    "disk_mib": 20480,
+    "execution_duration_ms": 912345
+  },
+  "policy_version": "quota-2026-07-20.1",
+  "price_version": "internal-cost-2026-07.1",
+  "source": "e2b-api"
+}
+```
+
+约束建议：
+
+- `event_id` 全局唯一，重复投递只确认、不重复入账。
+- `event_sequence` 在同一 `execution_id` 内单调递增；stop 先于 start 到达时暂存，不能凭接收顺序计算负时长。
+- `occurred_at` 是状态发生时间，`observed_at` 是计量服务接收时间；两者都由受信任服务端产生，客户端时间只作为 metadata。
+- 规格必须随事件固化，不能月结时再读取已变化的 template/tier。
+- `policy_version` 和 `price_version` 都必须进入 interval/ledger；配额策略变化不应悄悄改变已发生用量的价格。
+
+#### 10.7.3 分层存储与聚合
+
+推荐数据流为：
+
+```text
+control state + transactional outbox
+        -> durable event transport
+        -> immutable usage_events
+        -> paired usage_intervals
+        -> rating with versioned price_book
+        -> append-only ledger_entries
+        -> ClickHouse analytics copy
+        -> hourly / daily / monthly aggregates
+```
+
+`usage_events` 保存原始事实，`usage_intervals` 保存配对后的连续区间，`ledger_entries` 保存已按 Price Book 计价的不可变分录。ClickHouse 从事实/账本异步复制，可构建小时、日、月物化聚合与 Dashboard；任何聚合都必须能追溯到 event、interval、price version 和 ledger entry。月结冻结后收到的迟到事件不修改旧行，而是生成本期 adjustment，并关联被修正的原分录。
+
+### 10.8 计量公式与三种落地层级
+
+设某个 execution 的有效运行区间为 `[t_start, t_stop)`，`d = max(0, t_stop - t_start)` 秒：
+
+```text
+vcpu_seconds       = allocated_vcpu * d
+gib_seconds        = (allocated_memory_mib / 1024) * d
+disk_gib_seconds   = (allocated_runtime_disk_mib / 1024) * d        # 若本地运行盘纳入成本
+snapshot_gib_hours = sum(snapshot_version_bytes * retained_hours) / 2^30
+network_egress_gib = billable_egress_bytes / 2^30
+rated_amount       = sum(quantity_by_unit * price_book[unit, effective_time])
+```
+
+关键口径：
+
+- vCPU/内存按 **分配规格** 还是实际 cgroup 使用量计价必须在 Price Book 中声明。容量回收通常按分配规格更稳定；实际利用率适合另做效率分析，不能在月末临时切换口径。
+- Snapshot/模板/Volume 存储是随时间变化的阶梯函数。创建、覆盖、删除和生命周期回收都要产生对象版本事件，再积分得到 GiB-hour；不能只拿月末大小乘整月。
+- 模板构建可以按 build vCPU-second + GiB-second + 构建产物存储计量，也可以使用“每次成功 build”的内部标准成本，但必须固定 unit、成功/失败规则和 cache hit 规则。
+- 网络流量应在可信出口网关/云账单侧计量，明确排除内部控制流量、重传、跨区流量和免费方向的口径。
+- Checkpoint 不结束 execution；它可能另外产生 snapshot 写入与对象存储用量。
+
+不同组织不一定都需要“账单”：
+
+| 层级 | 目标 | 必需能力 | 不应过度建设的部分 |
+| --- | --- | --- | --- |
+| Showback | 让 Team/Project 看见资源与估算成本 | 可靠 usage、归属标签、内部 Price Book、趋势报表 | 不需要应收、税务、付款和发票 |
+| Chargeback | 把成本分摊到成本中心 | 月结冻结、调整分录、审批、财务科目映射、对账 | 通常不需要外部客户支付流程 |
+| 商业账单 | 对外形成合同账单 | 客户主体、币种/税率、折扣、最低消费、信用控制、发票、支付、退款和法定留存 | 不能只靠 ClickHouse 聚合和一张价格表实现 |
+
+自托管平台通常先做到 showback，再按企业治理要求升级 chargeback。只有确有对外经营需求时才建设商业账单；官方云价格不能替代部署方的基础设施成本模型或合同条款。
+
+### 10.9 预算软硬阈值
+
+预算计算至少包含三部分：
+
+```text
+budget_exposure = posted_ledger_amount
+                + rated_but_unposted_usage
+                + active_execution_commitment
+                + new_request_reservation
+```
+
+只比较已落账金额会在大量长任务运行时严重滞后。`active_execution_commitment` 可以按请求 timeout 的剩余上限、滚动时间窗，或经审批的最大承诺计算；选择哪种方法必须写入预算策略版本。
+
+| 阈值 | 推荐动作 |
+| --- | --- |
+| 软阈值 | 告警 owner/成本中心，在 Dashboard 标记，允许 Create/Resume，记录 override 使用 |
+| 接近硬阈值 | 缩短新任务最大 timeout、要求审批或只允许白名单 Project；不改变已运行 execution |
+| 硬阈值 | 默认拒绝新的 Create、Resume 和 Build；返回稳定的内部 reason code，保留读取、Pause、Kill 和导出能力 |
+| 超额后恢复 | 等释放/入账调整/预算 override 生效后重新准入；所有 override 必须有时限和审计记录 |
+
+默认策略应是 **不强杀已运行任务**。强杀可能损坏用户数据、产生不完整快照，还会让“预算保护”变成业务事故。需要紧急止损时，应把 kill 作为独立、显式、可审批的治理动作，记录终止原因并正常生成 stop event。预算服务无法确认硬额度时采用 fail-closed；只有纯告警型软预算可以 fail-open。
+
+### 10.10 reconciliation 与补偿规则
+
+可靠计费依赖“可重放、可解释、可修正”，而不是假设事件永不丢失。建议周期性比较 API/Redis 运行态、Orchestrator inventory、snapshot/object inventory、`usage_intervals` 和 `ledger_entries`，并把每次扫描的水位、差异与修复写入 `reconciliation_runs`。
+
+| 异常 | 检测依据 | 补偿规则 |
+| --- | --- | --- |
+| 重复事件 | 相同 `event_id`，或相同 execution + sequence + type | 幂等确认；只保留第一份原始事实，记录 payload hash 冲突 |
+| 乱序事件 | sequence 缺口、stop 早于 start 到达 | 暂存到可配置水位；配对后再计价，不用接收顺序替代发生顺序 |
+| 缺失终止事件 | execution 已超过 end time、路由消失或节点 inventory 不存在，但 interval 仍 open | 从控制面终态/节点回收时间生成 `estimated_stop`，标记证据；迟到真实 stop 用 adjustment 修正 |
+| 节点失联 | 心跳中断且 API 无法确认 VM 状态 | 先标 `STOP_PENDING` 并冻结新预留；按故障策略和最后可信证据确定估算 stop，不直接用告警时间入最终账 |
+| Redis reservation 泄漏 | lease 到期但无 running execution | 查询 API/Orchestrator；确认未运行后按原资源向量释放，运行中则重建 counter |
+| Redis 全量丢失 | counters 与运行态 inventory 差异巨大或 epoch 改变 | Create/Resume fail-closed；从持久 reservation、API 状态和所有 Orchestrator inventory 重建并校验后开放 |
+| API 成功但 quota commit 未确认 | 节点存在 execution，reservation 为 `UNKNOWN` | 以 inventory 为准提交 RUNNING 并补 start event；绝不能直接释放造成超卖 |
+| 跨月运行 | interval 覆盖 UTC/财务时区月界 | 在结算边界切分 usage/ledger，但不停止 Sandbox，也不更换 execution ID |
+| 价格变更 | interval 覆盖 `price_book.effective_at` | 按生效时间拆段，各段引用自己的 `price_version` |
+| 时钟偏差/负时长 | `t_stop < t_start` 或 occurred/observed 偏差超阈值 | 使用受信任服务端时间与 runtime duration 交叉校验；先隔离，不静默按绝对值计费 |
+| 存储删除迟到 | DB 已标删除但对象仍存在，或反向情况 | 以对象 inventory 和生命周期完成时间为成本事实，生成差异/调整分录 |
+| 月结后迟到事件 | event 落在已冻结周期 | 不重写冻结账本；在开放周期生成 reversal/adjustment 并引用原 entry |
+
+每个自动修复都要保留 `source_evidence`、算法版本和前后值；超出容差的差异进入人工队列。财务账本的保留期应独立于 E2B `events_ttl_days`，否则 ClickHouse TTL 到期后将失去复核基础。
+
+### 10.11 分阶段实施路径
+
+1. **阶段一：硬配额**。复用 E2B Team 单实例/并发限制，新增组织/Project 绑定、聚合 vCPU/内存和 `quota_reservation`；实现 lease、幂等 reserve/commit/release、Redis 丢失重建与 fail-closed。此阶段不需要价格。
+2. **阶段二：可靠计量**。引入 transactional outbox、标准 `usage_events`、`execution_id` 区间配对、不可变 Usage Ledger、ClickHouse 分析副本和 reconciliation；用故障注入验证重复、乱序、漏 stop、节点失联和跨月。
+3. **阶段三：成本分摊**。上线版本化 Price Book、小时/日/月聚合、预算软硬阈值、showback 和成本中心 chargeback；所有分录可追溯到 usage 与价格版本。
+4. **阶段四：商业账单**。仅在确需外部收费时增加合同、折扣、税务、信用、发票、支付、退款、账单冻结和法定留存。该阶段是独立财务产品，不应伪装成 E2B runtime 的简单配置项。
+
+每阶段都应先稳定事实层再开放下一阶段：配额计数不可靠时不要做硬预算，Usage Ledger 不可重放时不要做 chargeback，调整和对账不完整时不要对外开票。
+
+---
+
+## 第十一章：运维、验证与排障
+
+### 11.1 健康检查端点
 
 | 组件 | 默认端口 | 检查方式 |
 |------|----------|----------|
@@ -801,7 +1175,7 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 | PostgreSQL | 5432 | `SELECT 1`、migration 状态 |
 | Redis | 6379 | `PING`、route key 检查 |
 
-### 10.2 最小验收链路
+### 11.2 最小验收链路
 
 生产或私有化环境上线前，建议至少完成这组验收：
 
@@ -820,7 +1194,7 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 13. kill/delete 后 VM、网络 slot 和 Redis route 被清理。
 14. 节点重启后本地 cache 和状态恢复行为符合预期。
 
-### 10.3 常见故障
+### 11.3 常见故障
 
 | 现象 | 优先检查 |
 |------|----------|
@@ -834,7 +1208,7 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 | 指标缺失 | ClickHouse schema/migration、OTel collector、orchestrator metrics 写入 |
 | 日志缺失 | Loki URL、Vector/logs collector、API 查询配置 |
 
-### 10.4 容量规划
+### 11.4 容量规划
 
 容量规划要按 sandbox 规格和启动行为估算，而不是只看 API QPS：
 
@@ -849,7 +1223,7 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 
 API 节点和 sandbox 节点的瓶颈不同。API 节点通常受 HTTP/gRPC、数据库连接池和 Redis 影响；sandbox 节点通常受 KVM、内存、磁盘 IO、网络 namespace、NBD 和对象存储影响。
 
-### 10.5 上线检查清单
+### 11.5 上线检查清单
 
 | 类别 | 检查项 |
 |------|--------|
@@ -865,9 +1239,9 @@ API 节点和 sandbox 节点的瓶颈不同。API 节点通常受 HTTP/gRPC、�
 
 ---
 
-## 第十一章：选型结论
+## 第十二章：选型结论
 
-### 11.1 什么时候适合 E2B
+### 12.1 什么时候适合 E2B
 
 E2B 适合这些场景：
 
@@ -879,7 +1253,7 @@ E2B 适合这些场景：
 | 需要暂停/恢复执行环境 | snapshot 能保存运行状态 |
 | 需要私有化运行 Agent runtime | 官方 infra 提供 Terraform/Nomad 自托管路径，但仍需验证所选云 provider 的支持状态 |
 
-### 11.2 什么时候要谨慎
+### 12.2 什么时候要谨慎
 
 | 场景 | 原因 |
 |------|------|
@@ -889,7 +1263,7 @@ E2B 适合这些场景：
 | 团队不想运维 Nomad/对象存储/Redis/PostgreSQL | E2B 的基础设施复杂度不低 |
 | 希望直接跑在 Kubernetes 且不改代码 | 官方主路径不是 K8s，需要额外工程 |
 
-### 11.3 实施建议
+### 12.3 实施建议
 
 推荐分三步落地：
 
@@ -909,6 +1283,18 @@ E2B 适合这些场景：
 | --- | --- |
 | Infra 2026.28 完整源码 | [e2b-dev/infra@fda7bef](https://github.com/e2b-dev/infra/tree/fda7bef1095afb909197e272c0a8a123797f0bfb) |
 | OpenAPI 默认值与响应字段 | [`spec/openapi.yml`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/spec/openapi.yml) |
+| addon 表与 `team_limits` 基础视图 | [`20251011200438_create_addons_table.sql`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/db/migrations/20251011200438_create_addons_table.sql) |
+| 事件 TTL 与最终 `team_limits` 视图 | [`20260702120000_add_events_ttl_days.sql`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/db/migrations/20260702120000_add_events_ttl_days.sql) |
+| Dashboard 有效 Team limits 响应 | [`dashboard-api/internal/handlers/teams_list.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/dashboard-api/internal/handlers/teams_list.go) |
+| Sandbox 并发 reservation Lua | [`sandbox/reservations/redis/scripts.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/sandbox/reservations/redis/scripts.go) |
+| Team/route API rate-limit middleware | [`middleware/ratelimit/ratelimit.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/middleware/ratelimit/ratelimit.go) |
+| 每次 Create/Resume 生成 execution ID | [`api/internal/handlers/sandbox.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/handlers/sandbox.go) |
+| Sandbox 生命周期事件类型与字段 | [`shared/pkg/events/sandbox.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/events/sandbox.go) |
+| Orchestrator 后台发布生命周期事件 | [`orchestrator/pkg/server/sandboxes.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/orchestrator/pkg/server/sandboxes.go) |
+| ClickHouse Sandbox Event schema | [`20250725223340_add_sandbox_events_local.sql`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/clickhouse/migrations/20250725223340_add_sandbox_events_local.sql) |
+| ClickHouse 事件 TTL schema | [`20260702120000_add_sandbox_events_ttl_days.sql`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/clickhouse/migrations/20260702120000_add_sandbox_events_ttl_days.sql) |
+| ClickHouse 生命周期事件批处理写入 | [`clickhouse/pkg/events/delivery.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/clickhouse/pkg/events/delivery.go) |
+| API Orchestrator 发布 execution 规格与运行时长 | [`api/internal/orchestrator/analytics.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/orchestrator/analytics.go) |
 | HMAC token 生成 | [`sandbox_envd_secret.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/sandbox/sandbox_envd_secret.go) |
 | Client Proxy 路由与暂停态 token 转发 | [`client-proxy/internal/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/client-proxy/internal/proxy/proxy.go) |
 | API 自动恢复前鉴权 | [`api/internal/handlers/proxy_grpc.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/handlers/proxy_grpc.go) |
