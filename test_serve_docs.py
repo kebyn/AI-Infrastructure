@@ -72,6 +72,111 @@ class RenderDocLayoutTest(unittest.TestCase):
             markdown_text,
         )
 
+    def test_e2b_header_routing_contract_is_documented(self):
+        docs_dir = Path(__file__).resolve().parent
+        markdown_text = (docs_dir / "E2B-Deep-Dive.md").read_text(encoding="utf-8")
+        header_section = markdown_text.split(
+            "#### 4.2.1 Host 与 Header 两种寻址方式", maxsplit=1
+        )[1].split("#### 4.2.2 Public 与 Private ingress", maxsplit=1)[0]
+
+        for required_text in (
+            "E2b-Sandbox-Id",
+            "E2b-Sandbox-Port",
+            "`sandbox.<domain>`",
+            "字面量 `localhost`、任意 IP",
+            "必须成对提供",
+            "回退到 Host 解析",
+            "会忽略它们，以 Host 中的端口和 Sandbox ID 为准",
+            "路由 Header 不是凭证，不提供认证或授权",
+            "e2b-traffic-access-token",
+            "Client Proxy 和 Orchestrator Proxy 调用同一个目标解析函数",
+            "SDK 自己发往 envd 的请求自动附加官方路由 Header",
+            "Infra 2026.28 没有名为 Router 的独立服务",
+            "http://<orchestrator-ip>:5007",
+            "orch-accepts-combined-host",
+            "httputil.ReverseProxy",
+            "没有独立的 E2B WebSocket handler",
+            "不调用 `SetXForwarded()`",
+            "`610s`",
+            "`620s`",
+            "sandbox-max-incoming-connections",
+            "按 Sandbox lifecycle 计数",
+            "超限返回 `429`",
+            "E2B 固定版本不支持 `X-Sandbox-Namespace`",
+            "Agent Sandbox Router（对照，不是 E2B 能力）",
+            "d7b3645920bb2e6573aee766e68f455f6a90b420",
+            "preview=true",
+            "Docker image 或 guest 应用不需要解析路由 Header",
+            "它不会启动 guest 服务",
+            "镜像仍必须自行在所选端口实际运行一个可访问的服务",
+            "Header 不会替应用启动服务",
+            "这不是 E2B 可用调用示例",
+            "不绝对要求所有服务监听 `0.0.0.0`",
+            "envd 每 `1s` 扫描 loopback 上的 TCP listener",
+            "首次连接可能有短暂就绪延迟",
+            "不得用于身份认证或授权",
+            "在 HTTP 与 WebSocket 转发前把它和其他 `X-Sandbox-*`",
+            "容器镜像同样不需要解析 `X-Sandbox-Port`",
+            "`X-Sandbox-Port` 不是 E2B 的兼容 Header",
+            "在请求进入 Client Proxy 前成对转换",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, header_section)
+
+        self.assertIn(
+            "这一固定版本不支持 `X-Sandbox-ID` 和 `X-Sandbox-Port`，"
+            "它们不是兼容别名",
+            header_section,
+        )
+        self.assertNotIn('-H "X-Sandbox-ID:', header_section)
+        self.assertNotIn('-H "X-Sandbox-Port:', header_section)
+
+        infra_commit_base = (
+            "https://github.com/e2b-dev/infra/blob/"
+            "fda7bef1095afb909197e272c0a8a123797f0bfb/"
+        )
+        for source_path in (
+            "packages/shared/pkg/proxy/host.go",
+            "packages/shared/pkg/proxy/host_test.go",
+            "packages/shared/pkg/proxy/handler.go",
+            "packages/shared/pkg/proxy/pool/client.go",
+            "packages/shared/pkg/proxy/proxy.go",
+            "packages/shared/pkg/proxy/pool/pool.go",
+            "packages/shared/pkg/proxy/proxy_test.go",
+            "packages/shared/pkg/connlimit/limiter.go",
+            "packages/shared/pkg/featureflags/flags.go",
+            "packages/envd/internal/port/forward.go",
+            "packages/envd/main.go",
+            "tests/integration/internal/tests/envd/localhost_bind_test.go",
+            "iac/provider-gcp/nomad-cluster/network/main.tf",
+        ):
+            with self.subTest(source_path=source_path):
+                self.assertIn(infra_commit_base + source_path, markdown_text)
+
+        sdk_commit_base = (
+            "https://github.com/e2b-dev/e2b/blob/"
+            "36639f532114f4b34e01b96319a7e00bf6404cf9/"
+        )
+        for source_path in (
+            "packages/js-sdk/src/connectionConfig.ts",
+            "packages/js-sdk/src/sandbox/index.ts",
+            "packages/python-sdk/e2b/connection_config.py",
+            "packages/python-sdk/e2b/sandbox_sync/main.py",
+        ):
+            with self.subTest(source_path=source_path):
+                self.assertIn(sdk_commit_base + source_path, markdown_text)
+
+        agent_sandbox_commit_base = (
+            "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
+            "d7b3645920bb2e6573aee766e68f455f6a90b420/"
+        )
+        for source_path in (
+            "clients/python/agentic-sandbox-client/sandbox-router/README.md",
+            "clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py",
+        ):
+            with self.subTest(source_path=source_path):
+                self.assertIn(agent_sandbox_commit_base + source_path, markdown_text)
+
     def test_e2b_self_hosted_quota_and_billing_boundaries_are_documented(self):
         docs_dir = Path(__file__).resolve().parent
         markdown_text = (docs_dir / "E2B-Deep-Dive.md").read_text(encoding="utf-8")
