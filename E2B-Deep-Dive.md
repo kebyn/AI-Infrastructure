@@ -274,7 +274,7 @@ Client Proxy 是 sandbox 对外流量的边缘入口。用户访问的域名通�
 https://<port>-<sandboxID>.<domain>
 ```
 
-Client Proxy 从 Host 中解析出端口和 sandbox ID，查 Redis routing catalog，找到 sandbox 所在 Orchestrator 节点，然后把请求转发到该节点的 Orchestrator Proxy。如果 Redis 中找不到运行态记录，Client Proxy 可以通过 API 的 gRPC resume 能力触发自动恢复。
+Client Proxy 通常从 Host 中解析端口和 sandbox ID；在共享 `sandbox.<domain>`、`localhost` 或 IP Host 上，也可以从固定路由 Header 解析目标。随后它查 Redis routing catalog，找到 sandbox 所在 Orchestrator 节点，再把请求转发到该节点的 Orchestrator Proxy。如果 Redis 中找不到运行态记录，Client Proxy 可以通过 API 的 gRPC resume 能力触发自动恢复。两种寻址方式的优先级与安全边界见 4.2.1。
 
 ### 3.6 Dashboard API 与 Docker Reverse Proxy
 
@@ -343,7 +343,174 @@ https://<port>-<sandbox-id>.<sandbox-domain>
 
 例如 `sandbox.getHost(8080)` 返回 `8080-iabc123.sandbox.example.com`，调用方再组合为 `https://8080-iabc123.sandbox.example.com`。端口寻址和 ingress 鉴权是两件事，拿到 host 并不意味着请求已经通过鉴权。
 
-#### 4.2.1 Public 与 Private ingress
+#### 4.2.1 Host 与 Header 两种寻址方式
+
+Infra 2026.28 的 Client Proxy 支持两种目标寻址形式，Header 路由是常规 Host 编码路由的补充，不是另一套鉴权协议：
+
+| 寻址方式 | 请求 Host | 目标来源 | 典型用途 |
+| --- | --- | --- | --- |
+| Host 编码路由 | `<port>-<sandbox-id>.<domain>` | Host 最左侧子域名中的端口和 Sandbox ID | `Sandbox.getHost(port)` 暴露的业务端口、浏览器可直接打开的公开 ingress |
+| Header 路由 | `sandbox.<domain>`、字面量 `localhost` 或任意 IPv4/IPv6 地址，可带监听端口 | `E2b-Sandbox-Id` 与 `E2b-Sandbox-Port` | SDK 的 envd 控制流量、稳定共享域名、本地调试、绕过 DNS 直接访问 Client Proxy IP |
+
+共享解析函数的门控、优先级和失败行为如下：
+
+1. 只有 Host 是字面量 `localhost`、任意 IP，或主机名以 `sandbox.` 开头且后面仍有域名时，才允许 Header 路由。并且至少出现一个非空路由 Header 后，代理才进入 Header 解析。
+2. `E2b-Sandbox-Id` 和 `E2b-Sandbox-Port` 必须成对提供；只提供任意一个都会返回 HTTP `400`。Sandbox ID 只能包含小写字母和数字，端口必须能按十进制解析为 `uint64`，否则同样返回 `400`。
+3. 常规 `<port>-<sandbox-id>.<domain>` Host 不允许 Header 覆盖目标。即使请求携带伪造或冲突的路由 Header，解析器也会忽略它们，以 Host 中的端口和 Sandbox ID 为准。
+4. 允许 Header 路由的 Host 如果没有出现路由 Header，解析器仍会回退到 Host 解析；但 `sandbox.<domain>`、`localhost` 或纯 IP 本身没有编码目标，最终会以无效 Host 返回 `400`。
+
+通过共享域名访问公开 Sandbox 业务端口时，可以显式提供目标：
+
+```bash
+curl --fail-with-body \
+  -H "E2b-Sandbox-Id: <sandbox-id>" \
+  -H "E2b-Sandbox-Port: 8080" \
+  "https://sandbox.<domain>/healthz"
+```
+
+HTTP Header 名称大小写不敏感，但本文沿用源码中的规范拼写。**这一固定版本不支持 `X-Sandbox-ID` 和 `X-Sandbox-Port`，它们不是兼容别名。** 如果企业网关对外采用自定义 `X-*` 名称，必须在进入 Client Proxy 前显式重写为 `E2b-Sandbox-Id` 和 `E2b-Sandbox-Port`。
+
+私有 ingress 还必须同时携带 Traffic Token；路由 Header 不是凭证，不提供认证或授权：
+
+```bash
+# TRAFFIC_ACCESS_TOKEN 由受信任的后端安全注入。
+curl --fail-with-body \
+  -H "E2b-Sandbox-Id: <sandbox-id>" \
+  -H "E2b-Sandbox-Port: 8080" \
+  -H "e2b-traffic-access-token: ${TRAFFIC_ACCESS_TOKEN}" \
+  "https://sandbox.<domain>/healthz"
+```
+
+三组 Header 的职责必须分开理解：
+
+| Header | 用途 | 校验位置 | 是否为凭证 |
+| --- | --- | --- | --- |
+| `E2b-Sandbox-Id`、`E2b-Sandbox-Port` | 选择 Sandbox 和 guest port | Client Proxy 与 Orchestrator Proxy 的共享目标解析器 | 否，属于用户可控路由元数据 |
+| `e2b-traffic-access-token` | 访问 `allowPublicTraffic=false` 的业务 ingress | 运行态由 Orchestrator Proxy 校验，自动恢复前由 API 校验 | 是，Sandbox 级 bearer token |
+| `X-Access-Token` | 访问 `secure=true` 的 envd 控制 API | envd | 是，envd 控制面 token |
+
+固定 SDK 提交中的 TypeScript 与 Python 实现会在 Sandbox 初始化/连接时，为 SDK 自己发往 envd 的请求自动附加官方路由 Header；在受支持的托管域名上，envd URL 可以选择稳定的 `sandbox.<domain>` 共享 Host。这个行为只覆盖 SDK 构造的控制流量。面向用户业务端口的 `Sandbox.getHost(port)` 仍返回 `<port>-<sandbox-id>.<domain>`，调用方不会因为调用 `getHost()` 自动获得或附加路由 Header。
+
+Client Proxy 和 Orchestrator Proxy 调用同一个目标解析函数。Client Proxy 的标准反向代理不会删除这两个端到端 Header，因此它们会随请求到达 Orchestrator Proxy 并被再次解析。边缘 LB、Ingress 或服务网格不得无意剥离它们；同时也不应把它们加入 secret 管理或当作可信身份，因为公网调用方可以自行构造。真正私有的业务端口仍必须由 `e2b-traffic-access-token` 保护。
+
+##### Docker image 与 guest 应用的适配边界
+
+Header 寻址协议终止在代理层，而不是容器或 microVM 内的业务进程：`E2b-Sandbox-Id`、`E2b-Sandbox-Port` 由 Client Proxy 和 Orchestrator Proxy 解析，Docker image 或 guest 应用不需要解析路由 Header，也不需要新增环境变量、启动参数或专用监听协议。`E2b-Sandbox-Port: 8080` 只告诉代理连接 guest 的 `8080` 端口；它不会启动 guest 服务、执行镜像命令或把未监听端口自动“开放”。镜像仍必须自行在所选端口实际运行一个可访问的服务。
+
+端口与调用结果可以按下表判断：
+
+| 请求与 guest 状态 | E2B 解析/转发结果 | 调用方通常看到的结果 |
+| --- | --- | --- |
+| 官方 Header 成对指定 `8080`，guest 的 `8080` 已有可达服务 | 两级代理解析目标并连接该端口 | 返回 guest 服务的响应 |
+| 官方 Header 成对指定 `8080`，但 guest 的 `8080` 没有进程监听 | Header 寻址成功，但 Orchestrator Proxy 到 guest 的建连重试最终失败 | `502`；Header 不会替应用启动服务 |
+| 对共享 Host 只发送 Agent Router 的 `X-Sandbox-ID`、`X-Sandbox-Port` | E2B 看不到官方路由 Header，回退解析不含目标的共享 Host | `400`；这不是 E2B 可用调用示例 |
+
+监听地址也不是 Header 契约的一部分，**不绝对要求所有服务监听 `0.0.0.0`**。直接监听 guest 可达地址最简单，例如 `0.0.0.0`、`::` 或对应 guest 接口地址，Orchestrator Proxy 可以直接连接。只监听 `127.0.0.1`、`localhost` 或 `::1` 也受固定 E2B 运行时支持：envd 每 `1s` 扫描 loopback 上的 TCP listener，再启动 `socat` 将 guest 可达地址的同端口转发到 localhost。扫描周期之外还有 `socat` 启动时间，因此服务刚开始监听后的首次连接可能有短暂就绪延迟；Orchestrator→guest 的默认最多 5 次建连尝试和 `100/200/300/400ms` 线性退避正是为这条路径准备。依赖该机制的镜像必须保留正常运行的 envd 与 `socat`，若自定义运行时移除了它们，就应改为直接监听 guest 可达地址。
+
+E2B 的 ReverseProxy 不主动剥离官方路由 Header，所以 guest 应用可能看到 `E2b-Sandbox-Id`、`E2b-Sandbox-Port`；应用必须把它们视为用户可控路由元数据，不得用于身份认证或授权。严格 Header allowlist、WAF、服务网格和日志系统可以显式治理这些字段：Header 路由入口在到达两级代理前必须放行官方名称，完成路由后则可按应用策略过滤或记录；无论保留还是过滤，这都属于应用与网关治理，不是 Docker image 对路由协议的适配。
+
+##### 两级代理中的实际执行路径
+
+这里的“E2B Router”是逻辑概念，Infra 2026.28 没有名为 Router 的独立服务；路由由 Client Proxy 与每个节点上的 Orchestrator Proxy 两级完成：
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as SDK / HTTP Client
+    participant CP as Client Proxy
+    participant R as Redis Catalog
+    participant API as API Resume gRPC
+    participant OP as Orchestrator Proxy
+    participant VM as Sandbox guest port
+
+    C->>CP: Host=sandbox.domain + E2b-Sandbox-Id/Port
+    CP->>CP: shared GetTargetFromRequest parses target
+    CP->>R: lookup Sandbox ID
+    alt running route exists
+        R-->>CP: Orchestrator node IP
+    else route missing
+        CP->>API: ResumeSandbox(ID, port, access tokens)
+        API-->>CP: node IP or typed error
+    end
+    CP->>OP: HTTP to nodeIP:5007, preserve routing headers
+    Note over CP,OP: old-Orchestrator compatibility may rewrite Host to port-id.domain
+    OP->>OP: parse target again and find local Sandbox lifecycle
+    OP->>OP: validate Traffic Token and acquire connection slot
+    OP->>VM: HTTP to guest-host-IP:port
+    VM-->>C: streamed response through both proxies
+```
+
+Client Proxy 解析目标后不会直接连接 guest。它先用 Sandbox ID 查询 Redis catalog；命中后得到 Orchestrator 节点 IP，未命中则可携带 Traffic Token 与 envd token 调用 API 的 `ResumeSandbox`。节点目标固定为 `http://<orchestrator-ip>:5007`。Orchestrator Proxy 再次解析同一请求，从本地 Sandbox map 中取得当前 lifecycle、guest host IP 和网络 ingress 配置，最后连接 `http://<guest-host-ip>:<port>`。
+
+共享 Host 还有一层滚动升级兼容逻辑：当请求使用 `sandbox.<domain>`，但 `orch-accepts-combined-host` feature flag 表示下游 Orchestrator 尚不能接受共享 Host 时，Client Proxy 会把发往节点的 Host 改写为 `<port>-<sandbox-id>.<domain>`，并在 `X-Forwarded-Host` 保存原始共享 Host。这样旧 Orchestrator 可以走 Host 编码解析；支持共享 Host 后则保留原 Host 和路由 Header。该逻辑用于新旧代理版本共存，不等于允许外部 Header 覆盖普通编码 Host。
+
+##### HTTP、WebSocket 与 Header 处理
+
+两级代理共用 Go `httputil.ReverseProxy`，而不是像 Agent Sandbox Router 那样分别实现 FastAPI HTTP endpoint 和专用 WebSocket relay：
+
+| 行为 | Infra 2026.28 实现 | 运维含义 |
+| --- | --- | --- |
+| HTTP body/response | 交给标准 ReverseProxy 转发和流式复制，不先在 E2B 业务代码中完整缓冲 | 文件上传、流式响应和长请求仍受最外层 LB、客户端与 guest 应用限制 |
+| WebSocket/协议升级 | 没有独立的 E2B WebSocket handler，使用 ReverseProxy 的通用 HTTP upgrade 路径 | 不存在 Agent Router 的独立 `1008/1009/1011` relay 状态机；必须让每一层 LB 支持 upgrade |
+| hop-by-hop Header | 由 Go ReverseProxy 按 HTTP 代理规则处理 | 不应依赖 `Connection`、`Upgrade` 等逐跳字段被当作普通业务 Header 传递 |
+| 路由与 token Header | E2B 代码没有在转发前删除 `E2b-Sandbox-*`、`e2b-traffic-access-token` 或 `X-Access-Token` | 路由 Header 必须到达第二级代理；guest 应用和日志系统也不能把它们当作可信用户身份，token 必须脱敏 |
+| 普通业务 Header | 默认随请求转发；固定测试验证自定义 `E2b-Testing` Header 可到达后端 | 与 Agent Router 主动剥离 `Authorization` 和所有 `X-Sandbox-*` 的策略不同 |
+| Host | 默认保留入站 Host；启用 `maskRequestHost` 时改写为配置值，并用 `X-Forwarded-Host` 保存原 Host；`${PORT}` 会替换成目标端口 | 需要保留应用原始 Host 时不要误启用 mask；需要绕过 guest source-host 检查时可按端口改写 |
+| Forwarded 链 | E2B Rewrite 明确不调用 `SetXForwarded()`，只在 Host mask 时设置 `X-Forwarded-Host` | 固定版本没有 Agent Router 的 `TRUSTED_PROXY_CIDRS` 与按真实客户端 IP 限流逻辑 |
+
+因此，不能把 Agent Sandbox Router 的 Header 过滤策略直接推断为 E2B 行为。尤其是 `Authorization` 在 E2B 中不是 Router 专用 Bearer Token，固定代理代码也没有主动删除它；业务应用如使用该 Header，应在端到端入口、日志和 guest 应用之间统一定义责任。路由 Header 本身仍不是认证凭证。
+
+##### 连接池、超时、重试与限流
+
+E2B 的代理参数是固定源码常量和 feature flag 组合，不支持 Agent Router 的请求级 `X-Sandbox-Timeout`：
+
+| 机制 | Client Proxy → Orchestrator Proxy | Orchestrator Proxy → guest |
+| --- | --- | --- |
+| 上游 idle connection timeout | `610s` | `620s` |
+| 下游 HTTP server idle timeout | `620s`，比上游多 `10s` | `630s`，比上游多 `10s` |
+| 活跃请求读写 deadline | `ReadTimeout=0`、`WriteTimeout=0`、`ResponseHeaderTimeout=0` | 相同；这些 `0` 表示代理自身不设置对应 deadline，不代表外层 LB 没有超时 |
+| TCP 建连 | `30s` dial timeout、`20s` TCP keepalive | 相同 |
+| 建连尝试 | `1` 次，由 Orchestrator 层处理 guest 端口转发延迟 | 最多 `5` 次，失败间隔线性退避 `100/200/300/400ms` |
+| HTTP keep-alive | 开启并复用节点连接 | 关闭；guest 服务可能重启，且同宿主机重连成本较低 |
+| 连接池隔离键 | 所有节点路由共用 `client-proxy` key | 使用每次 Sandbox lifecycle 的唯一 ID，避免网络 slot/IP:port 复用后串到旧连接 |
+| 入站并发限制 | 未配置共享 handler 限流器 | `sandbox-max-incoming-connections` 按 Sandbox lifecycle 计数；默认 `-1` 不限，`0` 全部阻断，超限返回 `429` |
+
+这里的 `610s/620s` 是空闲连接参数，不是一次业务请求的最大执行时间。固定版本没有 `E2b-Sandbox-Timeout`、`X-Sandbox-Timeout` 或其他调用方可控的 Router deadline Header。长任务和 WebSocket 的有效生命周期还取决于 GCP/自建 LB、Ingress、客户端 timeout、guest server timeout 和 Sandbox 生命周期。Sandbox 被释放时，Orchestrator 会按 lifecycle 清理连接限流计数，并在生命周期终止路径关闭对应代理连接池，防止新 Sandbox 复用旧 socket。
+
+Orchestrator Proxy 的限流也不同于 Agent Router：它限制的是某个 Sandbox lifecycle 的全部入站代理连接，不读取 `X-Forwarded-For`，也不按客户端 IP 分桶。需要租户或客户端维度限流时，应放在可信的边缘网关，并继续把 Sandbox 级限制作为 guest 保护层。
+
+##### 错误映射与 Agent Sandbox Router 对照
+
+共享 handler 会把路由和生命周期错误转换为稳定的 HTTP 结果：
+
+| 场景 | HTTP 状态 |
+| --- | --- |
+| Header 缺字段、Host 无效、Sandbox ID/Port 非法 | `400` |
+| 私有 ingress token 缺失/错误，或自动恢复凭证不足 | `403` |
+| Sandbox 正在 pause/resume 等状态转换 | `409` |
+| Sandbox 并发连接超限或恢复触发资源上限 | `429` |
+| catalog/目标 Sandbox 不存在、guest port 未开放、上游连接失败 | `502` |
+| 未分类的路由内部错误 | `500` |
+
+参考 Agent Sandbox Router 时，应只借鉴“静态入口 + Header 选择动态目标”的架构思想，HTTP 契约仍以 E2B 固定源码为准。对照材料固定在审校截止日前的 Agent Sandbox 未发布主线快照 `d7b3645920bb2e6573aee766e68f455f6a90b420`，不计入 E2B Infra 2026.28 的稳定能力：
+
+| 维度 | E2B Infra 2026.28 | Agent Sandbox Router（对照，不是 E2B 能力） |
+| --- | --- | --- |
+| 路由组件 | Client Proxy + Orchestrator Proxy 两级 | Kubernetes 中央 Router Deployment |
+| 路由 Header | `E2b-Sandbox-Id`、`E2b-Sandbox-Port` | `X-Sandbox-ID`、Namespace、Port、Pod-IP、Timeout |
+| 目标发现 | Redis catalog → Orchestrator local map → guest IP | Kubernetes Service DNS 或 Pod IP |
+| Router 认证 | 路由元数据与 Traffic/envd token 分离 | 可配置 Router Bearer Token |
+| Header 策略 | 路由 Header 跨两级代理保留；没有 Agent 风格 allow/deny list | 路由 Header、Host、Authorization 主动剥离后再访问 Pod |
+| WebSocket | 标准 Go ReverseProxy upgrade | 专用双向 relay、close code 和消息大小控制 |
+| 限流键 | Sandbox lifecycle | 可信代理解析出的客户端 IP |
+
+Agent Sandbox Router 的 `X-Sandbox-Port` 在 Pod 外由中央 Router 解析为目标端口；Router 随后在 HTTP 与 WebSocket 转发前把它和其他 `X-Sandbox-*`、`Host`、`Authorization` 一起剥离，因此进入 Pod 的容器镜像同样不需要解析 `X-Sandbox-Port`。这是 Agent Router 自己的容器侧行为，不应反推 E2B guest 也收不到其官方 Header。
+
+`X-Sandbox-Port` 不是 E2B 的兼容 Header。E2B 固定版本不支持 `X-Sandbox-Namespace`、`X-Sandbox-Pod-IP`、`X-Sandbox-Timeout`，也没有 `TRUSTED_PROXY_CIDRS` 或 Router Bearer Token。企业网关若对外暴露 `X-Sandbox-ID`、`X-Sandbox-Port`，必须在请求进入 Client Proxy 前成对转换为 `E2b-Sandbox-Id`、`E2b-Sandbox-Port`，并在可信边界内完成目标授权；不能把其他自定义 Header 原样映射成未经授权的内部寻址能力。
+
+共享域名可以减少 SDK 控制流量或自定义服务端客户端对高基数通配子域名的依赖，但不会自动替代所有 `getHost()` 业务 URL。部署仍需让 `sandbox.<domain>` 的 DNS、TLS、负载均衡和 Client Proxy 路由同时生效；若继续暴露编码 Host，还要保留对应的 wildcard DNS 与证书。官方 GCP IaC 中的 Cloud Armor 会识别小写形式 `e2b-sandbox-id`、`e2b-sandbox-port`，但对应规则是 `preview=true` 的观测/限流规则，不是认证策略，也不能替代 Traffic Token。
+
+#### 4.2.2 Public 与 Private ingress
 
 Infra 2026.28 的 `network.allowPublicTraffic` 默认值是 `true`。未设置或显式设为 `true` 时，业务端口（非 envd 控制端口）可以匿名访问；显式设为 `false` 时，创建响应会返回 `trafficAccessToken`，每次业务端口请求都必须在 `e2b-traffic-access-token` header 中携带它。
 
@@ -445,7 +612,7 @@ sequenceDiagram
 
 这条路径解释了为什么 Redis routing catalog 很关键：它是 Client Proxy 找到 sandbox 所在节点的快速路径。多节点部署如果没有共享 Redis，只能退回单节点或内存模式，无法可靠支撑跨节点路由。对于运行中的 sandbox，Orchestrator Proxy 在转发到 guest port 前校验 token；对于暂停或路由缺失的 sandbox，API 的 `ResumeSandbox` 会先校验 token，只有校验通过才允许自动恢复。缺失/错误 token 不会因为触发了 auto-resume 而绕过鉴权。
 
-#### 4.2.2 浏览器、WebSocket 与 BFF
+#### 4.2.3 浏览器、WebSocket 与 BFF
 
 浏览器地址栏、`iframe`、`img` 和原生浏览器 `WebSocket` 构造器不能为请求附加任意 `e2b-traffic-access-token` header。浏览器 `fetch` 虽然可以设置该 header，但跨域时会触发 CORS 预检；预检请求本身不携带 Traffic Token，而 Infra 2026.28 的 Orchestrator Proxy 会在业务应用之前校验所有非 envd 请求，所以预检可能直接得到 `403`。不能假设只配置 Sandbox 应用的 CORS 就能解决。Node.js、Python 或其他服务端 HTTP/WebSocket 客户端可以显式发送 header。
 
@@ -651,17 +818,18 @@ traffic token = HMAC-SHA256(seed, "sandbox-traffic-" + sandboxID)
 
 ### 7.3 DNS 与通配域名
 
-Sandbox URL 依赖通配域名。常见划分如下：
+常规 Sandbox URL 依赖通配域名，Header 路由还可以使用稳定共享域名。常见划分如下：
 
 | 域名 | 指向 | 用途 |
 |------|------|------|
 | `api.<domain>` | API / ingress | SDK 和 CLI 控制面请求 |
-| `*.sandbox.<domain>` 或 `*.domain` | Client Proxy | sandbox 端口访问 |
+| `*.sandbox.<domain>` 或 `*.domain` | Client Proxy | Host 编码的 Sandbox 端口访问 |
+| `sandbox.<domain>` | Client Proxy | 携带 `E2b-Sandbox-Id`、`E2b-Sandbox-Port` 的共享 Host 访问 |
 | `docker.<domain>` | Docker Reverse Proxy | 模板镜像 push |
 | `dashboard.<domain>` | Dashboard UI/API | Web 管理 |
 | `nomad.<domain>` | Nomad UI | 运维入口，必须限制访问 |
 
-Client Proxy 的 host 解析依赖端口和 sandbox ID 编码在域名中。负载均衡、TLS 通配证书和 DNS 记录如果没有覆盖这类域名，sandbox 端口访问会失败。
+常规 Client Proxy 路由从 Host 解析端口和 Sandbox ID，因此负载均衡、TLS 通配证书和 wildcard DNS 必须覆盖编码域名。共享 Host 路由可以降低高基数通配子域名依赖，但也必须单独配置 `sandbox.<domain>` 的 DNS、TLS、LB 转发，并确保沿途代理保留官方路由 Header；两种入口最终都要到达 Client Proxy。
 
 ### 7.4 出站网络控制
 
@@ -1200,7 +1368,7 @@ budget_exposure = posted_ledger_amount
 |------|----------|
 | sandbox 创建很慢 | 模板是否命中本地缓存、对象存储延迟、UFFD/lazy restore 是否正常、节点 CPU/IO |
 | 创建失败 | Orchestrator 日志、Firecracker binary/kernel、KVM 权限、rootfs/memfile/snapfile 是否存在 |
-| 端口访问失败 | wildcard DNS、TLS、Client Proxy host 解析、Redis route、Orchestrator proxy、guest 进程监听地址；私有 ingress 还要确认 `e2b-traffic-access-token` header 是否存在且未被代理剥离 |
+| 端口访问失败 | 按入口模式检查 wildcard 或共享域名 DNS、TLS、Client Proxy Host/Header 解析、Redis route、Orchestrator proxy、guest 进程监听地址；Header 路由确认 `E2b-Sandbox-Id` 与 `E2b-Sandbox-Port` 成对保留，私有 ingress 还要确认 `e2b-traffic-access-token` 未被代理剥离 |
 | 私有端口返回 `403` | 确认请求使用的是 `trafficAccessToken` 而不是 `envdAccessToken`，检查 token 是否属于同一个 Sandbox、API/Orchestrator 的 `SANDBOX_ACCESS_TOKEN_HASH_SEED` 是否一致；暂停态还要检查恢复前的 API 校验日志 |
 | pause/resume 失败 | snapshot row、对象存储上传、origin node 缓存、dirty block/memory diff |
 | 多节点路由错乱 | Redis routing catalog、节点 ID、服务发现、负载均衡健康检查 |
@@ -1296,11 +1464,30 @@ E2B 适合这些场景：
 | ClickHouse 生命周期事件批处理写入 | [`clickhouse/pkg/events/delivery.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/clickhouse/pkg/events/delivery.go) |
 | API Orchestrator 发布 execution 规格与运行时长 | [`api/internal/orchestrator/analytics.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/orchestrator/analytics.go) |
 | HMAC token 生成 | [`sandbox_envd_secret.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/sandbox/sandbox_envd_secret.go) |
+| Host/Header 路由名称、门控、优先级与校验 | [`shared/pkg/proxy/host.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/proxy/host.go) |
+| 共享域名、IP、缺失字段和冲突 Header 测试 | [`shared/pkg/proxy/host_test.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/proxy/host_test.go) |
+| Sandbox ID 小写字母与数字校验 | [`shared/pkg/id/id.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/id/id.go) |
+| 路由解析错误到 HTTP 400 的映射 | [`shared/pkg/proxy/handler.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/proxy/handler.go) |
+| Client Proxy 到 Orchestrator Proxy 的 Header 转发 | [`shared/pkg/proxy/pool/client.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/proxy/pool/client.go) |
+| 共享 HTTP server timeout 与连接指标 | [`shared/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/proxy/proxy.go) |
+| lifecycle 隔离的 ReverseProxy 连接池 | [`shared/pkg/proxy/pool/pool.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/proxy/pool/pool.go) |
+| Header/Host 改写、重试与并发限制测试 | [`shared/pkg/proxy/proxy_test.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/proxy/proxy_test.go) |
+| Sandbox lifecycle 连接限流器 | [`shared/pkg/connlimit/limiter.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/connlimit/limiter.go) |
+| Sandbox 入站连接上限 feature flag | [`shared/pkg/featureflags/flags.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/shared/pkg/featureflags/flags.go) |
 | Client Proxy 路由与暂停态 token 转发 | [`client-proxy/internal/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/client-proxy/internal/proxy/proxy.go) |
 | API 自动恢复前鉴权 | [`api/internal/handlers/proxy_grpc.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/api/internal/handlers/proxy_grpc.go) |
 | Orchestrator Proxy 运行态鉴权 | [`orchestrator/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/orchestrator/pkg/proxy/proxy.go) |
 | Traffic Token 集成与自动恢复测试 | [`traffic_access_token_test.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/tests/integration/internal/tests/proxies/traffic_access_token_test.go) |
-| TypeScript SDK `getHost()` 与 token 字段 | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/js-sdk/src/sandbox/index.ts) |
+| GCP Cloud Armor 路由 Header preview 限流 | [`iac/provider-gcp/nomad-cluster/network/main.tf`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/iac/provider-gcp/nomad-cluster/network/main.tf) |
+| envd loopback 端口扫描与 `socat` 转发 | [`envd/internal/port/forward.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/envd/internal/port/forward.go) |
+| envd `1s` 扫描周期与转发器启动 | [`envd/main.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/envd/main.go) |
+| guest 各类监听地址可达性集成测试 | [`localhost_bind_test.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/tests/integration/internal/tests/envd/localhost_bind_test.go) |
+| Agent Sandbox Router 对照说明（未发布主线快照） | [`sandbox-router/README.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/d7b3645920bb2e6573aee766e68f455f6a90b420/clients/python/agentic-sandbox-client/sandbox-router/README.md) |
+| Agent Sandbox Router HTTP/WebSocket 对照实现 | [`sandbox_router.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/d7b3645920bb2e6573aee766e68f455f6a90b420/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py) |
+| TypeScript SDK 共享 envd URL 与 `getHost()` 边界 | [`packages/js-sdk/src/connectionConfig.ts`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/js-sdk/src/connectionConfig.ts) |
+| TypeScript Sandbox 初始化与路由 Header 注入 | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/js-sdk/src/sandbox/index.ts) |
 | TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/js-sdk/tests/sandbox/network.test.ts) |
+| Python SDK 共享 envd URL 与 `get_host()` 边界 | [`packages/python-sdk/e2b/connection_config.py`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/python-sdk/e2b/connection_config.py) |
+| Python Sandbox 初始化与路由 Header 注入 | [`packages/python-sdk/e2b/sandbox_sync/main.py`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/python-sdk/e2b/sandbox_sync/main.py) |
 | Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/python-sdk/e2b/sandbox/main.py) |
 | Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/36639f532114f4b34e01b96319a7e00bf6404cf9/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |
