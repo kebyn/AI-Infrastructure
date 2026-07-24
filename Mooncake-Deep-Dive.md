@@ -4,7 +4,7 @@
 >
 > 基于 Mooncake 官方文档 (https://kvcache-ai.github.io/Mooncake) 整理编写
 >
-> 稳定版本基线：`v0.3.11.post1@e9c61075720039bcfc5fffd19f847608402be3d0`，审校日期：2026-07-20。论文结论与软件实现会明确区分。
+> 稳定版本基线：`v0.3.12@c7ae97fd24251ed0aaaa613e8251859f170f1ae7`，审校日期：2026-07-24。论文结论与软件实现会明确区分。
 >
 > FAST 2025 最佳论文 | Moonshot AI 的 Kimi 服务平台
 
@@ -64,6 +64,20 @@ Mooncake 提出了三个关键洞察，从根本上重塑了 LLM 推理架构：
 | 真实生产负载请求增长 | **75%** |
 | 学术认可 | **FAST 2025 最佳论文** |
 | Kimi K2 部署 | 128×H200, 224k tok/s prefill / 288k tok/s decode |
+
+### 1.4 v0.3.12 稳定版收敛范围
+
+本文此前描述的多项主线能力已经进入 `v0.3.12` 稳定 tag。本轮按源码逐项确认，而不是仅替换版本号：
+
+| 领域 | v0.3.12 已发布能力 | 仍需保留的边界 |
+|------|-------------------|----------------|
+| TENT | QoS contract、per-policy SL/TC/QP pool、transport hint/intent、EDF 与 deadline degradation、priority promotion、local admission/runtime queue | 多项策略是 opt-in；TENT 仍不能无条件视为经典 TE 的完整替代品 |
+| Transfer Engine | acknowledged TCP completion、RDMA metadata/HCA/GID 刷新、graceful shutdown、注册回滚、QP/MR teardown、故障 rail/reconnect 修复 | `COMPLETED` 语义和 transport 故障恢复需按实际后端分别压测 |
+| Store / SSD | proactive disk watermark eviction、OffsetAllocator FIFO eviction、SSD publish-before-commit 修复、L2->L1 promotion retry、本地盘容量写入快照 | OffsetAllocator 仍不恢复重启前元数据；启用 FIFO 不等于获得持久化 |
+| 控制面 | Master snapshot 分层重构、local/S3 snapshot object store、Redis/embedded catalog、file/etcd tenant quota policy | snapshot/restore 仍标为实验性，托管目录不可混放业务文件 |
+| 路由与生态 | Master 可选 RFC #1527 KV event publisher、Kubernetes Store/TE 指南、SGLang、vLLM/LMCache、llm-d 集成文档 | llm-d 的 Mooncake P/D overlay 仍需自行适配，不能把 sidecar 能力等同开箱部署 |
+
+因此后文涉及 TENT、SSD 驱逐、快照、租户配额、Conductor KV event 和 Kubernetes 部署的能力，兼容边界均以 `v0.3.12` 为准。
 
 ---
 
@@ -302,6 +316,10 @@ flowchart TB
     DataPath -.-> SHM
     DataPath -.-> Other
 ```
+
+v0.3.12 把调度从“按路径快慢喷洒 Slice”扩展为可配置 QoS 合同：`Request` 可携带 `transport_hint`、`policy_name`、`deadline_ns` 和 `IntentType`；selection policy 可以绑定 transport、SL/TC 与 QP pool。local admission queue 支持 opt-in earliest-deadline-first、deadline proximity promotion、deadline-infeasible drop/degradation，以及根据实时 RDMA bandwidth 做仲裁。receiver-credit ledger 约束接收端资源，避免单纯在发送端排队时把压力转移到对端。
+
+这些机制不是默认的全局 SLO 保证。deadline、priority promotion 和 bandwidth arbitration 需要显式策略；best-effort cancellation 也不代表所有已经提交给硬件的操作都可撤销。生产应同时观察 queue/admission、transport、MLU 和 causal-stage latency 指标。
 
 ### 4.4 经典 TE vs TENT 对比
 
@@ -1599,9 +1617,11 @@ SSD offload 的本地文件后端也有自己的空间管理，和 DRAM 层 evic
 |------|----------|----------|----------|
 | `bucket_storage_backend` | 多对象合并成 bucket + meta 文件 | 支持 | 支持 `none` / `fifo` / `lru` |
 | `file_per_key_storage_backend` | 一个对象一个文件 | 支持 | 布尔开关 |
-| `offset_allocator_storage_backend` | 预分配大文件 + offset 管理 | 不支持，重启截断 | 无 |
+| `offset_allocator_storage_backend` | 预分配大文件 + offset 管理 | 不支持，重启截断 | v0.3.12 支持 opt-in FIFO 写时驱逐；watermark heartbeat 路径仍 no-op |
 
 Bucket 后端的 LRU 是**桶级 LRU**，基于 bucket 的 `last_access_ns_` 选择最久未读的 bucket；从未读取过的 bucket 会优先被淘汰，因此未读 bucket 之间接近 FIFO。它不同于 DRAM 层对象级 approximate LRU。
+
+OffsetAllocator 在 v0.3.12 可通过 `MOONCAKE_OFFSET_EVICTION_POLICY=fifo` 启用写时 FIFO，并按 bytes/key 的 high/low watermark 和 `MOONCAKE_OFFSET_MAX_EVICT_PER_OFFLOAD` 控制单次回收。默认 policy 仍为 `none`；后端初始化依旧会截断预分配文件并清空内存元数据，所以这只解决运行期容量回收，不解决重启恢复。
 
 #### Local Hot Cache
 
@@ -1720,6 +1740,8 @@ tenants:
 
 配额动态按注册内存容量比例缩放。PutStart 和 UpsertStart 在分配前扣减配额；不足时尝试租户范围驱逐（限两轮迭代）。
 
+`v0.3.12` 还支持在编译时启用 `STORE_USE_ETCD=ON` 后使用 `--tenant_quota_connector_type=etcd`。策略保存在 `mooncake-store/<cluster_id>/tenant_quota_policy`；若 HA/oplog 同时使用 etcd，quota connector endpoints 必须与进程级 Store etcd client 一致。未知 tenant（包括未注册的 `default`）会被严格拒绝。
+
 **Admin HTTP API**（同 Metrics 端口）：
 
 | 操作 | 方法/路径 |
@@ -1795,7 +1817,9 @@ Master 支持基于 fork 的写时复制快照，序列化与反序列化内存�
 - `--snapshot_retention_count=5`
 - 减少重启后的预热时间
 
-快照路径是"托管目录"——超出保留数量的旧快照会自动删除。
+`--snapshot_object_store_type` 支持 `local` 与 `s3`，catalog 可使用 `embedded` 或 `redis`；S3 client 通过 `MOONCAKE_AWS_REGION`、`MOONCAKE_AWS_S3_ENDPOINT`、`MOONCAKE_AWS_BUCKET_NAME`、`MOONCAKE_AWS_ACCESS_KEY_ID`、`MOONCAKE_AWS_SECRET_ACCESS_KEY` 等环境变量配置。凭据应来自 Secret 注入，不能写入文档、镜像或 ConfigMap。
+
+快照路径是"托管目录"——超出保留数量的旧快照会自动删除。该能力在 v0.3.12 文档中仍标为实验性；默认 interval 为 600s、retention 为 2，以上命令显式覆盖为 300s/5。restore 前应验证 snapshot object 与 catalog 一致，不能仅凭对象存在就认为可恢复。
 
 ### 5.17 元数据服务
 
@@ -1804,6 +1828,8 @@ Master 支持基于 fork 的写时复制快照，序列化与反序列化内存�
 **生产环境：** 推荐 etcd。
 
 **P2P Handshake 模式（推荐起点）：** 使用字符串 `P2PHANDSHAKE` 作为 `metadata_server`，无需任何中心化元数据服务——元数据存储在每个节点的本地。
+
+v0.3.12 的客户端配置应优先使用带 scheme 的完整 URI（如 `etcd://`、`redis://`、`http://.../metadata`）或字面量 `P2PHANDSHAKE`。内置 HTTP metadata server 适合简单部署；大规模、长生命周期集群仍应独立评估 etcd/Redis 的 HA、清理和访问控制。
 
 ### 5.18 监控与可观测性
 
@@ -2005,6 +2031,8 @@ flowchart LR
 5. KVEventHandler 注入注册元数据
 6. PrefixCacheTable 更新前缀映射
 7. 断线重连时，重播端点获取缺失序列号的事件
+
+v0.3.12 的 Master 可选启用 RFC #1527 KV event publisher，通过 ZMQ PUB 发出与 Conductor 三帧 batch 格式一致的事件。`enable_kv_events` 默认不改变 Store 数据路径；`kv_events_bind_endpoint`、`kv_events_backend_id`、`kv_events_emit_object_key` 和兼容字段必须与消费端约定一致。`instance_id` 是 Router 可选目标，`backend_id` 是持有 block 的事件实体，两者不能混用。
 
 ### 7.5 查询流
 
@@ -2558,6 +2586,9 @@ Mooncake 的解决方案是**预测性早期拒绝**：
 | **ROLL** | 分布式 RL 协作 |
 | **LightX2V** | 编码器/变换器分离部署 |
 | **xLLM** | 混合 KV 缓存管理与智能卸载/预取 |
+| **llm-d** | vLLM KV offload tier 已有固定 release 示例；Mooncake P/D connector sidecar 能力已发布，但部署 overlay 仍需适配 |
+
+v0.3.12 新增 Kubernetes Deployment Guide，覆盖共享 Store、Transfer Engine、SGLang P/D/HiCache、RBG 与 llm-d。指南中的 P2P handshake 适合起步；生产集群要显式固定 DaemonSet/Deployment 拓扑、host networking、RDMA device、HugeTLB、PVC/SSD 和 metadata backend。文档存在集成说明不等于目标发行版提供完整一键安装路径。
 
 ### 16.2 多硬件生态
 
@@ -2753,8 +2784,10 @@ Mooncake 已适配以下硬件平台：
 
 ---
 
-> **文档版本**：基于 Mooncake `v0.3.11.post1@e9c61075720039bcfc5fffd19f847608402be3d0` 与该版本官方文档审校，2026-07-20
+> **文档版本**：基于 Mooncake `v0.3.12@c7ae97fd24251ed0aaaa613e8251859f170f1ae7` 与该版本官方文档审校，2026-07-24
 >
-> **项目源码**：https://github.com/kvcache-ai/Mooncake/tree/v0.3.11.post1
+> **项目源码**：https://github.com/kvcache-ai/Mooncake/tree/v0.3.12
+>
+> **Release Notes**：https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.12
 >
 > **官方文档**：https://kvcache-ai.github.io/Mooncake/

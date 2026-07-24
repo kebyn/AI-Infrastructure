@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.2.1@919682da679aa699d5bca9c872f4c1d9a530bbc0`，审校日期：2026-07-20。未发布主线能力会单独标注，不计入该版本的兼容承诺。
+> 稳定版本基线：`v1.3.0@8ce9e22f11576402102ea9d8b8e46233f5430a0d`，审校日期：2026-07-24。未发布主线能力会单独标注，不计入该版本的兼容承诺。
 
 ---
 
@@ -73,6 +73,20 @@ Dynamo 适合以下场景：
 | Compute reuse | 通过 KV-aware routing 和缓存生命周期管理减少重复 Prefill |
 | Operational resilience | 把 worker 崩溃、重启、过载视为常态并自动恢复 |
 | Deployment portability | 同时支持 Kubernetes-native 和非 Kubernetes 运行方式 |
+
+### 1.5 v1.3.0 稳定版增量
+
+`v1.3.0` 相对 `v1.2.1` 不是单纯的依赖刷新，而是同时扩展 Router、Planner、Kubernetes 控制面、强化学习和多模态路径。下表只列入 tag 内已经发布的能力：
+
+| 领域 | v1.3.0 已发布变化 | 生产含义 |
+|------|------------------|----------|
+| Router | 独立 slot/selection service、Branch-Sharded KV Indexer、压缩 radix tree 热路径、拓扑感知 KV transfer、trajectory 路由和严格优先级队列 | 路由可与引擎独立扩展；大规模部署需同时治理 index shard、worker/DP rank 和拓扑元数据 |
+| Planner / 仿真 | AIConfigurator（AIC）延迟预测、MTP accept-length 修正、SLA target 指标、Mooncake trace capture/replay、KVBM offload simulation | 先用真实流量回放和 AIC 校准部署，再让 Planner 执行扩缩；不能把未校准仿真结果直接当容量承诺 |
+| Kubernetes | GMS 权重共享与 checkpoint/restore、DGD `v1beta1` admission webhook、agentgateway、Grove 和 DRA | GMS 依赖稳定 `resource.k8s.io/v1`，集群版本和 GPU/DRA 驱动成为明确前置条件 |
+| RL / Agent | Tokens-in-Tokens-Out（TITO）、原地权重更新、worker discovery、rollout metadata、trajectory headers | 可避免 RL loop 的重复 detokenize/retokenize；该路径通过 `DYN_ENABLE_RL` 显式启用 |
+| 多模态 | media-aware KV routing、SGLang 图像/视频 P/D 分离、统一 diffusion backend | 多模态 worker 必须显式启用，媒体 URL、格式和 encoder-to-prefill 契约需要单独验证 |
+
+固定 release 的核心依赖矩阵为：vLLM `v0.23.0`、SGLang `v0.5.14`、TensorRT-LLM `v1.3.0rc19`；NIXL 随后端分别固定为 `v1.1.0`、`v1.3.0`、`v1.0.1`，UCX 为 `v1.20.x`。Dynamo 镜像从本版起只发布 CUDA 13 变体，不能沿用 v1.2.x 的 CUDA 12.9 运行时假设。
 
 ---
 
@@ -339,6 +353,8 @@ KV Router 的全局视图来自两个系统：
 | Active Decoding Blocks | Router 本地跟踪请求生命周期 | 估计当前 worker decode 负载 |
 | Cached Blocks | worker 通过 KVPublisher 发事件，KvIndexer 建 prefix tree | 查询每个 worker 的 KV overlap |
 
+v1.3.0 增加独立 Router selection service 和 Branch-Sharded KV Indexer。前者通过 HTTP 提供 slot/selection 接口，并可选用 ZMQ 同步状态，使路由选择不必嵌入每个 Frontend；后者按 prefix branch 将索引工作分片并汇总候选结果，避免单棵全局树成为扩展瓶颈。压缩 radix tree 的 store/remove 热路径也得到优化。它们改变的是索引和选择服务的部署形态，不改变 KV event 必须与实际 block 生命周期一致这一前提。
+
 KV block 管理流程大致如下：
 
 1. 请求 prompt 被 tokenization。
@@ -420,6 +436,8 @@ DYN_ROUTER_MODE=kv
 | backend 接收 token_ids | KV Router 要求后端处理预 tokenized 请求 |
 | static endpoint 不支持 KV routing | 因为 Router 需要跟踪 worker 实例和 KV 状态 |
 | approximate 模式不是完整事件一致性 | `--no-router-kv-events` 可用于近似预测；部分实现中会用 TTL 过期近似状态，但不等同于真实 KV 生命周期事件 |
+
+拓扑感知 KV transfer 使用 worker 发布的 topology domain，对 Prefill 选定结果生成 Decode `RoutingConstraints`；可选择硬约束或偏好权重。它和 Kubernetes Topology-Aware Scheduling 是两层机制：后者决定 Pod 放在哪里，前者决定已运行的 Prefill/Decode worker 之间如何路由。v1.3.0 还以 `x-dynamo-trajectory-id`、`x-dynamo-parent-trajectory-id`、`x-dynamo-trajectory-final` 表达 agent trajectory；旧 sticky-session 与 `nvext.session_control` 已移除，不能再按会话绑定 API 配置。
 
 ---
 
@@ -664,6 +682,8 @@ Planner 用户侧提供三个 `optimization_target`：
 | `latency` | 更激进地保持低队列和低延迟 | 否 | 否 |
 | `sla` | 以 TTFT/ITL 目标做精确扩缩 | 是 | 推荐 |
 
+v1.3.0 的 SLA 路径使用 AIConfigurator latency prediction 取代需要手工维护的静态成本模型，并用 observed-versus-target Prometheus 指标/Grafana 面板暴露偏差。开启 speculative decoding 时，Planner 会使用 MTP accept length 修正 Decode latency，避免把一次 forward 产生多个有效 token 的场景仍按单 token 成本扩缩。AIC 依赖匹配的 GPU、模型、backend/version 性能数据；数据缺失或硬件不匹配时应 fail fast，而不是静默退回一个看似精确的容量结论。
+
 SLA 模式的典型配置：
 
 ```yaml
@@ -776,6 +796,12 @@ Dynamo TensorRT-LLM 后端支持 disaggregated serving、KV-aware routing、多�
 
 容器和驱动版本需要严格匹配，实际部署前应查对应 release 的 support matrix。
 
+### 7.5 RL、TITO 与多模态路径
+
+v1.3.0 的 RL surface 由 `DYN_ENABLE_RL` 统一 gate。TITO 请求直接接收和返回 token IDs，并可返回 completion token IDs、logprobs 与 routed-expert capture；worker 还提供 `/v1/rl/workers` 发现接口、原地权重更新、sleep/wake 和 rollout metadata 写入 `fsspec` 后端。该接口面向 post-training rollout，不应替代普通 OpenAI-compatible 文本 API。
+
+多模态需要在 Prefill 与 Decode worker 上显式传入 `--enable-multimodal`；内部独立 encoder 拓扑再组合 `--dedicated-mm-encoder` 和对应 `--disaggregation-mode`。媒体感知 hash/路由防止相同文本但不同图像或视频错误复用 KV；部署时还应验证 SSRF 防护、媒体格式 `415`、encoder-to-prefill handoff 和上下文长度限制。
+
 ---
 
 ## 第八章：Kubernetes 与 Operator
@@ -805,6 +831,8 @@ Dynamo 不是 Kubernetes-only，但它的生产主路径是 Kubernetes-native。
 | `DynamoCheckpoint` | GPU worker checkpoint/restore 元数据 | 用于 warm restore、降低冷启动 |
 | `DynamoWorkerMetadata` | worker discovery metadata | 由系统写入，供 discovery 和 routing 使用 |
 
+v1.3.0 将 DGD admission/storage 路径收敛到 `nvidia.com/v1beta1`，升级时必须先安装同版本 CRD 与 conversion/admission webhook，再迁移存量对象和 controller；不能只替换 Operator 镜像。该版本还把 Gateway 集成迁移到 agentgateway（GAIE），并由 Operator 管理 EPP 安装路径。
+
 ### 8.3 Operator 控制器
 
 Operator 中主要 controller：
@@ -817,6 +845,8 @@ Operator 中主要 controller：
 | DynamoGraphDeploymentScalingAdapterController | DGDSA | 为 Planner/外部 autoscaler 提供扩缩适配 |
 | DynamoModelController | DynamoModel | 模型和 adapter 生命周期 |
 | DynamoCheckpointController | DynamoCheckpoint | checkpoint/restore 工作流 |
+
+GPU Memory Service（GMS）让多个 worker 复用 GPU-resident 权重，并参与 engine weight loading、checkpoint/restore 与 snapshot probe。v1.3.0 的 GMS DRA 路径要求 Kubernetes 1.34+ 的稳定 `resource.k8s.io/v1`；Operator 不再自动注入旧的 `gms-loader`/`gms-saver` sidecar，使用方需通过 `extraClientContainers` 和 `checkpoint.job.gmsClientContainers` 明确声明接入容器。
 
 ### 8.4 请求入口拓扑
 
@@ -1586,7 +1616,23 @@ ModelExpress 与 KV cache 系统可以叠加：
 | 用 QPS 扩缩即可 | LLM 需要考虑 ISL、OSL、KV hit、TTFT、ITL |
 | JetStream 可只在 Frontend 开启 | durable KV events 需要 Frontend 和所有 workers 一致配置 |
 
-### 12.3 生产落地检查清单
+### 12.3 从 v1.2.x 升级到 v1.3.0
+
+| 变化 | v1.3.0 行为 | 升级动作 |
+|------|-------------|----------|
+| CUDA | 不再发布 CUDA 12.9 runtime，裸 tag 和 `-cuda13` 均为 CUDA 13 | 升级 driver/toolkit，逐后端验证 vLLM/SGLang/TRT-LLM 镜像 |
+| 多模态 | 必须显式 `--enable-multimodal`；旧 backend-specific flags 已弃用 | Prefill/Decode 都补新 flag，独立 encoder 再补 `--dedicated-mm-encoder` |
+| disaggregation mode | 默认值改为 `agg`，`prefill_and_decode` 弃用 | 聚合使用 `agg`，组合 P/D 使用 `pd` |
+| GMS / DRA | 要求 Kubernetes 1.34+ `resource.k8s.io/v1`，改为声明 client containers | 先升级集群与 DRA driver，再迁移 `extraClientContainers`/checkpoint 配置 |
+| Router backpressure | queue threshold `4.0 -> 16.0`，active-prefill threshold fraction `10.0 -> 64.0` | 需要旧行为时显式固定旧值，并用队列/TTFT 指标重新压测 |
+| Agent routing | `nvext.agent_context`、`session_control`、sticky-session 移除 | 改用 trajectory headers，不再发送旧 request-body 字段 |
+| Planner key | 错拼 `decode_sacle_up_kv_rate` 移除 | 改为 `decode_scale_up_kv_rate` |
+| DGD restart | 创建时的 `spec.restart.id` 视为已观察，不触发 restart | 创建后再更新 `spec.restart.id` |
+| vLLM runner | 不再强制默认 `generate` | 依赖旧行为时显式传 `--runner generate` |
+
+`--router-queue-threshold=16.0` 已经体现在本文配置表中；它是 v1.3.0 的新默认值，不应误抄到旧 release 的容量基线。
+
+### 12.4 生产落地检查清单
 
 | 类别 | 检查项 |
 |------|--------|
@@ -1599,6 +1645,7 @@ ModelExpress 与 KV cache 系统可以叠加：
 | Planner | SLA 目标、GPU budget、`min_endpoint`、scale-down sensitivity 合理 |
 | 观测 | Frontend/Router/Backend/Planner/Operator 指标接入 Grafana |
 | 容错 | graceful shutdown、request cancellation/migration、discovery lease 行为已测试 |
+| 升级 | CUDA 13、DGD `v1beta1`、DRA/GMS、trajectory headers、Router 新默认值均已通过预生产回放 |
 
 ---
 
@@ -1648,18 +1695,19 @@ helm install dynamo-platform \
 |------|------|
 | GitHub 仓库 | <https://github.com/ai-dynamo/dynamo> |
 | 官方文档 | <https://docs.nvidia.com/dynamo/> |
-| README | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/README.md> |
-| Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/architecture.md> |
-| Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/disagg-serving.md> |
-| Router Design | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/router-design.md> |
-| KVBM Design | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/kvbm-design.md> |
-| Planner Design | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/design-docs/planner-design.md> |
-| Router Component | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/components/router/README.md> |
-| KVBM Component | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/components/kvbm/README.md> |
-| vLLM KV Cache Offloading | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/backends/vllm/vllm-kv-offloading.md> |
-| LMCache Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/integrations/lmcache-integration.md> |
-| FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/integrations/flexkv-integration.md> |
-| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/integrations/sglang-hicache.md> |
+| v1.3.0 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.3.0> |
+| README | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/README.md> |
+| Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/architecture.md> |
+| Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/disagg-serving.md> |
+| Router Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/router-design.md> |
+| KVBM Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/kvbm-design.md> |
+| Planner Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/planner-design.md> |
+| Router Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/components/router/README.md> |
+| KVBM Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/components/kvbm/README.md> |
+| vLLM KV Cache Offloading | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/backends/vllm/vllm-kv-offloading.md> |
+| LMCache Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/integrations/lmcache-integration.md> |
+| FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/integrations/flexkv-integration.md> |
+| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/backends/sglang/sglang-hicache.md> |
 | SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
 | ModelExpress GitHub | <https://github.com/ai-dynamo/modelexpress> |
 | ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/ARCHITECTURE.md> |
@@ -1669,7 +1717,7 @@ helm install dynamo-platform \
 | ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/SGLANG.md> |
 | Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/examples/dynamo_model_cache_k8s/README.md> |
 | Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/examples/dynamo_p2p_transfer_k8s/README.md> |
-| Planner Component | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/components/planner/README.md> |
-| Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/kubernetes/dynamo-operator.md> |
-| Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/v1.2.1/docs/kubernetes/README.md> |
-| Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/v1.2.1#quick-start> |
+| Planner Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/components/planner/README.md> |
+| Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/kubernetes/dynamo-operator.md> |
+| Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/kubernetes/README.md> |
+| Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/v1.3.0#quick-start> |

@@ -15,11 +15,11 @@ DOCS = [
         "title": "Mooncake 深度技术文档",
         "hero": "🌙 Mooncake 深度技术文档",
         "subtitle": "以 KVCache 为中心的分离式 LLM 推理架构全面解析",
-        "meta": "Mooncake v0.3.11.post1 · source@e9c6107 · 2026-07-20",
+        "meta": "Mooncake v0.3.12 · source@c7ae97f · 2026-07-24",
         "summary": "覆盖 Transfer Engine、Mooncake Store、Conductor、HiCache、SSD/DFS 持久化与缓存治理。",
         "footer": (
             '基于 <a href="https://kvcache-ai.github.io/Mooncake">Mooncake 官方文档</a> 与 '
-            '<a href="https://github.com/kvcache-ai/Mooncake/tree/v0.3.11.post1">v0.3.11.post1 源码</a> 整理'
+            '<a href="https://github.com/kvcache-ai/Mooncake/tree/v0.3.12">v0.3.12 源码</a> 整理'
         ),
     },
     {
@@ -29,10 +29,10 @@ DOCS = [
         "title": "Dynamo 深度技术文档",
         "hero": "Dynamo 深度技术文档",
         "subtitle": "数据中心级 LLM 推理编排、KV 路由、KVBM 与 Planner 架构解析",
-        "meta": "Dynamo v1.2.1 · source@919682d · 2026-07-20",
+        "meta": "Dynamo v1.3.0 · source@8ce9e22 · 2026-07-24",
         "summary": "覆盖 Request/Control/Storage 三平面、KV-Aware Router、KVBM、Planner、Operator 与部署模式。",
         "footer": (
-            '基于 <a href="https://github.com/ai-dynamo/dynamo/tree/v1.2.1">ai-dynamo/dynamo v1.2.1</a> 与 '
+            '基于 <a href="https://github.com/ai-dynamo/dynamo/tree/v1.3.0">ai-dynamo/dynamo v1.3.0</a> 与 '
             '<a href="https://docs.nvidia.com/dynamo/">NVIDIA Dynamo 官方文档</a> 整理'
         ),
     },
