@@ -16,11 +16,11 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-07-20", doc["meta"])
+                self.assertIn("2026-07-24", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-07-20", markdown_text)
+                self.assertIn("审校日期：2026-07-24", markdown_text)
 
-    def test_benchmark_snapshot_uses_genai_bench_v0_0_5(self):
+    def test_benchmark_snapshot_uses_current_stable_releases(self):
         doc = next(
             doc
             for doc in serve_docs.DOCS
@@ -28,12 +28,51 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
-        self.assertIn("genai-bench v0.0.5", doc["meta"])
+        for release in (
+            "GuideLLM v0.7.2@c71b5a1",
+            "inference-perf v0.6.1@a40897e",
+            "EvalScope v1.9.1@9d1b353",
+        ):
+            self.assertIn(release, doc["meta"])
         self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
-        self.assertIn("v0.0.5@4f873e03719c947a101647c6646954d5ebc3d35b", markdown_text)
+        for exact_commit in (
+            "c71b5a17919170110e9d6e18d4dcfbf2471356f7",
+            "a40897e6500e4524adf563a91f7c880eb5296e12",
+            "9d1b353b7b6669c416d79bb259710082283d4c23",
+            "4f873e03719c947a101647c6646954d5ebc3d35b",
+        ):
+            self.assertIn(exact_commit, markdown_text)
         self.assertIn("text-to-speech", markdown_text)
         self.assertIn("Audio Throughput", markdown_text)
         self.assertIn('A(500)', markdown_text)
+
+    def test_refreshed_stable_release_commits_are_pinned(self):
+        docs_dir = Path(__file__).resolve().parent
+        expected_commits = {
+            "Dynamo-Deep-Dive.md": (
+                "8ce9e22f11576402102ea9d8b8e46233f5430a0d",
+            ),
+            "Mooncake-Deep-Dive.md": (
+                "c7ae97fd24251ed0aaaa613e8251859f170f1ae7",
+            ),
+            "Kubernetes-Native-Scheduler-Deep-Dive.md": (
+                "0f29094e5b73085e3802ecc1298ecae13866bfe6",
+            ),
+            "Kubernetes-AI-Schedulers-Deep-Dive.md": (
+                "911a822a49bcfd99c9c62203a009efa4130ad604",
+                "f9c97c087ab5aae409e6c7ab7b39f9affc12cf9d",
+            ),
+            "LLM-Benchmark-Deep-Dive.md": (
+                "c71b5a17919170110e9d6e18d4dcfbf2471356f7",
+                "a40897e6500e4524adf563a91f7c880eb5296e12",
+                "9d1b353b7b6669c416d79bb259710082283d4c23",
+            ),
+        }
+        for filename, commits in expected_commits.items():
+            markdown_text = (docs_dir / filename).read_text(encoding="utf-8")
+            for commit in commits:
+                with self.subTest(document=filename, commit=commit):
+                    self.assertIn(commit, markdown_text)
 
     def test_e2b_get_host_private_ingress_auth_is_documented(self):
         docs_dir = Path(__file__).resolve().parent
@@ -67,7 +106,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "36639f532114f4b34e01b96319a7e00bf6404cf9/"
+            "761ee5ebf9e47157bb98947034fe8d4dc6b31362/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -104,7 +143,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
             "Agent Sandbox Router（对照，不是 E2B 能力）",
-            "d7b3645920bb2e6573aee766e68f455f6a90b420",
+            "aee6d3b96615f4c63ad1f8703e5d73642cee5722",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -155,7 +194,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "36639f532114f4b34e01b96319a7e00bf6404cf9/"
+            "761ee5ebf9e47157bb98947034fe8d4dc6b31362/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -168,7 +207,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "d7b3645920bb2e6573aee766e68f455f6a90b420/"
+            "aee6d3b96615f4c63ad1f8703e5d73642cee5722/"
         )
         for source_path in (
             "clients/python/agentic-sandbox-client/sandbox-router/README.md",
@@ -290,17 +329,26 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         self.assertIn("KServe v0.19.0", doc["meta"])
-        self.assertIn("master@d748bd1", doc["meta"])
+        self.assertIn("master@a2f2a51", doc["meta"])
+        self.assertIn("website@ec4c0cb", doc["meta"])
         self.assertIn(
             "v0.19.0 release 的 CRD 没有该字段",
             markdown_text,
         )
         self.assertIn(
-            "kserve/website main@a25437b89b60b2c0993d4a74a97a61f8290130b7",
+            "kserve/website main@ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273",
             markdown_text,
         )
-        self.assertIn("两个官方主线快照暂时不一致", markdown_text)
-        self.assertIn("v1alpha1 `WorkloadSpec` 及其转换函数都不携带", markdown_text)
+        self.assertIn("两个官方主线快照仍不完全一致", markdown_text)
+        self.assertIn("字段路径是 `spec.kvCacheOffloading`", markdown_text)
+        for unreleased_feature in (
+            "AgentGateway 集成指南",
+            "LLMISVC canary rollout",
+            "Controller TLS profile",
+            "KV transfer 参数转义",
+        ):
+            self.assertIn(unreleased_feature, markdown_text)
+        self.assertIn("它们均未进入 `v0.19.0`", markdown_text)
 
     def test_nvidia_gpu_operator_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
@@ -394,15 +442,14 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertEqual(doc["href"], "/Kubernetes-Native-Scheduler-Deep-Dive.html")
         self.assertEqual(doc["title"], "Kubernetes 原生调度器深度技术文档")
-        self.assertIn("v1.36.2", doc["meta"])
-        self.assertIn("24e2b02", doc["meta"])
-        self.assertNotIn("5ecab45", doc["meta"])
+        self.assertIn("v1.36.3", doc["meta"])
+        self.assertIn("0f29094", doc["meta"])
         self.assertIn(
             "https://kubernetes.io/docs/concepts/scheduling-eviction/",
             doc["footer"],
         )
         self.assertIn(
-            "https://github.com/kubernetes/kubernetes/tree/v1.36.2",
+            "https://github.com/kubernetes/kubernetes/tree/v1.36.3",
             doc["footer"],
         )
 
@@ -418,7 +465,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Kubernetes 原生调度器深度技术文档", html)
         self.assertIn('/Kubernetes-Native-Scheduler-Deep-Dive.html', html)
-        self.assertIn("Kubernetes v1.36.2", html)
+        self.assertIn("Kubernetes v1.36.3", html)
         self.assertIn("DRA 对象与生命周期", html)
         self.assertIn("DynamicResources 调用链", html)
 
@@ -458,8 +505,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             html,
         )
         self.assertIn(
-            '<a href="#8-8-v1-36-2-feature-maturity-矩阵">'
-            "8.8 v1.36.2 feature maturity 矩阵</a>",
+            '<a href="#8-8-v1-36-3-feature-maturity-矩阵">'
+            "8.8 v1.36.3 feature maturity 矩阵</a>",
             html,
         )
         self.assertIn(

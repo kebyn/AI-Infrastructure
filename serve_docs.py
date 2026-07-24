@@ -76,7 +76,7 @@ DOCS = [
         "title": "Lustre 与 3FS 深度技术文档",
         "hero": "Lustre 与 3FS 深度技术文档",
         "subtitle": "HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析",
-        "meta": "Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-07-20",
+        "meta": "Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-07-24",
         "summary": "覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV cache 与生产选型。",
         "footer": (
             '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、'
@@ -91,7 +91,7 @@ DOCS = [
         "title": "NVIDIA GPU Operator 深度技术文档",
         "hero": "NVIDIA GPU Operator 深度技术文档",
         "subtitle": "Kubernetes GPU 节点软件栈、ClusterPolicy 调谐、设备暴露、共享隔离与生产运维解析",
-        "meta": "GPU Operator v26.3.3 · source@b0a49c0 · 2026-07-20",
+        "meta": "GPU Operator v26.3.3 · source@b0a49c0 · 2026-07-24",
         "summary": "覆盖 Controller 调谐、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级、安全与故障排查。",
         "footer": (
             '基于 <a href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/overview.html">'
@@ -107,7 +107,7 @@ DOCS = [
         "title": "HAMi 深度技术文档",
         "hero": "HAMi 深度技术文档",
         "subtitle": "Kubernetes 异构 AI 设备虚拟化、共享、隔离与调度架构解析",
-        "meta": "HAMi v2.9.0 · source@3a006c6 · 2026-07-20",
+        "meta": "HAMi v2.9.0 · source@3a006c6 · 2026-07-24",
         "summary": "覆盖 MutatingWebhook、Scheduler Extender、Device Plugin、HAMi-Core、Annotation 协议、多厂商设备与生产实践。",
         "footer": (
             '基于 <a href="https://github.com/Project-HAMi/HAMi/tree/v2.9.0">Project-HAMi/HAMi v2.9.0</a> 与 '
@@ -154,7 +154,7 @@ DOCS = [
         "title": "Volcano 升级与 Feature 兼容性",
         "hero": "Volcano 升级与 Feature 兼容性",
         "subtitle": "v1.8.2 到 v1.15.0 的 Helm、Webhook、Queue 语义与 Cloud Native Colocation 兼容边界",
-        "meta": "Volcano v1.8.2 → v1.15.0 · 2026-07-20",
+        "meta": "Volcano v1.8.2 → v1.15.0 · 2026-07-24",
         "summary": "覆盖六层升级判定、逐版本矩阵、proportion/capacity 迁移、已确认故障、Agent 节点边界、DRA quota 与 gang-aware eviction。",
         "footer": (
             '基于 <a href="https://github.com/volcano-sh/volcano">Volcano</a>、'
@@ -184,7 +184,7 @@ DOCS = [
         "title": "Kubeflow 深度技术文档",
         "hero": "Kubeflow 深度技术文档",
         "subtitle": "Kubeflow Community Distribution、端到端 MLOps 平台与 KServe 节点集成解析",
-        "meta": "Kubeflow Community Distribution 26.03.1 · source@f09f3ee · 2026-07-20",
+        "meta": "Kubeflow Community Distribution 26.03.1 · source@f09f3ee · 2026-07-24",
         "summary": "覆盖 Community Distribution 架构、Dashboard、Profiles、Pipelines、Notebooks、Katib、Trainer、KServe 节点、Istio/OAuth2/Dex 与生产实践。",
         "footer": (
             '基于 <a href="https://github.com/kubeflow/community-distribution/tree/26.03.1">'
