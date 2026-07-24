@@ -43,7 +43,7 @@ DOCS = [
         "title": "E2B 深度技术文档",
         "hero": "E2B 深度技术文档",
         "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
-        "meta": "E2B Infra 2026.28 · source@fda7bef · 2026-07-20",
+        "meta": "E2B Infra 2026.28 · source@fda7bef · SDK main@761ee5e · 2026-07-24",
         "summary": "覆盖控制面/数据面、sandbox 生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管与私有化部署取舍。",
         "footer": (
             '基于 <a href="https://github.com/e2b-dev/infra/tree/fda7bef1095afb909197e272c0a8a123797f0bfb">'
@@ -170,7 +170,7 @@ DOCS = [
         "title": "KServe 深度技术文档",
         "hero": "KServe 深度技术文档",
         "subtitle": "Kubernetes 生成式 AI 与预测式 AI 推理服务平台架构解析",
-        "meta": "KServe v0.19.0 · source@b0eda63 · master@d748bd1 · 2026-07-20",
+        "meta": "KServe v0.19.0 · source@b0eda63 · master@a2f2a51 · website@ec4c0cb · 2026-07-24",
         "summary": "覆盖 InferenceService、LLMInferenceService、ServingRuntime、Gateway API、LocalModelCache、LMCache 与未发布主线 KV cache offloading 边界。",
         "footer": (
             '基于 <a href="https://github.com/kserve/kserve/tree/v0.19.0">kserve/kserve v0.19.0</a> 与 '
