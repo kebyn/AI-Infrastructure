@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.18.3@afd60c3`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.16.4@50303cd`、Volcano `v1.15.0@8fc394c`；审校日期：2026-07-20。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.0@911a822`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.16.6@f9c97c0`、Volcano `v1.15.0@8fc394c`；审校日期：2026-07-24。
 
 ---
 
@@ -36,9 +36,9 @@ Koordinator、Kueue、Grove、KAI-Scheduler 和 Volcano 经常一起出现在 Ku
 
 ### 1.2 Kubernetes 原生稳定能力还缺什么
 
-标准 kube-scheduler 擅长对单个 Pending Pod 执行 Filter、Score、Reserve、Permit、PreBind 和 Bind。Kubernetes v1.35/v1.36 已引入 Workload/PodGroup、Gang、Topology-Aware Workload Scheduling 和 workload-aware preemption，但在 v1.36.2 中这些工作负载级能力仍为默认关闭的 Alpha feature。因此，以默认稳定能力为生产基线时，AI 与批处理工作负载通常还有六类集群级问题：
+标准 kube-scheduler 擅长对单个 Pending Pod 执行 Filter、Score、Reserve、Permit、PreBind 和 Bind。Kubernetes v1.35/v1.36 已引入 Workload/PodGroup、Gang、Topology-Aware Workload Scheduling 和 workload-aware preemption，但在 v1.36.3 中这些工作负载级能力仍为默认关闭的 Alpha feature。因此，以默认稳定能力为生产基线时，AI 与批处理工作负载通常还有六类集群级问题：
 
-| 问题 | v1.36.2 默认稳定能力的缺口 |
+| 问题 | v1.36.3 默认稳定能力的缺口 |
 |------|----------------------------|
 | 多 Pod 原子启动 | 默认仍逐 Pod 调度；原生 PodGroup/Gang 可解决部分问题，但为 Alpha 且默认关闭 |
 | 团队队列和配额 | `ResourceQuota` 限制命名空间总量，但不直接提供集群队列、公平借用和排队顺序 |
@@ -355,6 +355,8 @@ Kueue TAS 在准入时计算每个 topology domain 的可用容量，为 PodSet 
 
 TAS 先做容量准入，再让 kube-scheduler 执行最终绑定，因此集群中其他非 Kueue Pod、节点变化和调度插件仍可能影响结果。`waitForPodsReady` 与失败恢复配置用于处理已准入但迟迟无法 Ready 的情况。
 
+v0.19.0 将 `TASAssignmentsEncodingByHostnamePrefix` 与 `TASMultiLayerTopology` 提升为 Beta 并默认开启；前者压缩 hostname-level assignment，可支撑远超旧单 slice 上限的节点规模，后者允许 workload 表达多层 slice constraint。升级前要确认自研 controller/审计工具能读取新 encoding，不能依赖旧 assignment 的逐 hostname 展开形态。
+
 ### 4.7 AdmissionCheck 与 MultiKueue
 
 AdmissionCheck 是 Kueue 的重要扩展边界：配额已预留，不代表立即启动。工作负载还可以等待：
@@ -364,6 +366,8 @@ AdmissionCheck 是 Kueue 的重要扩展边界：配额已预留，不代表立�
 - 外部许可、数据就绪、合规审批或平台自定义 controller。
 
 临时失败可释放配额、重新排队并退避重试；永久失败会拒绝并停用 Workload，避免无限占用准入状态。
+
+v0.19.0 的 MultiKueue `ClusterProfile` 优先使用 `accessProviders`；旧 `credentialsProviders` 仍可读但已弃用，且二者不能同时设置。incremental dispatcher 按 `MultiKueueConfig.spec.clusters` 顺序选择 worker cluster，并支持 `stepSize`，可显式表达 on-prem 优先、公有云溢出等策略；新增 dispatched/admitted metrics 用于区分“已创建远端 Workload”和“远端已准入”。
 
 ### 4.8 最小示例
 
@@ -436,6 +440,20 @@ spec:
 **优势：** 不需要替换现有 scheduler；API 与 Kubernetes Job 生态结合紧密；配额、flavor、Cohort、MultiKueue 和 AdmissionCheck 适合公有云与多租户平台。
 
 **限制：** 不直接解决具体 GPU/NUMA 设备选择和运行时隔离；复杂 Gang 的最终原子放置仍依赖 Pod scheduler 或 PodsReady 恢复策略；集成对象多，升级前要检查对应 Job framework 的版本和 suspend 语义。
+
+### 4.10 v0.19.0 升级前置与默认值
+
+| 项目 | v0.19.0 变化 | 升级动作 |
+|------|--------------|----------|
+| DRA gate | 删除旧 `DynamicResourceAllocation` gate，改用 `KueueDRAIntegration`；ExtendedResource/PartitionableDevices 为 Beta 默认开 | 清理旧 gate，核对 `deviceClassMappings` 与 counter source 配置 |
+| WaitForPodsReady | 新装和未显式配置的升级实例默认开启，timeout/recovery timeout 均为 30 分钟 | 先按作业启动时间显式配置；临时回退可使用 `DisableWaitForPodsReady` gate |
+| MultiKueue path kubeconfig | `locationType=Path` 限制在 `/etc/multikueue/kubeconfigs` | 移动文件，或迁移到 Secret/ClusterProfile；删除 insecure kubeconfig gate |
+| Kueue Populator Helm | 新 chart 不会接管旧 hook 创建的 ConfigMap/RBAC | 升级前定向删除旧 `*-kueue-hook-*` 与 `*-kueue-resources` 对象 |
+| Ray quota | autoscaler sidecar、SidecarMode submitter 资源开始计入 head PodSet | 为 ClusterQueue 补 CPU/内存 headroom，避免升级后 Workload 无法准入 |
+| API/library | 自研 integration 调用 `RestorePodSetsInfo` 时必须传 Kubernetes context；API 使用 `SchemeGroupVersion` | 先重新编译 out-of-tree integration，再升级 controller |
+| Workload shape | 单 Workload 最大 PodSets 从 10 提升到 18；负 `subGroupCount` 先 warning，v0.20 将拒绝 | 修复非法对象，不把 warning 当长期兼容承诺 |
+
+v0.19.0 还提高默认 client QPS/burst 与 Workload/LQ/CQ reconcile concurrency。大型集群可能受益，但 API Server 较小或 webhook 较慢的环境应监控 throttling、workqueue depth 和 reconciliation latency，而不是无条件沿用新并发值。
 
 ---
 
@@ -708,6 +726,19 @@ spec:
 **优势：** GPU 优先的资源模型、层级队列、公平回收、层次化 PodGroup、拓扑、DRA 和 Grove 集成覆盖现代训练与分离式推理；可与其他 scheduler 并存。
 
 **限制：** 项目快速演进且 API/Helm migration 需要持续跟踪；GPU sharing 的隔离依赖外部运行时；相比 Volcano，其通用 HPC Job 生命周期和非 AI 生态覆盖更窄。
+
+### 6.11 v0.16.5 与 v0.16.6 补丁修复
+
+| 版本 | 修复 | 生产影响 |
+|------|------|----------|
+| v0.16.5 | `ResourceVector.SetMax` 可扩展到较长资源向量 | 只存在于部分节点的 extended resource 不再因 Node map 迭代顺序被误判为全局不可用 |
+| v0.16.5 | root-level queue 跨 hierarchy branch reclaim message 不再 panic | reclaim 控制循环不会因空 `ParentQueue` 构造 eviction message 崩溃 |
+| v0.16.5 | GPU-sharing volume name 对含点号 Pod 做合法化且保持 ConfigMap 引用 | 修复 fractional GPU Pod 因非法 volume name 无法创建的问题 |
+| v0.16.5 | scheduler snapshot 在 cycle 间也携带 plugin config | `/get-snapshot` 输出不再让 replay tool 因 `config: null` panic |
+| v0.16.5 | PyTorch/LWS 拒绝负 replica/worker index，并限制 block segmentation 最多 10,000 subgroups | 防止非法索引与无界 PodGroup fan-out |
+| v0.16.6 | segmented PyTorch/LWS PodGrouper 在 parent SubGroup 使用 `minSubGroup` | 修复 admission webhook 拒绝分段 PodGroup 的问题 |
+
+这些 patch 不改变 KAI 的总体架构，但直接影响资源可见性、reclaim 可用性、GPU sharing 和分组对象合法性。使用 PyTorch/LWS segmentation 或异构 extended resource 的集群不应停留在 v0.16.4。
 
 ---
 
@@ -1053,6 +1084,8 @@ Volcano 的官方兼容矩阵和目标 release 说明是唯一可泛化依据。
 | 设备 | GPU allocation、显存/算力用量、fragmentation、MIG/DRA claim 状态 |
 | 控制面 | leader changes、reconcile errors、webhook latency、workqueue depth、API throttling |
 
+Kueue v0.19.0 可额外采集 `kueue_unadmitted_workloads`、`kueue_local_queue_unadmitted_workloads`、`kueue_pod_scheduling_gate_removal_seconds`、`multikueue_workloads_dispatched_total` 与 `multikueue_workloads_admitted_total`。前两类详细 pending reason 受 `UnadmittedWorkloadsObservability` gate 控制；显式初始化 `QuotaReserved=False`/`Admitted=False` 还需要 `UnadmittedWorkloadsExplicitStatus`，不能在 gate 关闭时期待指标和 condition 自动出现。
+
 Events 必须作为排障入口，但不能作为长期时序存储。关键 pending reason 和队列状态应采集到 Prometheus 或平台数据库。
 
 ---
@@ -1140,7 +1173,7 @@ Events 必须作为排障入口，但不能作为长期时序存储。关键 pen
 
 ### 12.2 Kubernetes 原生能力正在上移
 
-Kubernetes v1.36.2 中，DRA 核心已在 v1.34 GA，并从 v1.35 起锁定为默认开启；Workload/PodGroup 与 Gang Scheduling 是 v1.35 Alpha，Topology-Aware Workload Scheduling 和 workload-aware preemption 是 v1.36 Alpha，均默认关闭。它们正在把一部分批调度与设备语义带入上游，但成熟度不能混写。
+Kubernetes v1.36.3 中，DRA 核心已在 v1.34 GA，并从 v1.35 起锁定为默认开启；Workload/PodGroup 与 Gang Scheduling 是 v1.35 Alpha，Topology-Aware Workload Scheduling 和 workload-aware preemption 是 v1.36 Alpha，均默认关闭。它们正在把一部分批调度与设备语义带入上游，但成熟度不能混写。
 
 这不会立刻淘汰五个项目，但会改变它们的边界：
 
@@ -1175,9 +1208,9 @@ Workload API / PodSets
 | 项目 | Release | 提交 |
 |------|---------|------|
 | Koordinator | `v1.8.0` | `989ca85c62abcca92b303aa12fd2ccff2ed30fed` |
-| Kueue | `v0.18.3` | `afd60c37e0c86de83dc0e708f76016b8debe1498` |
+| Kueue | `v0.19.0` | `911a822a49bcfd99c9c62203a009efa4130ad604` |
 | Grove | `v0.1.0-alpha.11` | `8fa3ece93434d7c0005605b7dc4b0e23610af88b` |
-| KAI-Scheduler | `v0.16.4` | `50303cdfe273f2bb4c445ecd987177f383d38745` |
+| KAI-Scheduler | `v0.16.6` | `f9c97c087ab5aae409e6c7ab7b39f9affc12cf9d` |
 | Volcano | `v1.15.0` | `8fc394c11e8db0d0ada5c17816b58bced9d7213d` |
 
 除明确标为 Alpha 的 Grove 外，正文按表中稳定 release 审校。生产仍须核对各项目的 Kubernetes compatibility、migration guide、Chart 和镜像 digest。
@@ -1221,6 +1254,7 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kubernetes-sigs/kueue> |
+| v0.19.0 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.0> |
 | 官方文档 | <https://kueue.sigs.k8s.io/docs/> |
 | Overview | <https://kueue.sigs.k8s.io/docs/overview/> |
 | Workload | <https://kueue.sigs.k8s.io/docs/concepts/workload/> |
@@ -1247,13 +1281,14 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kai-scheduler/KAI-Scheduler> |
-| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/quickstart> |
-| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/batch> |
-| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/queues> |
-| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/fairness> |
-| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/topology> |
-| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/gpu-sharing> |
-| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.4/docs/migrationguides> |
+| v0.16.6 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.16.6> |
+| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/quickstart> |
+| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/batch> |
+| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/queues> |
+| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/fairness> |
+| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/topology> |
+| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/gpu-sharing> |
+| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/migrationguides> |
 | CNCF Sandbox 申请 | <https://github.com/cncf/sandbox/issues/372> |
 | CNCF Landscape | <https://landscape.cncf.io/?item=orchestration-management--scheduling-orchestration--kai-scheduler> |
 
