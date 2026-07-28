@@ -4,7 +4,7 @@
 >
 > 基于 KServe 官方仓库与官网文档整理：<https://github.com/kserve/kserve>
 >
-> 稳定版本基线：`kserve/kserve v0.19.0@b0eda63d2c105479140af8ec9149d992b7e44be5`；未发布主线快照：`kserve/kserve master@f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886`、官网 `kserve/website main@ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273`；审校日期：2026-07-24。主线快照只用于说明后续方向，不计入 v0.19.0 兼容承诺。
+> 稳定版本基线：`kserve/kserve v0.19.0@b0eda63d2c105479140af8ec9149d992b7e44be5`；未发布主线快照：`kserve/kserve master@f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886`、官网 `kserve/website main@ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273`；审校日期：2026-07-28。主线快照只用于说明后续方向，不计入 v0.19.0 兼容承诺。
 
 ---
 
@@ -56,7 +56,7 @@ KServe 当前呈现明显的双轨策略：
 
 官网部分旧示例仍使用 `v1alpha1` 的 `LLMInferenceService`，而 v0.19.0 CRD 已将 `v1alpha2` 设为 storage version，并包含 `v1alpha1`/`v1alpha2` 转换配置。未发布 `master@f8a0ac1c` 已把仓库 `docs/samples/llmisvc` 中 17 个示例从 `v1alpha1` 改为 `v1alpha2`，审计时只剩 latency-predictor 示例仍为 `v1alpha1`；官网主线仍有旧版示例。实际落地时应使用同一 release 的 CRD、示例和 Chart，不能把主线示例收敛当成 v0.19.0 的补丁承诺。
 
-### 1.3.1 2026-07-24 未发布主线增量
+### 1.3.1 2026-07-28 未发布主线增量
 
 相对上一轮快照，本轮 `master` / 官网 `main` 出现以下变化；它们均未进入 `v0.19.0`：
 

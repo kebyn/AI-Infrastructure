@@ -16,9 +16,11 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-07-24", doc["meta"])
+                self.assertIn("2026-07-28", doc["meta"])
+                self.assertNotIn("2026-07-24", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-07-24", markdown_text)
+                self.assertIn("审校日期：2026-07-28", markdown_text)
+                self.assertNotIn("2026-07-24", markdown_text)
 
     def test_benchmark_snapshot_uses_current_stable_releases(self):
         doc = next(
@@ -28,11 +30,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
-        for release in (
-            "GuideLLM v0.7.2@c71b5a1",
-            "inference-perf v0.6.1@a40897e",
-            "EvalScope v1.9.1@9d1b353",
-        ):
+        for release in ("SGLang v0.5.16@fdebc93", "vLLM v0.26.0@568afb3"):
             self.assertIn(release, doc["meta"])
         self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
         for exact_commit in (
@@ -40,11 +38,16 @@ class RenderDocLayoutTest(unittest.TestCase):
             "a40897e6500e4524adf563a91f7c880eb5296e12",
             "9d1b353b7b6669c416d79bb259710082283d4c23",
             "4f873e03719c947a101647c6646954d5ebc3d35b",
+            "fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1",
+            "568afb3a13806beb53bb2e6bd518269357b237c0",
         ):
             self.assertIn(exact_commit, markdown_text)
         self.assertIn("text-to-speech", markdown_text)
         self.assertIn("Audio Throughput", markdown_text)
         self.assertIn('A(500)', markdown_text)
+        self.assertIn("spec_cap_lens_histogram", markdown_text)
+        self.assertIn("vllm-bench", markdown_text)
+        self.assertIn("Python `vllm bench serve` 本轮没有新增对应的专用 P/D 参数", markdown_text)
 
     def test_refreshed_stable_release_commits_are_pinned(self):
         docs_dir = Path(__file__).resolve().parent
@@ -53,19 +56,21 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "8ce9e22f11576402102ea9d8b8e46233f5430a0d",
             ),
             "Mooncake-Deep-Dive.md": (
-                "c7ae97fd24251ed0aaaa613e8251859f170f1ae7",
+                "6041a609a8c3af35e778f70db344f145c2914980",
             ),
             "Kubernetes-Native-Scheduler-Deep-Dive.md": (
                 "0f29094e5b73085e3802ecc1298ecae13866bfe6",
             ),
             "Kubernetes-AI-Schedulers-Deep-Dive.md": (
                 "911a822a49bcfd99c9c62203a009efa4130ad604",
-                "f9c97c087ab5aae409e6c7ab7b39f9affc12cf9d",
+                "72af4d75dfd8dec836386f88e50c123eceb6b052",
             ),
             "LLM-Benchmark-Deep-Dive.md": (
                 "c71b5a17919170110e9d6e18d4dcfbf2471356f7",
                 "a40897e6500e4524adf563a91f7c880eb5296e12",
                 "9d1b353b7b6669c416d79bb259710082283d4c23",
+                "fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1",
+                "568afb3a13806beb53bb2e6bd518269357b237c0",
             ),
         }
         for filename, commits in expected_commits.items():
@@ -73,6 +78,34 @@ class RenderDocLayoutTest(unittest.TestCase):
             for commit in commits:
                 with self.subTest(document=filename, commit=commit):
                     self.assertIn(commit, markdown_text)
+
+    def test_refreshed_release_behavior_is_documented(self):
+        docs_dir = Path(__file__).resolve().parent
+        mooncake_text = (docs_dir / "Mooncake-Deep-Dive.md").read_text(
+            encoding="utf-8"
+        )
+        kai_text = (docs_dir / "Kubernetes-AI-Schedulers-Deep-Dive.md").read_text(
+            encoding="utf-8"
+        )
+
+        for required_text in (
+            "MOONCAKE_OFFSET_PERSIST_MODE",
+            "PollRemoveAll",
+            "cache_salt",
+            "MooncakeBundleTransfer",
+            "10000ms",
+        ):
+            with self.subTest(document="Mooncake", required_text=required_text):
+                self.assertIn(required_text, mooncake_text)
+
+        for required_text in (
+            "segmented elastic PyTorchJob",
+            "mandatorySegments",
+            "MinAvailable=0",
+            "minReplicas",
+        ):
+            with self.subTest(document="KAI-Scheduler", required_text=required_text):
+                self.assertIn(required_text, kai_text)
 
     def test_e2b_get_host_private_ingress_auth_is_documented(self):
         docs_dir = Path(__file__).resolve().parent
@@ -106,7 +139,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "761ee5ebf9e47157bb98947034fe8d4dc6b31362/"
+            "cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -143,7 +176,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
             "Agent Sandbox Router（对照，不是 E2B 能力）",
-            "aee6d3b96615f4c63ad1f8703e5d73642cee5722",
+            "56d62691b2b16f0b02b7421e89ba02b493192ff7",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -194,7 +227,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "761ee5ebf9e47157bb98947034fe8d4dc6b31362/"
+            "cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -207,7 +240,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "aee6d3b96615f4c63ad1f8703e5d73642cee5722/"
+            "56d62691b2b16f0b02b7421e89ba02b493192ff7/"
         )
         for source_path in (
             "clients/python/agentic-sandbox-client/sandbox-router/README.md",
@@ -329,8 +362,9 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         self.assertIn("KServe v0.19.0", doc["meta"])
-        self.assertIn("master@a2f2a51", doc["meta"])
+        self.assertIn("master@f8a0ac1", doc["meta"])
         self.assertIn("website@ec4c0cb", doc["meta"])
+        self.assertIn("f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886", markdown_text)
         self.assertIn(
             "v0.19.0 release 的 CRD 没有该字段",
             markdown_text,
@@ -346,6 +380,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "LLMISVC canary rollout",
             "Controller TLS profile",
             "KV transfer 参数转义",
+            "禁用 tokenizer 的 OCI modelcar",
+            "llm-d-router v0.10 参数兼容",
         ):
             self.assertIn(unreleased_feature, markdown_text)
         self.assertIn("它们均未进入 `v0.19.0`", markdown_text)

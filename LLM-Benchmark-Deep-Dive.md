@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.11.0`、GuideLLM `v0.7.2`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.16`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.26.0`、EvalScope `v1.9.1`；审校日期：2026-07-24。
+> 稳定版本基线：AIPerf `v0.11.0`、GuideLLM `v0.7.2`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.16`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.26.0`、EvalScope `v1.9.1`；审校日期：2026-07-28。
 
 ---
 

@@ -6,9 +6,9 @@
 
 ## 版本与证据边界
 
-当前文档集的审校截止日为 **2026-07-24**。正文优先固定官方最新稳定 release（Alpha 项目保留 Alpha 标识），并在各文档页头或附录记录 tag 解引用后的 exact source commit；没有 GitHub Release 的项目固定到审计时的分支 commit。`main`/`master` 后续能力只作为“未发布主线快照”单独说明，不计入稳定版兼容承诺。
+当前文档集的审校截止日为 **2026-07-28**。正文优先固定官方最新稳定 release（Alpha 项目保留 Alpha 标识），并在各文档页头或附录记录 tag 解引用后的 exact source commit；没有 GitHub Release 的项目固定到审计时的分支 commit。`main`/`master` 后续能力只作为“未发布主线快照”单独说明，不计入稳定版兼容承诺。
 
-本轮确认 8 个稳定版本发生变化：Dynamo `v1.3.0@8ce9e22f11576402102ea9d8b8e46233f5430a0d`、Mooncake `v0.3.12@c7ae97fd24251ed0aaaa613e8251859f170f1ae7`、Kueue `v0.19.0@911a822a49bcfd99c9c62203a009efa4130ad604`、KAI-Scheduler `v0.16.6@f9c97c087ab5aae409e6c7ab7b39f9affc12cf9d`、Kubernetes `v1.36.3@0f29094e5b73085e3802ecc1298ecae13866bfe6`、GuideLLM `v0.7.2@c71b5a17919170110e9d6e18d4dcfbf2471356f7`、inference-perf `v0.6.1@a40897e6500e4524adf563a91f7c880eb5296e12`、EvalScope `v1.9.1@9d1b353b7b6669c416d79bb259710082283d4c23`。其余稳定 release 未变化；3FS `main`、Volcano 官网与 Helm Charts 分支 HEAD 也未变化。KServe、KServe 官网、E2B SDK 与 Agent Sandbox 只更新审计快照，仍不扩大稳定兼容承诺。
+本轮确认 4 个稳定版本发生变化：Mooncake `v0.3.12.post1@6041a609a8c3af35e778f70db344f145c2914980`、KAI-Scheduler `v0.16.7@72af4d75dfd8dec836386f88e50c123eceb6b052`、SGLang `v0.5.16@fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1`、vLLM `v0.26.0@568afb3a13806beb53bb2e6bd518269357b237c0`。其余稳定 release 未变化。未发布快照更新为 KServe `master@f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886`、E2B SDK `main@cf8296cf8997f98aefd6e8236d4d235f5ab1ddad` 与 Agent Sandbox `main@56d62691b2b16f0b02b7421e89ba02b493192ff7`，仍不扩大 KServe `v0.19.0` 或 E2B Infra `2026.28` 的稳定兼容承诺。3FS `main@22fca04564c7cc230fd8b9523b8b92864e1dad47`、KServe 官网 `main@ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273`、Volcano 官网 `master@b9f7d29fe3528f184b2e17aa1159bb866c2c19c2` 与 Helm Charts `main@ad1fb303fbf057deb196e4e7947fabdbc2472fd0` 均未变化。
 
 ## 文档索引
 
