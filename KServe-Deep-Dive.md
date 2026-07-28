@@ -4,7 +4,7 @@
 >
 > 基于 KServe 官方仓库与官网文档整理：<https://github.com/kserve/kserve>
 >
-> 稳定版本基线：`kserve/kserve v0.19.0@b0eda63d2c105479140af8ec9149d992b7e44be5`；未发布主线快照：`kserve/kserve master@a2f2a51200e3828286e9b7cd73d7de39ccbdc9a5`、官网 `kserve/website main@ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273`；审校日期：2026-07-24。主线快照只用于说明后续方向，不计入 v0.19.0 兼容承诺。
+> 稳定版本基线：`kserve/kserve v0.19.0@b0eda63d2c105479140af8ec9149d992b7e44be5`；未发布主线快照：`kserve/kserve master@f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886`、官网 `kserve/website main@ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273`；审校日期：2026-07-24。主线快照只用于说明后续方向，不计入 v0.19.0 兼容承诺。
 
 ---
 
@@ -54,7 +54,7 @@ KServe 当前呈现明显的双轨策略：
 | `InferenceService` | `serving.kserve.io/v1beta1` | 通用单模型 serving，预测式模型，标准 LLM serving | 可以用于基础 LLM |
 | `LLMInferenceService` | v0.19.0 storage version 为 `serving.kserve.io/v1alpha2` | 高级 LLM serving，prefix-aware routing，P/D 分离，多节点 | 高级 LLM 推荐 |
 
-官网部分旧示例仍使用 `v1alpha1` 的 `LLMInferenceService`，而 v0.19.0 CRD 已将 `v1alpha2` 设为 storage version，并包含 `v1alpha1`/`v1alpha2` 转换配置。未发布 `master@a2f2a512` 已把仓库 `docs/samples/llmisvc` 中 17 个示例从 `v1alpha1` 改为 `v1alpha2`，审计时只剩 latency-predictor 示例仍为 `v1alpha1`；官网主线仍有旧版示例。实际落地时应使用同一 release 的 CRD、示例和 Chart，不能把主线示例收敛当成 v0.19.0 的补丁承诺。
+官网部分旧示例仍使用 `v1alpha1` 的 `LLMInferenceService`，而 v0.19.0 CRD 已将 `v1alpha2` 设为 storage version，并包含 `v1alpha1`/`v1alpha2` 转换配置。未发布 `master@f8a0ac1c` 已把仓库 `docs/samples/llmisvc` 中 17 个示例从 `v1alpha1` 改为 `v1alpha2`，审计时只剩 latency-predictor 示例仍为 `v1alpha1`；官网主线仍有旧版示例。实际落地时应使用同一 release 的 CRD、示例和 Chart，不能把主线示例收敛当成 v0.19.0 的补丁承诺。
 
 ### 1.3.1 2026-07-24 未发布主线增量
 
@@ -67,6 +67,10 @@ KServe 当前呈现明显的双轨策略：
 | LLMISVC canary rollout | 官网描述 `route.group` / `route.weight`、成员状态、稳定 publisher URL、force-stop promotion/rollback 和观测查询；对应字段不在 v0.19.0 API 中 |
 | Controller TLS profile | 主线 controller 新增 `--tls-min-version` 与 `--tls-cipher-suites`，默认 TLS 1.2 和 Go 安全默认套件；这是 controller metrics/webhook TLS，不替代模型数据面网关的 TLS 策略 |
 | KV transfer 参数转义 | controller 生成 vLLM `--kv-transfer-config` 时加强双层 JSON/shell 引号转义，避免 OffloadingConnector 收到无效 JSON；只影响主线生成参数，不回写 v0.19.0 |
+| 禁用 tokenizer 的 OCI modelcar | 不需要 tokenizer 时直接跳过 tokenizer PodSpec 构建，只保留用于删除旧 Deployment 的对象 identity；避免 `oci://` modelcar 因没有可附加的 `main` container 而让 scheduler reconcile 失败 |
+| llm-d-router v0.10 参数兼容 | `--model-server-metrics-scheme` 会同时从自定义 scheduler container 的 `command` 和 `args` 移除并转换为 `metrics-data-source` plugin；P/D TLS preset 改用重复的 `--enable-tls=decoder` / `--enable-tls=prefiller` |
+
+从 `master@a2f2a512` 到 `master@f8a0ac1c`，`KVCacheOffloadingSpec`、`config_merge.go` 的 KV transfer 参数生成和 LLMInferenceService CRD 没有变化。因此下面记录的字段路径、引号转义和官网示例错位结论仍成立；本轮新增的 tokenizer 与 router 修复也仍是未发布主线行为。
 
 ### 1.4 KServe 不是什么
 
@@ -962,7 +966,7 @@ sequenceDiagram
 | LMCache integration | `InferenceService` + HuggingFace/vLLM backend | 通过 LMCache + Redis/LMCache server 做远端 KV cache |
 | `spec.kvCacheOffloading` | `LLMInferenceService` **未发布 master** | master controller 将配置转成 vLLM `--kv-transfer-config`，支持 CPU 和 filesystem/PVC tier；v0.19.0 release 的 CRD 没有该字段 |
 
-`v0.19.0` 稳定 release 只在本文第一条路线中讨论 LMCache 集成；不要把下面的主线 schema 片段与 v0.19.0 CRD、Chart 或安装脚本混用。`master@a2f2a512` 的 `KVCacheOffloadingSpec` 包括：
+`v0.19.0` 稳定 release 只在本文第一条路线中讨论 LMCache 集成；不要把下面的主线 schema 片段与 v0.19.0 CRD、Chart 或安装脚本混用。`master@f8a0ac1c` 的 `KVCacheOffloadingSpec` 包括：
 
 | 字段 | 说明 |
 |------|------|
@@ -985,9 +989,9 @@ spec:
             size: 200Gi
 ```
 
-审计时两个官方主线快照仍不完全一致：官网 `website@ec4c0cb4` 和仓库 `kserve@a2f2a512` 的 KV offloading 完整示例都已使用 `serving.kserve.io/v1alpha2`，但仍把字段写成 `spec.workload.kvCacheOffloading`；同一代码快照的 v1alpha2 Go 类型与 CRD 则把 `WorkloadSpec` 内联，字段路径是 `spec.kvCacheOffloading`。不能照抄该示例配合此代码快照，也不能与 v0.19.0 稳定 CRD 混用；应等待包含该字段的正式 release，或至少固定并验证同一组 controller、CRD 和示例。
+审计时两个官方主线快照仍不完全一致：官网 `website@ec4c0cb4` 和仓库 `kserve@f8a0ac1c` 的 KV offloading 完整示例都已使用 `serving.kserve.io/v1alpha2`，但仍把字段写成 `spec.workload.kvCacheOffloading`；同一代码快照的 v1alpha2 Go 类型与 CRD 则把 `WorkloadSpec` 内联，字段路径是 `spec.kvCacheOffloading`。不能照抄该示例配合此代码快照，也不能与 v0.19.0 稳定 CRD 混用；应等待包含该字段的正式 release，或至少固定并验证同一组 controller、CRD 和示例。
 
-`master@a2f2a512` 还修复了 controller 模板生成 `--kv-transfer-config` 时的引号转义：JSON 先经过配置替换重新反序列化，再进入 shell 双引号变量，单层转义会被中途吞掉并让 vLLM 收到无效 JSON。这个修复说明即使 CRD 接受配置，也必须在运行 Pod 中检查最终 argv 和 vLLM 日志。KV cache offloading 不是越大越好：CPU/disk 命中会降低 GPU 重算，但也会引入序列化、传输和 IO 延迟；需要按 TTFT、ITL、吞吐和 GPU 利用率做基准测试。
+`master@f8a0ac1c` 仍包含 controller 模板生成 `--kv-transfer-config` 时的引号转义修复：JSON 先经过配置替换重新反序列化，再进入 shell 双引号变量，单层转义会被中途吞掉并让 vLLM 收到无效 JSON。这个修复说明即使 CRD 接受配置，也必须在运行 Pod 中检查最终 argv 和 vLLM 日志。KV cache offloading 不是越大越好：CPU/disk 命中会降低 GPU 重算，但也会引入序列化、传输和 IO 延迟；需要按 TTFT、ITL、吞吐和 GPU 利用率做基准测试。
 
 ### 7.9 Autoscaling：WVA、HPA、KEDA
 
@@ -1379,12 +1383,14 @@ kubectl get daemonset -n kserve kserve-localmodelnode-agent
 | 主题 | 链接 |
 |------|------|
 | GitHub 仓库 | <https://github.com/kserve/kserve> |
-| v0.19.0 源码快照 | <https://github.com/kserve/kserve/tree/v0.19.0> |
-| 未发布 kserve master 源码快照 | <https://github.com/kserve/kserve/tree/a2f2a51200e3828286e9b7cd73d7de39ccbdc9a5> |
-| master v1alpha2 KV cache offloading API | <https://github.com/kserve/kserve/blob/a2f2a51200e3828286e9b7cd73d7de39ccbdc9a5/pkg/apis/serving/v1alpha2/llm_inference_service_types.go> |
-| master KV transfer 参数生成 | <https://github.com/kserve/kserve/blob/a2f2a51200e3828286e9b7cd73d7de39ccbdc9a5/pkg/controller/v1alpha2/llmisvc/config_merge.go> |
-| master Controller TLS profile | <https://github.com/kserve/kserve/blob/a2f2a51200e3828286e9b7cd73d7de39ccbdc9a5/pkg/tls/tls_default.go> |
-| master LLMInferenceService CRD | <https://github.com/kserve/kserve/blob/a2f2a51200e3828286e9b7cd73d7de39ccbdc9a5/config/crd/full/llmisvc/serving.kserve.io_llminferenceservices.yaml> |
+| v0.19.0 源码快照 | <https://github.com/kserve/kserve/tree/b0eda63d2c105479140af8ec9149d992b7e44be5> |
+| 未发布 kserve master 源码快照 | <https://github.com/kserve/kserve/tree/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886> |
+| master v1alpha2 KV cache offloading API | <https://github.com/kserve/kserve/blob/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886/pkg/apis/serving/v1alpha2/llm_inference_service_types.go> |
+| master KV transfer 参数生成 | <https://github.com/kserve/kserve/blob/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886/pkg/controller/v1alpha2/llmisvc/config_merge.go> |
+| master Controller TLS profile | <https://github.com/kserve/kserve/blob/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886/pkg/tls/tls_default.go> |
+| master Tokenizer 调谐 | <https://github.com/kserve/kserve/blob/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886/pkg/controller/v1alpha2/llmisvc/tokenizer.go> |
+| master Scheduler 参数迁移 | <https://github.com/kserve/kserve/blob/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886/pkg/controller/v1alpha2/llmisvc/scheduler.go> |
+| master LLMInferenceService CRD | <https://github.com/kserve/kserve/blob/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886/config/crd/full/llmisvc/serving.kserve.io_llminferenceservices.yaml> |
 | 官网文档 | <https://kserve.github.io/website/> |
 | KServe Concepts | <https://kserve.github.io/website/docs/concepts> |
 | Control Plane | <https://kserve.github.io/website/docs/concepts/architecture/control-plane> |

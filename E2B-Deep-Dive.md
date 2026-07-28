@@ -492,7 +492,7 @@ Orchestrator Proxy 的限流也不同于 Agent Router：它限制的是某个 Sa
 | catalog/目标 Sandbox 不存在、guest port 未开放、上游连接失败 | `502` |
 | 未分类的路由内部错误 | `500` |
 
-参考 Agent Sandbox Router 时，应只借鉴“静态入口 + Header 选择动态目标”的架构思想，HTTP 契约仍以 E2B 固定源码为准。对照材料固定在审校截止日前的 Agent Sandbox 未发布主线快照 `aee6d3b96615f4c63ad1f8703e5d73642cee5722`；对比确认所引用的 Router README 与实现未发生变化，它仍不计入 E2B Infra 2026.28 的稳定能力：
+参考 Agent Sandbox Router 时，应只借鉴“静态入口 + Header 选择动态目标”的架构思想，HTTP 契约仍以 E2B 固定源码为准。对照材料固定在审校截止日前的 Agent Sandbox 未发布主线快照 `56d62691b2b16f0b02b7421e89ba02b493192ff7`；从上一快照对比确认所引用的 Router README 与实现未发生变化，它仍不计入 E2B Infra 2026.28 的稳定能力：
 
 | 维度 | E2B Infra 2026.28 | Agent Sandbox Router（对照，不是 E2B 能力） |
 | --- | --- | --- |
@@ -521,7 +521,7 @@ Infra 2026.28 的 `network.allowPublicTraffic` 默认值是 `true`。未设置�
 
 私有 ingress 不能只设置 `allowPublicTraffic=false`：Infra 2026.28 还要求创建请求启用 `secure=true`，否则 API 会拒绝创建，因为 envd 控制面必须有独立的 `envdAccessToken`。这两个开关保护不同路径，不能互相替代。
 
-下面的示例使用官方 SDK 当前实现说明调用形态；SDK 示例提交固定为 `e2b-dev/e2b@761ee5ebf9e47157bb98947034fe8d4dc6b31362`，不改变本文的 Infra 稳定基线。
+下面的示例使用官方 SDK 当前实现说明调用形态；SDK 示例提交固定为 `e2b-dev/e2b@cf8296cf8997f98aefd6e8236d4d235f5ab1ddad`，不改变本文的 Infra 稳定基线。
 
 ```typescript
 import { Sandbox } from "e2b"
@@ -1445,7 +1445,7 @@ E2B 适合这些场景：
 
 ## 附录 A：固定版本与官方来源
 
-本文的服务端兼容边界固定在 E2B Infra `2026.28@fda7bef1095afb909197e272c0a8a123797f0bfb`。SDK 链接固定到 2026-07-24 审校时的官方 monorepo 提交 `761ee5ebf9e47157bb98947034fe8d4dc6b31362`，只用于证明 `getHost()`、`trafficAccessToken` 和示例调用形态；对比确认这些引用语义未变，不把该 SDK 主线提交中的其他能力计入 Infra 2026.28 的稳定承诺。
+本文的服务端兼容边界固定在 E2B Infra `2026.28@fda7bef1095afb909197e272c0a8a123797f0bfb`。SDK 链接固定到官方 monorepo 主线快照 `cf8296cf8997f98aefd6e8236d4d235f5ab1ddad`，只用于证明 `getHost()`、`trafficAccessToken` 和示例调用形态；从上一快照对比确认 Host 编码、共享 envd URL、官方路由 Header 注入与 token 属性语义未变，不把该 SDK 主线提交中的其他 API/transport 变化计入 Infra 2026.28 的稳定承诺。
 
 | 主题 | 官方固定快照 |
 | --- | --- |
@@ -1482,12 +1482,12 @@ E2B 适合这些场景：
 | envd loopback 端口扫描与 `socat` 转发 | [`envd/internal/port/forward.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/envd/internal/port/forward.go) |
 | envd `1s` 扫描周期与转发器启动 | [`envd/main.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/packages/envd/main.go) |
 | guest 各类监听地址可达性集成测试 | [`localhost_bind_test.go`](https://github.com/e2b-dev/infra/blob/fda7bef1095afb909197e272c0a8a123797f0bfb/tests/integration/internal/tests/envd/localhost_bind_test.go) |
-| Agent Sandbox Router 对照说明（未发布主线快照） | [`sandbox-router/README.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/aee6d3b96615f4c63ad1f8703e5d73642cee5722/clients/python/agentic-sandbox-client/sandbox-router/README.md) |
-| Agent Sandbox Router HTTP/WebSocket 对照实现 | [`sandbox_router.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/aee6d3b96615f4c63ad1f8703e5d73642cee5722/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py) |
-| TypeScript SDK 共享 envd URL 与 `getHost()` 边界 | [`packages/js-sdk/src/connectionConfig.ts`](https://github.com/e2b-dev/e2b/blob/761ee5ebf9e47157bb98947034fe8d4dc6b31362/packages/js-sdk/src/connectionConfig.ts) |
-| TypeScript Sandbox 初始化与路由 Header 注入 | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/761ee5ebf9e47157bb98947034fe8d4dc6b31362/packages/js-sdk/src/sandbox/index.ts) |
-| TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/761ee5ebf9e47157bb98947034fe8d4dc6b31362/packages/js-sdk/tests/sandbox/network.test.ts) |
-| Python SDK 共享 envd URL 与 `get_host()` 边界 | [`packages/python-sdk/e2b/connection_config.py`](https://github.com/e2b-dev/e2b/blob/761ee5ebf9e47157bb98947034fe8d4dc6b31362/packages/python-sdk/e2b/connection_config.py) |
-| Python Sandbox 初始化与路由 Header 注入 | [`packages/python-sdk/e2b/sandbox_sync/main.py`](https://github.com/e2b-dev/e2b/blob/761ee5ebf9e47157bb98947034fe8d4dc6b31362/packages/python-sdk/e2b/sandbox_sync/main.py) |
-| Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/761ee5ebf9e47157bb98947034fe8d4dc6b31362/packages/python-sdk/e2b/sandbox/main.py) |
-| Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/761ee5ebf9e47157bb98947034fe8d4dc6b31362/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |
+| Agent Sandbox Router 对照说明（未发布主线快照） | [`sandbox-router/README.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/56d62691b2b16f0b02b7421e89ba02b493192ff7/clients/python/agentic-sandbox-client/sandbox-router/README.md) |
+| Agent Sandbox Router HTTP/WebSocket 对照实现 | [`sandbox_router.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/56d62691b2b16f0b02b7421e89ba02b493192ff7/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py) |
+| TypeScript SDK 共享 envd URL 与 `getHost()` 边界 | [`packages/js-sdk/src/connectionConfig.ts`](https://github.com/e2b-dev/e2b/blob/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/packages/js-sdk/src/connectionConfig.ts) |
+| TypeScript Sandbox 初始化与路由 Header 注入 | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/packages/js-sdk/src/sandbox/index.ts) |
+| TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/packages/js-sdk/tests/sandbox/network.test.ts) |
+| Python SDK 共享 envd URL 与 `get_host()` 边界 | [`packages/python-sdk/e2b/connection_config.py`](https://github.com/e2b-dev/e2b/blob/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/packages/python-sdk/e2b/connection_config.py) |
+| Python Sandbox 初始化与路由 Header 注入 | [`packages/python-sdk/e2b/sandbox_sync/main.py`](https://github.com/e2b-dev/e2b/blob/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/packages/python-sdk/e2b/sandbox_sync/main.py) |
+| Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/packages/python-sdk/e2b/sandbox/main.py) |
+| Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |

@@ -44,11 +44,13 @@ DOCS = [
         "title": "E2B 深度技术文档",
         "hero": "E2B 深度技术文档",
         "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
-        "meta": "E2B Infra 2026.28 · source@fda7bef · SDK main@761ee5e · 2026-07-24",
+        "meta": "E2B Infra 2026.28 · source@fda7bef · SDK main@cf8296c · Agent Sandbox@56d6269 · 2026-07-24",
         "summary": "覆盖控制面/数据面、sandbox 生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管与私有化部署取舍。",
         "footer": (
             '基于 <a href="https://github.com/e2b-dev/infra/tree/fda7bef1095afb909197e272c0a8a123797f0bfb">'
-            'e2b-dev/infra 2026.28</a> 官方仓库与官方自托管资料整理'
+            'e2b-dev/infra 2026.28</a> 与 '
+            '<a href="https://github.com/e2b-dev/e2b/tree/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad">'
+            'E2B SDK 主线快照</a> 官方资料整理'
         ),
     },
     {
@@ -174,11 +176,15 @@ DOCS = [
         "title": "KServe 深度技术文档",
         "hero": "KServe 深度技术文档",
         "subtitle": "Kubernetes 生成式 AI 与预测式 AI 推理服务平台架构解析",
-        "meta": "KServe v0.19.0 · source@b0eda63 · master@a2f2a51 · website@ec4c0cb · 2026-07-24",
+        "meta": "KServe v0.19.0 · source@b0eda63 · master@f8a0ac1 · website@ec4c0cb · 2026-07-24",
         "summary": "覆盖 InferenceService、LLMInferenceService、ServingRuntime、Gateway API、LocalModelCache、LMCache 与未发布主线 KV cache offloading 边界。",
         "footer": (
-            '基于 <a href="https://github.com/kserve/kserve/tree/v0.19.0">kserve/kserve v0.19.0</a> 与 '
-            '<a href="https://kserve.github.io/website/">KServe 官方文档</a> 整理'
+            '基于 <a href="https://github.com/kserve/kserve/tree/b0eda63d2c105479140af8ec9149d992b7e44be5">'
+            'kserve/kserve v0.19.0 源码</a>、'
+            '<a href="https://github.com/kserve/kserve/tree/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886">'
+            '未发布 master 快照</a> 与 '
+            '<a href="https://github.com/kserve/website/tree/ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273">'
+            'KServe 官网快照</a> 整理'
         ),
     },
     {
