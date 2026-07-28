@@ -58,15 +58,17 @@ DOCS = [
         "title": "LLM 压测工具深度对比",
         "hero": "LLM 压测工具深度对比",
         "subtitle": "AIPerf、GuideLLM、inference-perf、genai-bench、SGLang Bench、LLMPerf、vLLM Bench、EvalScope 与 Ollama Benchmark 选型解析",
-        "meta": "GuideLLM v0.7.2@c71b5a1 · inference-perf v0.6.1@a40897e · EvalScope v1.9.1@9d1b353 · 2026-07-24",
+        "meta": "SGLang v0.5.16@fdebc93 · vLLM v0.26.0@568afb3 · 2026-07-24",
         "summary": "覆盖指标口径、负载模型、工具选型、vLLM 可比压测模板、SLO/goodput、trace replay 与生产落地建议。",
         "footer": (
             '基于 <a href="https://github.com/ai-dynamo/aiperf/tree/v0.11.0">AIPerf v0.11.0</a>、'
             '<a href="https://github.com/vllm-project/guidellm/tree/c71b5a17919170110e9d6e18d4dcfbf2471356f7">GuideLLM v0.7.2 源码</a>、'
             '<a href="https://github.com/kubernetes-sigs/inference-perf/tree/a40897e6500e4524adf563a91f7c880eb5296e12">inference-perf v0.6.1 源码</a>、'
             '<a href="https://github.com/sgl-project/genai-bench/tree/v0.0.5">genai-bench v0.0.5</a>、'
-            '<a href="https://github.com/sgl-project/sglang/blob/v0.5.15.post1/docs/developer_guide/bench_serving.md">SGLang Bench v0.5.15.post1</a>、'
-            '<a href="https://github.com/vllm-project/vllm/tree/v0.25.1/benchmarks">vLLM Bench v0.25.1</a> 与 '
+            '<a href="https://github.com/sgl-project/sglang/tree/fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1">'
+            'SGLang Bench v0.5.16 源码</a>、'
+            '<a href="https://github.com/vllm-project/vllm/tree/568afb3a13806beb53bb2e6bd518269357b237c0/benchmarks">'
+            'vLLM Bench v0.26.0 源码</a> 与 '
             '<a href="https://github.com/modelscope/evalscope/tree/9d1b353b7b6669c416d79bb259710082283d4c23">EvalScope v1.9.1 源码</a> 等官方资料整理'
         ),
     },
