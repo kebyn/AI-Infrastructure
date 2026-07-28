@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.0@911a822`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.16.6@f9c97c0`、Volcano `v1.15.0@8fc394c`；审校日期：2026-07-24。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.0@911a822`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.16.7@72af4d7`、Volcano `v1.15.0@8fc394c`；审校日期：2026-07-24。
 
 ---
 
@@ -727,7 +727,7 @@ spec:
 
 **限制：** 项目快速演进且 API/Helm migration 需要持续跟踪；GPU sharing 的隔离依赖外部运行时；相比 Volcano，其通用 HPC Job 生命周期和非 AI 生态覆盖更窄。
 
-### 6.11 v0.16.5 与 v0.16.6 补丁修复
+### 6.11 v0.16.5 至 v0.16.7 补丁修复
 
 | 版本 | 修复 | 生产影响 |
 |------|------|----------|
@@ -737,8 +737,11 @@ spec:
 | v0.16.5 | scheduler snapshot 在 cycle 间也携带 plugin config | `/get-snapshot` 输出不再让 replay tool 因 `config: null` panic |
 | v0.16.5 | PyTorch/LWS 拒绝负 replica/worker index，并限制 block segmentation 最多 10,000 subgroups | 防止非法索引与无界 PodGroup fan-out |
 | v0.16.6 | segmented PyTorch/LWS PodGrouper 在 parent SubGroup 使用 `minSubGroup` | 修复 admission webhook 拒绝分段 PodGroup 的问题 |
+| v0.16.7 | segmented elastic PyTorchJob 只把 `minReplicas` 覆盖到的 worker segments 标为必需 | 不再因每个 worker segment 的 `MinAvailable` 都大于 0 而要求全部 workers 到齐 |
 
-这些 patch 不改变 KAI 的总体架构，但直接影响资源可见性、reclaim 可用性、GPU sharing 和分组对象合法性。使用 PyTorch/LWS segmentation 或异构 extended resource 的集群不应停留在 v0.16.4。
+`v0.16.7` 先计算 `workerMinAvailable = max(0, totalMinAvailable - masterReplicas)`，再以 `mandatorySegments = ceil(workerMinAvailable / segmentSize)` 决定必需分段；超过该范围的分段设为 `MinAvailable=0`。例如 1 个 master、8 个 workers、`elasticPolicy.minReplicas=5`、segment size 为 2 时，4 个 worker segments 的 `MinAvailable` 依次为 `2, 2, 0, 0`。总 PodGroup 的 `MinAvailable` 仍为 5，parent worker subgroup 的 `MinSubGroup` 仍记录全部 4 个子分段；修复的是 elastic segments 不再阻塞调度，而不是取消层次化分组约束。
+
+这些 patch 不改变 KAI 的总体架构，但直接影响资源可见性、reclaim 可用性、GPU sharing 和分组对象合法性。使用 PyTorch/LWS segmentation 或异构 extended resource 的集群不应停留在 v0.16.4；使用 segmented elastic PyTorchJob 的集群不应停留在 v0.16.6。升级到 v0.16.7 后，应同时重放 `minReplicas` 不是 segment size 整数倍、`minReplicas` 小于 worker replicas，以及 master/worker 数量不同的案例。该修复不改变普通非 elastic Job 的分组语义，也不取消 parent `minSubGroup`。
 
 ---
 
@@ -1210,7 +1213,7 @@ Workload API / PodSets
 | Koordinator | `v1.8.0` | `989ca85c62abcca92b303aa12fd2ccff2ed30fed` |
 | Kueue | `v0.19.0` | `911a822a49bcfd99c9c62203a009efa4130ad604` |
 | Grove | `v0.1.0-alpha.11` | `8fa3ece93434d7c0005605b7dc4b0e23610af88b` |
-| KAI-Scheduler | `v0.16.6` | `f9c97c087ab5aae409e6c7ab7b39f9affc12cf9d` |
+| KAI-Scheduler | `v0.16.7` | `72af4d75dfd8dec836386f88e50c123eceb6b052` |
 | Volcano | `v1.15.0` | `8fc394c11e8db0d0ada5c17816b58bced9d7213d` |
 
 除明确标为 Alpha 的 Grove 外，正文按表中稳定 release 审校。生产仍须核对各项目的 Kubernetes compatibility、migration guide、Chart 和镜像 digest。
@@ -1281,14 +1284,15 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kai-scheduler/KAI-Scheduler> |
-| v0.16.6 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.16.6> |
-| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/quickstart> |
-| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/batch> |
-| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/queues> |
-| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/fairness> |
-| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/topology> |
-| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/gpu-sharing> |
-| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/v0.16.6/docs/migrationguides> |
+| v0.16.7 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.16.7> |
+| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/quickstart> |
+| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/batch> |
+| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/queues> |
+| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/fairness> |
+| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/topology> |
+| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/gpu-sharing> |
+| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/migrationguides> |
+| segmented elastic PyTorchJob 修复源码 | <https://github.com/kai-scheduler/KAI-Scheduler/blob/72af4d75dfd8dec836386f88e50c123eceb6b052/pkg/podgrouper/podgrouper/plugins/kubeflow/pytorch/pytorch_grouper.go> |
 | CNCF Sandbox 申请 | <https://github.com/cncf/sandbox/issues/372> |
 | CNCF Landscape | <https://landscape.cncf.io/?item=orchestration-management--scheduling-orchestration--kai-scheduler> |
 

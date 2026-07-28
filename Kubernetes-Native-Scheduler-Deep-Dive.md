@@ -1281,9 +1281,9 @@ DRA + Gang 仍不提供 Kueue 的 ClusterQueue/Cohort 配额、公平排队、Jo
 
 ### 10.2 能力矩阵
 
-下表按本站固定版本比较：Kubernetes v1.36.3、Koordinator v1.8.0、Kueue v0.19.0、Grove v0.1.0-alpha.11、KAI-Scheduler v0.16.6 与 Volcano v1.15.0。“Gang 原子性”指 scheduler/admission 的组级提交语义，不代表 API Server 对多个 Pod binding 提供 ACID 事务。
+下表按本站固定版本比较：Kubernetes v1.36.3、Koordinator v1.8.0、Kueue v0.19.0、Grove v0.1.0-alpha.11、KAI-Scheduler v0.16.7 与 Volcano v1.15.0。“Gang 原子性”指 scheduler/admission 的组级提交语义，不代表 API Server 对多个 Pod binding 提供 ACID 事务。
 
-| 维度 | kube-scheduler v1.36.3 | Koordinator v1.8.0 | Kueue v0.19.0 | Grove v0.1.0-alpha.11 | KAI-Scheduler v0.16.6 | Volcano v1.15.0 |
+| 维度 | kube-scheduler v1.36.3 | Koordinator v1.8.0 | Kueue v0.19.0 | Grove v0.1.0-alpha.11 | KAI-Scheduler v0.16.7 | Volcano v1.15.0 |
 |------|------------------------|--------------------|---------------|--------------------------|-----------------------|-----------------|
 | API 稳定性 | 单 Pod API 稳定；DRA `resource.k8s.io/v1`；Workload/PodGroup `v1alpha2` 且默认关闭 | 多组扩展 API/CRD 仍含 `v1alpha1`，需核对 feature gate 与 koordlet | 核心 API 为 `v1beta2`，有明确转换与弃用策略 | 主体 `v1alpha1`，本版本仍明确为 Alpha | PodGroup、Queue、Operator API 快速演进，需按 migration guide 升级 | 历史较长，多组 `v1alpha1`/`v1beta1` CRD，升级面较大 |
 | 最终 Bind | 是，Scheduling Framework | 是，`koord-scheduler` | 通常否，准入后交给下游 scheduler | 否，生成/翻译编排意图给 backend | 是，独立 scheduler + Binder | 是，独立 scheduler |
@@ -1328,6 +1328,8 @@ v1.36 Workload/PodGroup API 提供了上游统一接口的方向，但 Alpha API
 ### 10.6 kube-scheduler 与 KAI-Scheduler
 
 KAI 面向 GPU/AI workload，提供层次队列、公平共享、PodGroup/Gang、GPU sharing、拓扑和分片等完整批调度能力。它适合 GPU 集群中“谁先获得多少资源、整组何时运行、放到哪种拓扑”需要由同一系统强协调的场景。
+
+原生 v1.36 Alpha Gang 不提供 KAI Pod Grouper 针对 segmented elastic PyTorchJob 的自动分组语义。KAI v0.16.7 修复了 `elasticPolicy.minReplicas` 与 segment 边界：必需 worker segments 数量为 `ceil(max(0, minReplicas - masterReplicas) / segmentSize)`，其余 segments 的 `MinAvailable` 为 0。使用这一路径的集群应至少升级到 v0.16.7，并验证 `minReplicas` 不是 segment size 整数倍、`minReplicas` 小于 worker replicas 及不同 master 数量的回归案例；parent worker subgroup 的 `minSubGroup` 仍覆盖全部子分段。
 
 代价是引入独立 scheduler、Binder、admission/controllers、CRD 和升级矩阵。普通在线服务或只需少量标准 GPU Pod 的集群，原生 scheduler + DRA/Device Plugin 更容易运维。
 
@@ -1391,7 +1393,7 @@ flowchart TB
 2. 测试资源不足、碎片、跨 zone、卷等待、设备不可用和节点故障。
 3. 同时记录排队时间、调度尝试、TTFT/训练启动时间、利用率和公平偏差。
 4. 验证 controller 重建、scheduler leader 切换、webhook/DRA driver 故障。
-5. 检查升级和回滚时 CRD、feature gate、profile、Queue/PodGroup 状态。
+5. 检查升级和回滚时 CRD、feature gate、profile、Queue/PodGroup 状态；KAI segmented elastic PyTorchJob 还要验证 `minReplicas` 到 mandatory segments 的换算。
 6. 明确未获准 Job 是否创建 Pod，以及已准入但无法绑定如何回收配额。
 
 ---
