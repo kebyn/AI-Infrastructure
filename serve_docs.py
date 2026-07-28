@@ -15,11 +15,12 @@ DOCS = [
         "title": "Mooncake 深度技术文档",
         "hero": "🌙 Mooncake 深度技术文档",
         "subtitle": "以 KVCache 为中心的分离式 LLM 推理架构全面解析",
-        "meta": "Mooncake v0.3.12 · source@c7ae97f · 2026-07-24",
-        "summary": "覆盖 Transfer Engine、Mooncake Store、Conductor、HiCache、SSD/DFS 持久化与缓存治理。",
+        "meta": "Mooncake v0.3.12.post1 · source@6041a60 · 2026-07-24",
+        "summary": "覆盖 Transfer Engine、Mooncake Store、Conductor、HiCache、SSD/DFS 持久化、租户/多模型隔离与结构化对象接口。",
         "footer": (
             '基于 <a href="https://kvcache-ai.github.io/Mooncake">Mooncake 官方文档</a> 与 '
-            '<a href="https://github.com/kvcache-ai/Mooncake/tree/v0.3.12">v0.3.12 源码</a> 整理'
+            '<a href="https://github.com/kvcache-ai/Mooncake/tree/6041a609a8c3af35e778f70db344f145c2914980">'
+            'v0.3.12.post1 源码</a> 整理'
         ),
     },
     {
