@@ -176,14 +176,14 @@ DOCS = [
         "title": "KServe 深度技术文档",
         "hero": "KServe 深度技术文档",
         "subtitle": "Kubernetes 生成式 AI 与预测式 AI 推理服务平台架构解析",
-        "meta": "KServe v0.19.0 · source@b0eda63 · master@f8a0ac1 · website@ec4c0cb · 2026-07-28",
-        "summary": "覆盖 InferenceService、LLMInferenceService、ServingRuntime、Gateway API、LocalModelCache、LMCache 与未发布主线 KV cache offloading 边界。",
+        "meta": "KServe v0.20.0 · source@1fb7810 · master@b15ac29 · website@b561e05 · 2026-07-28",
+        "summary": "覆盖 InferenceService、LLMInferenceService、ServingRuntime、Gateway API、LocalModelCache、KV cache offloading、分组流量切分与未发布主线边界。",
         "footer": (
-            '基于 <a href="https://github.com/kserve/kserve/tree/b0eda63d2c105479140af8ec9149d992b7e44be5">'
-            'kserve/kserve v0.19.0 源码</a>、'
-            '<a href="https://github.com/kserve/kserve/tree/f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886">'
+            '基于 <a href="https://github.com/kserve/kserve/tree/1fb781055dd1567164358233e1125142ca6ef1fe">'
+            'kserve/kserve v0.20.0 源码</a>、'
+            '<a href="https://github.com/kserve/kserve/tree/b15ac29c6443340e2f4389a8e376f65fbcf8c6ec">'
             '未发布 master 快照</a> 与 '
-            '<a href="https://github.com/kserve/website/tree/ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273">'
+            '<a href="https://github.com/kserve/website/tree/b561e05b36abcae07508a83eaf0244f153531c97">'
             'KServe 官网快照</a> 整理'
         ),
     },

@@ -390,7 +390,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("participant QS as Quota Service", html)
         self.assertNotIn('class="language-mermaid"', html)
 
-    def test_kserve_snapshot_separates_release_and_unreleased_main(self):
+    def test_kserve_v0_20_separates_release_and_unreleased_main(self):
         doc = next(
             doc
             for doc in serve_docs.DOCS
@@ -398,30 +398,29 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
-        self.assertIn("KServe v0.19.0", doc["meta"])
-        self.assertIn("master@f8a0ac1", doc["meta"])
-        self.assertIn("website@ec4c0cb", doc["meta"])
-        self.assertIn("f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886", markdown_text)
-        self.assertIn(
-            "v0.19.0 release 的 CRD 没有该字段",
-            markdown_text,
-        )
-        self.assertIn(
-            "kserve/website main@ec4c0cb4e545cb868f2493ec7d9c6ae7c509d273",
-            markdown_text,
-        )
-        self.assertIn("两个官方主线快照仍不完全一致", markdown_text)
+        self.assertIn("KServe v0.20.0", doc["meta"])
+        self.assertIn("master@b15ac29", doc["meta"])
+        self.assertIn("website@b561e05", doc["meta"])
+        for revision in (
+            "1fb781055dd1567164358233e1125142ca6ef1fe",
+            "b15ac29c6443340e2f4389a8e376f65fbcf8c6ec",
+            "b561e05b36abcae07508a83eaf0244f153531c97",
+        ):
+            self.assertIn(revision, markdown_text)
+
+        self.assertIn("v0.20.0 v1alpha2 稳定 API", markdown_text)
         self.assertIn("字段路径是 `spec.kvCacheOffloading`", markdown_text)
+        self.assertIn("`spec.router.route.group` / `weight`", markdown_text)
+        self.assertIn("`v0.20.0` tag 尚无 `pkg/tls`", markdown_text)
         for unreleased_feature in (
-            "AgentGateway 集成指南",
-            "LLMISVC canary rollout",
             "Controller TLS profile",
-            "KV transfer 参数转义",
-            "禁用 tokenizer 的 OCI modelcar",
-            "llm-d-router v0.10 参数兼容",
+            "Tokenizer 与 llm-d-router 后续兼容",
+            "Python 3.13 与 transformer CA bundle",
         ):
             self.assertIn(unreleased_feature, markdown_text)
-        self.assertIn("它们均未进入 `v0.19.0`", markdown_text)
+        self.assertIn("不把它扩展为 v0.20.0 的兼容承诺", markdown_text)
+        self.assertNotIn("b0eda63d2c105479140af8ec9149d992b7e44be5", markdown_text)
+        self.assertNotIn("f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886", markdown_text)
 
     def test_nvidia_gpu_operator_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
