@@ -30,10 +30,10 @@ DOCS = [
         "title": "Dynamo 深度技术文档",
         "hero": "Dynamo 深度技术文档",
         "subtitle": "数据中心级 LLM 推理编排、KV 路由、KVBM 与 Planner 架构解析",
-        "meta": "Dynamo v1.3.0 · source@8ce9e22 · 2026-07-28",
+        "meta": "Dynamo v1.3.1 · source@a49702e · ModelExpress v0.5.0@0406ac1 · 2026-07-28",
         "summary": "覆盖 Request/Control/Storage 三平面、KV-Aware Router、KVBM、Planner、Operator 与部署模式。",
         "footer": (
-            '基于 <a href="https://github.com/ai-dynamo/dynamo/tree/v1.3.0">ai-dynamo/dynamo v1.3.0</a> 与 '
+            '基于 <a href="https://github.com/ai-dynamo/dynamo/tree/a49702e4432e7fa43cbc88175bddb31604340f19">ai-dynamo/dynamo v1.3.1 源码</a> 与 '
             '<a href="https://docs.nvidia.com/dynamo/">NVIDIA Dynamo 官方文档</a> 整理'
         ),
     },

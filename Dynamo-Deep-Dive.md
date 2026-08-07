@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.3.0@8ce9e22f11576402102ea9d8b8e46233f5430a0d`，审校日期：2026-07-28。未发布主线能力会单独标注，不计入该版本的兼容承诺。
+> 稳定版本基线：`v1.3.1@a49702e4432e7fa43cbc88175bddb31604340f19`；ModelExpress 章节固定到其独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`；审校日期：2026-07-28。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 
@@ -74,7 +74,7 @@ Dynamo 适合以下场景：
 | Operational resilience | 把 worker 崩溃、重启、过载视为常态并自动恢复 |
 | Deployment portability | 同时支持 Kubernetes-native 和非 Kubernetes 运行方式 |
 
-### 1.5 v1.3.0 稳定版增量
+### 1.5 v1.3.0 与 v1.3.1 稳定版增量
 
 `v1.3.0` 相对 `v1.2.1` 不是单纯的依赖刷新，而是同时扩展 Router、Planner、Kubernetes 控制面、强化学习和多模态路径。下表只列入 tag 内已经发布的能力：
 
@@ -86,7 +86,11 @@ Dynamo 适合以下场景：
 | RL / Agent | Tokens-in-Tokens-Out（TITO）、原地权重更新、worker discovery、rollout metadata、trajectory headers | 可避免 RL loop 的重复 detokenize/retokenize；该路径通过 `DYN_ENABLE_RL` 显式启用 |
 | 多模态 | media-aware KV routing、SGLang 图像/视频 P/D 分离、统一 diffusion backend | 多模态 worker 必须显式启用，媒体 URL、格式和 encoder-to-prefill 契约需要单独验证 |
 
-固定 release 的核心依赖矩阵为：vLLM `v0.23.0`、SGLang `v0.5.14`、TensorRT-LLM `v1.3.0rc19`；NIXL 随后端分别固定为 `v1.1.0`、`v1.3.0`、`v1.0.1`，UCX 为 `v1.20.x`。Dynamo 镜像从本版起只发布 CUDA 13 变体，不能沿用 v1.2.x 的 CUDA 12.9 运行时假设。
+`v1.3.1` 是建立在 v1.3.0 上的补丁 release，后端版本仍为 vLLM `v0.23.0`、SGLang `v0.5.14`、TensorRT-LLM `v1.3.0rc19`。它针对 AWS EFA 上 GB200 的 SGLang P/D 分离 KV transfer 卡住问题，将 SGLang EFA runtime 改为已发布的 `nixl==1.3.2` / `nixl-cu13==1.3.2` wheel，并把三种 `-efa` runtime image 的 EFA Installer 统一升级到 `1.49.0`（stock libfabric `2.4.0amzn5.0`）。这个 NIXL 覆盖只属于 SGLang EFA 镜像；其他 runtime 的后端/NIXL 基线沿用 v1.3.0，不能把 `1.3.2` 当成全部镜像的统一依赖。
+
+补丁并未消除所有 EFA 风险。release notes 仍记录两类会表现为空 HTTP 200、零 completion token 的问题：LIBFABRIC backend 可能在约 300 秒后发生无错误、无丢包计数的间歇性 stall；只申请节点部分 EFA device 时，Kubernetes 的 GPU 与 EFA 独立 device plugin 可能分配到不同 PCIe switch，约 10 到 20 秒后由 decode worker 报 `Lost connection with prefill instance`。前者等待 AWS EFA 修复；后者优先申请节点全部 EFA device，或组合 EFA DRA 与 NVIDIA DRA 做 PCIe 拓扑约束。健康检查不能只看 HTTP 状态码和网卡 drop，还应验证 completion token、decode worker 连接日志与新 worker 冷启动后的首批请求。
+
+Dynamo 镜像从 v1.3.0 起只发布 CUDA 13 变体，不能沿用 v1.2.x 的 CUDA 12.9 运行时假设。v1.3.0 的非 EFA 核心依赖矩阵中，NIXL 随后端分别固定为 `v1.1.0`、`v1.3.0`、`v1.0.1`，UCX 为 `v1.20.x`；部署时必须以具体 runtime image 为单位核对，而不是只读 Python optional dependency。
 
 ---
 
@@ -1370,6 +1374,8 @@ python -m dynamo.frontend \
 
 ModelExpress 是 Dynamo 生态里的**模型权重生命周期与冷启动加速组件**。它关注的是模型文件、权重、JIT 编译产物如何更快到达新 worker；KVBM、LMCache、FlexKV、HiCache 关注的是请求运行期间产生的 KV block 如何复用、迁移和分层存储。两者都能降低延迟或扩容成本，但服务的对象完全不同。
 
+本节固定到 ModelExpress 独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`。该版本把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；它不是 Dynamo v1.3.1 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
+
 | 维度 | ModelExpress | KV cache/offloading 系统 |
 |------|--------------|--------------------------|
 | 管理对象 | 模型权重、模型文件、JIT artifact、下载状态 | runtime KV block、prefix/page/block residency |
@@ -1632,6 +1638,17 @@ ModelExpress 与 KV cache 系统可以叠加：
 
 `--router-queue-threshold=16.0` 已经体现在本文配置表中；它是 v1.3.0 的新默认值，不应误抄到旧 release 的容量基线。
 
+#### v1.3.1 EFA 补丁升级检查
+
+| 检查项 | v1.3.1 要求 |
+|--------|-------------|
+| 镜像 | 三种 EFA runtime 使用 `1.3.1-efa`；不要只替换 Dynamo wheel 而保留旧 EFA 镜像 |
+| SGLang | 确认镜像内 `nixl` 与 `nixl-cu13` 为 `1.3.2`，LIBFABRIC plugin 从同一安装前缀加载 |
+| EFA 栈 | 确认 EFA Installer `1.49.0` 与 stock libfabric `2.4.0amzn5.0`，同时验证 host driver/设备插件兼容 |
+| GB200 回归 | 覆盖新 decode worker、worker restart、连续 P/D KV transfer，并把空 HTTP 200/零 token 视为失败 |
+| PCIe 拓扑 | 申请部分 EFA device 时验证 GPU/NIC locality；无法保证时申请整节点 EFA 或使用协同 DRA |
+| 观测 | 同时检查 completion token、约 10--20 秒与约 300 秒超时特征、`Lost connection with prefill instance` 和 EFA counters |
+
 ### 12.4 生产落地检查清单
 
 | 类别 | 检查项 |
@@ -1695,29 +1712,31 @@ helm install dynamo-platform \
 |------|------|
 | GitHub 仓库 | <https://github.com/ai-dynamo/dynamo> |
 | 官方文档 | <https://docs.nvidia.com/dynamo/> |
-| v1.3.0 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.3.0> |
-| README | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/README.md> |
-| Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/architecture.md> |
-| Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/disagg-serving.md> |
-| Router Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/router-design.md> |
-| KVBM Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/kvbm-design.md> |
-| Planner Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/design-docs/planner-design.md> |
-| Router Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/components/router/README.md> |
-| KVBM Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/components/kvbm/README.md> |
-| vLLM KV Cache Offloading | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/backends/vllm/vllm-kv-offloading.md> |
-| LMCache Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/integrations/lmcache-integration.md> |
-| FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/integrations/flexkv-integration.md> |
-| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/backends/sglang/sglang-hicache.md> |
+| v1.3.1 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.3.1> |
+| v1.3.1 源码快照 | <https://github.com/ai-dynamo/dynamo/tree/a49702e4432e7fa43cbc88175bddb31604340f19> |
+| README | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/README.md> |
+| Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/architecture.md> |
+| Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/disagg-serving.md> |
+| Router Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/router-design.md> |
+| KVBM Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/kvbm-design.md> |
+| Planner Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/planner-design.md> |
+| Router Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/components/router/README.md> |
+| KVBM Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/components/kvbm/README.md> |
+| vLLM KV Cache Offloading | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/backends/vllm/vllm-kv-offloading.md> |
+| LMCache Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/integrations/lmcache-integration.md> |
+| FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/integrations/flexkv-integration.md> |
+| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/backends/sglang/sglang-hicache.md> |
 | SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
 | ModelExpress GitHub | <https://github.com/ai-dynamo/modelexpress> |
-| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/ARCHITECTURE.md> |
-| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/DEPLOYMENT.md> |
-| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/metadata.md> |
-| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/K8S_SERVICE_BACKEND.md> |
-| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/docs/SGLANG.md> |
-| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/examples/dynamo_model_cache_k8s/README.md> |
-| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.4.1/examples/dynamo_p2p_transfer_k8s/README.md> |
-| Planner Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/components/planner/README.md> |
-| Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/kubernetes/dynamo-operator.md> |
-| Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/v1.3.0/docs/kubernetes/README.md> |
-| Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/v1.3.0#quick-start> |
+| ModelExpress v0.5.0 源码快照 | <https://github.com/ai-dynamo/modelexpress/tree/0406ac16d5daeef985de1bf4d09c9f0a5e188c1a> |
+| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/ARCHITECTURE.md> |
+| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/DEPLOYMENT.md> |
+| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/metadata.md> |
+| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/K8S_SERVICE_BACKEND.md> |
+| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/SGLANG.md> |
+| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/examples/dynamo_model_cache_k8s/README.md> |
+| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/examples/dynamo_p2p_transfer_k8s/README.md> |
+| Planner Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/components/planner/README.md> |
+| Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/kubernetes/dynamo-operator.md> |
+| Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/kubernetes/README.md> |
+| Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/v1.3.1#quick-start> |

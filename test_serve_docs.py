@@ -53,7 +53,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         docs_dir = Path(__file__).resolve().parent
         expected_commits = {
             "Dynamo-Deep-Dive.md": (
-                "8ce9e22f11576402102ea9d8b8e46233f5430a0d",
+                "a49702e4432e7fa43cbc88175bddb31604340f19",
+                "0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
             ),
             "Mooncake-Deep-Dive.md": (
                 "6041a609a8c3af35e778f70db344f145c2914980",
@@ -106,6 +107,20 @@ class RenderDocLayoutTest(unittest.TestCase):
         ):
             with self.subTest(document="KAI-Scheduler", required_text=required_text):
                 self.assertIn(required_text, kai_text)
+
+        dynamo_text = (docs_dir / "Dynamo-Deep-Dive.md").read_text(
+            encoding="utf-8"
+        )
+        for required_text in (
+            "nixl==1.3.2",
+            "EFA Installer `1.49.0`",
+            "libfabric `2.4.0amzn5.0`",
+            "Lost connection with prefill instance",
+            "空 HTTP 200/零 token",
+            "ModelExpress 独立稳定版 `v0.5.0",
+        ):
+            with self.subTest(document="Dynamo", required_text=required_text):
+                self.assertIn(required_text, dynamo_text)
 
     def test_e2b_get_host_private_ingress_auth_is_documented(self):
         docs_dir = Path(__file__).resolve().parent
