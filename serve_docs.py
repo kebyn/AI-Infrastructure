@@ -44,12 +44,12 @@ DOCS = [
         "title": "E2B 深度技术文档",
         "hero": "E2B 深度技术文档",
         "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
-        "meta": "E2B Infra 2026.28 · source@fda7bef · SDK main@cf8296c · Agent Sandbox@56d6269 · 2026-07-28",
-        "summary": "覆盖控制面/数据面、sandbox 生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管与私有化部署取舍。",
+        "meta": "E2B Infra 2026.29 · source@557445f · SDK main@88f41f3 · Agent Sandbox@108be73 · 2026-07-28",
+        "summary": "覆盖控制面/数据面、Sandbox fork 与生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管与私有化部署取舍。",
         "footer": (
-            '基于 <a href="https://github.com/e2b-dev/infra/tree/fda7bef1095afb909197e272c0a8a123797f0bfb">'
-            'e2b-dev/infra 2026.28</a> 与 '
-            '<a href="https://github.com/e2b-dev/e2b/tree/cf8296cf8997f98aefd6e8236d4d235f5ab1ddad">'
+            '基于 <a href="https://github.com/e2b-dev/infra/tree/557445ffddda8d9a27f6f529a3f4d7732cf81a13">'
+            'e2b-dev/infra 2026.29</a> 与 '
+            '<a href="https://github.com/e2b-dev/e2b/tree/88f41f392722a2f56971ea6c1084f0fc574ef1f4">'
             'E2B SDK 主线快照</a> 官方资料整理'
         ),
     },

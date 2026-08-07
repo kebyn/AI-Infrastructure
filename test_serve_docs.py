@@ -142,19 +142,19 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn(
             "https://github.com/e2b-dev/infra/blob/"
-            "fda7bef1095afb909197e272c0a8a123797f0bfb/"
+            "557445ffddda8d9a27f6f529a3f4d7732cf81a13/"
             "packages/orchestrator/pkg/proxy/proxy.go",
             markdown_text,
         )
         self.assertIn(
             "https://github.com/e2b-dev/infra/blob/"
-            "fda7bef1095afb909197e272c0a8a123797f0bfb/"
+            "557445ffddda8d9a27f6f529a3f4d7732cf81a13/"
             "tests/integration/internal/tests/proxies/traffic_access_token_test.go",
             markdown_text,
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/"
+            "88f41f392722a2f56971ea6c1084f0fc574ef1f4/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -178,7 +178,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "e2b-traffic-access-token",
             "Client Proxy 和 Orchestrator Proxy 调用同一个目标解析函数",
             "SDK 自己发往 envd 的请求自动附加官方路由 Header",
-            "Infra 2026.28 没有名为 Router 的独立服务",
+            "Infra 2026.29 没有名为 Router 的独立服务",
             "http://<orchestrator-ip>:5007",
             "orch-accepts-combined-host",
             "httputil.ReverseProxy",
@@ -190,8 +190,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "按 Sandbox lifecycle 计数",
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
-            "Agent Sandbox Router（对照，不是 E2B 能力）",
-            "56d62691b2b16f0b02b7421e89ba02b493192ff7",
+            "Agent Sandbox Go Router（对照，不是 E2B 能力）",
+            "108be73b56d9bff55a0cc626c9e89100d797a9bc",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -202,8 +202,9 @@ class RenderDocLayoutTest(unittest.TestCase):
             "envd 每 `1s` 扫描 loopback 上的 TCP listener",
             "首次连接可能有短暂就绪延迟",
             "不得用于身份认证或授权",
-            "在 HTTP 与 WebSocket 转发前把它和其他 `X-Sandbox-*`",
-            "容器镜像同样不需要解析 `X-Sandbox-Port`",
+            "默认 `allow-all`",
+            "scoped-token",
+            "两者都不要求进入 Pod 的容器镜像解析 `X-Sandbox-Port`",
             "`X-Sandbox-Port` 不是 E2B 的兼容 Header",
             "在请求进入 Client Proxy 前成对转换",
         ):
@@ -220,7 +221,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         infra_commit_base = (
             "https://github.com/e2b-dev/infra/blob/"
-            "fda7bef1095afb909197e272c0a8a123797f0bfb/"
+            "557445ffddda8d9a27f6f529a3f4d7732cf81a13/"
         )
         for source_path in (
             "packages/shared/pkg/proxy/host.go",
@@ -242,7 +243,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "cf8296cf8997f98aefd6e8236d4d235f5ab1ddad/"
+            "88f41f392722a2f56971ea6c1084f0fc574ef1f4/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -255,11 +256,14 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "56d62691b2b16f0b02b7421e89ba02b493192ff7/"
+            "108be73b56d9bff55a0cc626c9e89100d797a9bc/"
         )
         for source_path in (
             "clients/python/agentic-sandbox-client/sandbox-router/README.md",
             "clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py",
+            "sandbox-router/README.md",
+            "sandbox-router/proxy/headers.go",
+            "sandbox-router/proxy/proxy.go",
         ):
             with self.subTest(source_path=source_path):
                 self.assertIn(agent_sandbox_commit_base + source_path, markdown_text)
@@ -307,12 +311,12 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertEqual(
             infra_revisions,
-            {"fda7bef1095afb909197e272c0a8a123797f0bfb"},
+            {"557445ffddda8d9a27f6f529a3f4d7732cf81a13"},
         )
 
         commit_base = (
             "https://github.com/e2b-dev/infra/blob/"
-            "fda7bef1095afb909197e272c0a8a123797f0bfb/"
+            "557445ffddda8d9a27f6f529a3f4d7732cf81a13/"
         )
         source_paths = (
             "packages/db/migrations/20251011200438_create_addons_table.sql",
@@ -342,9 +346,27 @@ class RenderDocLayoutTest(unittest.TestCase):
                 self.assertIn(summary_term, doc["summary"])
         self.assertIn(
             "https://github.com/e2b-dev/infra/tree/"
-            "fda7bef1095afb909197e272c0a8a123797f0bfb",
+            "557445ffddda8d9a27f6f529a3f4d7732cf81a13",
             doc["footer"],
         )
+
+    def test_e2b_2026_29_fork_contract_is_documented(self):
+        docs_dir = Path(__file__).resolve().parent
+        markdown_text = (docs_dir / "E2B-Deep-Dive.md").read_text(encoding="utf-8")
+
+        for required_text in (
+            "POST /sandboxes/{sandboxID}/fork",
+            "每次请求只捕获一次完整内存状态",
+            "原实例继续占一个槽",
+            "每个 fork 通过正常 `startSandbox` 路径独立申请槽",
+            "继承 snapshot 中的 egress/ingress",
+            "按新 Sandbox ID 重新生成 envd access token",
+            "部分 fork 可以成功",
+            "sandbox_fork.go",
+            "sandbox_fork_test.go",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
 
     def test_render_e2b_quota_chapter_includes_toc_and_mermaid(self):
         doc = next(
