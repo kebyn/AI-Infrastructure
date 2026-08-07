@@ -2,13 +2,15 @@
 
 这个仓库整理了一组 AI 基础设施 deep-dive 文档，并提供一个轻量的 Python 脚本将 Markdown 渲染为带样式、目录和 Mermaid 支持的 HTML 页面。
 
-内容重点是 LLM 推理系统、压测评估、AI 存储与文件系统、Kubernetes AI 平台、GPU/异构资源调度和 AI Sandbox 运行环境。源码文档位于仓库根目录，生成后的 HTML 文件会被 `.gitignore` 忽略。
+内容重点是 LLM 推理系统、压测评估、AI 存储与文件系统、Kubernetes AI 平台、GPU/异构资源调度、AI-native coding agent 协作与编排平台和 AI Sandbox 运行环境。源码文档位于仓库根目录，生成后的 HTML 文件会被 `.gitignore` 忽略。
 
 ## 版本与证据边界
 
 当前文档集的审校截止日为 **2026-08-07**。正文优先固定官方最新稳定 release（Alpha 项目保留 Alpha 标识），并在各文档页头或附录记录 tag 解引用后的 exact source commit；没有 GitHub Release 的项目固定到审计时的分支 commit。`main`/`master` 后续能力只作为“未发布主线快照”单独说明，不计入稳定版兼容承诺。
 
 本轮确认 8 个正文主稳定基线发生变化：Dynamo `v1.3.1@a49702e4432e7fa43cbc88175bddb31604340f19`、E2B Infra `2026.29@557445ffddda8d9a27f6f529a3f4d7732cf81a13`、KServe `v0.20.0@1fb781055dd1567164358233e1125142ca6ef1fe`、KAI-Scheduler `v0.17.0@f218c69bee5e5fc6031273ba555d09916b1ca89a`、Volcano `v1.15.1@0a56ed331897f5455916a44d3075671376d731d6`、AIPerf `v0.12.0@0e723bb8c984564cddf7274d19aab4eb7714f919`、GuideLLM `v0.7.3@39383552962841086d05e25c37b58a83ef06c758` 与 EvalScope `v1.10.0@9d052ca0240ebf8b603c053fa44727b863ff3933`。Dynamo 章节引用的 ModelExpress 独立稳定基线另更新为 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`，不把它视为 Dynamo 的内嵌组件。
+
+本轮另新增 Multica 文档，稳定基线固定为 `v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b`。这是新增文档的首次基线，不计入上述“8 个正文主稳定基线发生变化”。
 
 六组辅助快照更新为 E2B SDK `main@88f41f392722a2f56971ea6c1084f0fc574ef1f4`、Agent Sandbox `main@108be73b56d9bff55a0cc626c9e89100d797a9bc`、KServe `master@b15ac29c6443340e2f4389a8e376f65fbcf8c6ec`、KServe 官网 `main@b561e05b36abcae07508a83eaf0244f153531c97`、Volcano 官网 `master@0ef50ca74346b4ef89576f9d864089b5b6b341df` 与 Volcano Helm Charts `main@c2050e3debe58dbcdf9bb75b667799eec9409513`。这些快照只用于固定未发布实现、调用形态或官网/Chart 证据，不扩大 E2B Infra、KServe 或 Volcano 稳定版的兼容承诺。
 
@@ -23,6 +25,7 @@ KServe v0.20.0 已把 LLMISVC v1alpha2 的 `spec.kvCacheOffloading`、`route.gro
 | [Mooncake-Deep-Dive.md](Mooncake-Deep-Dive.md) | `v0.3.12.post1` | Mooncake 分离式 LLM 推理架构 | 关注 KVCache、prefill/decode 分离、推理性能优化的工程师 | Transfer Engine、Mooncake Store、Conductor、HiCache、SSD/DFS 持久化、缓存治理 |
 | [Dynamo-Deep-Dive.md](Dynamo-Deep-Dive.md) | Dynamo `v1.3.1`；ModelExpress `v0.5.0` | Dynamo 数据中心级 LLM 推理编排 | 关注多节点推理服务、KV 路由和生产编排的工程师 | Request/Control/Storage 三平面、KV-Aware Router、KVBM、Planner、Operator、模型分发与部署模式 |
 | [E2B-Deep-Dive.md](E2B-Deep-Dive.md) | Infra `2026.29`；SDK/Agent Sandbox 固定主线快照 | E2B AI Sandbox 与自托管架构 | 关注代码执行沙箱、microVM、安全隔离、团队配额和私有化部署的工程师 | Firecracker microVM、Orchestrator、envd、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管 |
+| [Multica-Deep-Dive.md](Multica-Deep-Dive.md) | `v0.4.21` | AI-native 团队任务管理与 coding agent 编排平台 | 关注 coding agent 团队协作、本地 CLI 执行、自托管和权限治理的工程师 | Issue/Task、Agent/Runtime、Skill、Squad、Autopilot、Chat/Channel/Inbox、自托管与无 Sandbox 安全边界 |
 | [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md) | AIPerf `v0.12.0`；GuideLLM `v0.7.3`；EvalScope `v1.10.0`；其余见正文 | LLM 压测工具深度对比 | 需要选择或设计推理压测方案的工程师 | AgentX、adaptive scale、长上下文前缀、inference-perf、genai-bench、SGLang/vLLM Bench、LLMPerf、Ollama Benchmark |
 | [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md) | Lustre 官方资料；3FS `main@22fca04` | Lustre 与 3FS 深度技术文档 | 关注 AI 存储、HPC 并行文件系统、RDMA/NVMe 共享存储和 KVCache 落盘的工程师 | Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、dataloader、checkpoint、KV cache、生产选型 |
 | [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md) | `v26.3.3` | NVIDIA GPU Operator 节点软件栈与生命周期管理 | 负责 Kubernetes GPU 驱动、设备接入、共享隔离和生产运维的平台工程师 | Controller 调谐、ClusterPolicy、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级排障 |
@@ -39,7 +42,8 @@ KServe v0.20.0 已把 LLMISVC v1alpha2 的 `spec.kvCacheOffloading`、`route.gro
 - 压测与容量评估：读 [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md)。它适合在选型推理引擎、比较吞吐/延迟指标、设计 SLO/goodput 压测方案前阅读。
 - AI 存储与文件系统：读 [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md)。它适合理解 Lustre、3FS、RDMA/NVMe 共享存储、checkpoint、dataloader 和 KV cache on disk 的架构取舍。
 - Kubernetes AI 平台：按 [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md)、[HAMi-Deep-Dive.md](HAMi-Deep-Dive.md)、[Kubernetes-Native-Scheduler-Deep-Dive.md](Kubernetes-Native-Scheduler-Deep-Dive.md)、[Kubernetes-AI-Schedulers-Deep-Dive.md](Kubernetes-AI-Schedulers-Deep-Dive.md)、[Volcano-Upgrade-Compatibility-Deep-Dive.md](Volcano-Upgrade-Compatibility-Deep-Dive.md)、[KServe-Deep-Dive.md](KServe-Deep-Dive.md)、[Kubeflow-Deep-Dive.md](Kubeflow-Deep-Dive.md) 的顺序阅读。它们依次覆盖 NVIDIA 驱动与设备栈、GPU 共享和异构设备、原生调度基线、AI 队列与调度扩展、Volcano 升级兼容、模型推理服务以及上层 MLOps 平台。
-- Sandbox 与执行环境：读 [E2B-Deep-Dive.md](E2B-Deep-Dive.md)。它适合理解 AI Agent 代码执行环境、隔离边界、自托管部署取舍，以及 Team/Project 配额、可靠计量、预算与内部成本分摊的补建边界。
+- Agent 协作与执行平台：读 [Multica-Deep-Dive.md](Multica-Deep-Dive.md)。它聚焦 Issue/Task、Agent/Runtime、Squad 和 Autopilot 如何编排本机 coding agent CLI；Multica 默认不提供 Sandbox，不能把工作目录或 provider adapter 当作隔离边界。
+- Sandbox 与执行环境：读 [E2B-Deep-Dive.md](E2B-Deep-Dive.md)。它聚焦 Firecracker microVM 通用隔离 Sandbox、自托管部署取舍，以及 Team/Project 配额、可靠计量、预算与内部成本分摊的补建边界，与 Multica 的协作编排和本地 CLI 执行路径不同。
 
 ## 本地预览
 

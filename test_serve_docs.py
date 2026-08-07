@@ -12,7 +12,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_docs = {path.name for path in docs_dir.glob("*-Deep-Dive.md")}
         registered_docs = {Path(doc["src"]).name for doc in serve_docs.DOCS}
 
-        self.assertEqual(len(markdown_docs), 12)
+        self.assertEqual(len(markdown_docs), 13)
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
@@ -41,6 +41,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "v1.10.0@9d052ca0240ebf8b603c053fa44727b863ff3933",
             "v0.1.0-alpha.12-rc1` 是 prerelease",
             "v1.8.2 → v1.15.1",
+            "v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
+            "不计入上述“8 个正文主稳定基线发生变化”",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, readme_text)
@@ -513,6 +515,169 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("不把它扩展为 v0.20.0 的兼容承诺", markdown_text)
         self.assertNotIn("b0eda63d2c105479140af8ec9149d992b7e44be5", markdown_text)
         self.assertNotIn("f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886", markdown_text)
+
+    def test_multica_doc_is_registered_and_rendered_on_index(self):
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+
+        self.assertIn("Multica-Deep-Dive.md", docs_by_src)
+        doc = docs_by_src["Multica-Deep-Dive.md"]
+        self.assertEqual(Path(doc["dst"]).name, "Multica-Deep-Dive.html")
+        self.assertEqual(doc["href"], "/Multica-Deep-Dive.html")
+        self.assertEqual(doc["title"], "Multica 深度技术文档")
+        self.assertEqual(
+            doc["meta"],
+            "Multica v0.4.21 · source@0dfaac2 · 2026-08-07",
+        )
+        for summary_term in (
+            "Issue/Task",
+            "Agent/Runtime",
+            "Squad",
+            "Autopilot",
+            "自托管",
+            "没有 Sandbox",
+        ):
+            with self.subTest(summary_term=summary_term):
+                self.assertIn(summary_term, doc["summary"])
+        self.assertIn(
+            "https://github.com/multica-ai/multica/tree/"
+            "0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
+            doc["footer"],
+        )
+        self.assertIn("https://multica.ai/docs", doc["footer"])
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            original_index = serve_docs.INDEX
+            serve_docs.INDEX = str(Path(tmpdir) / "index.html")
+            try:
+                serve_docs.render_index()
+                html = Path(serve_docs.INDEX).read_text(encoding="utf-8")
+            finally:
+                serve_docs.INDEX = original_index
+
+        self.assertIn("Multica 深度技术文档", html)
+        self.assertIn('/Multica-Deep-Dive.html', html)
+        self.assertIn("Multica v0.4.21", html)
+        self.assertIn("没有 Sandbox", html)
+
+    def test_multica_execution_and_security_contract_is_documented(self):
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "Multica-Deep-Dive.md"
+        )
+        markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
+
+        for required_text in (
+            "v0.4.21",
+            "0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
+            "审校日期：2026-08-07",
+            "没有强制的 Issue 状态机",
+            "Task 完成不等于 Issue 完成",
+            "Task 与目标 Runtime 固定绑定且不会自动迁移",
+            "普通任务最多两次执行",
+            "工具网络中断最多三次执行",
+            "“仅运行”模式不自动重试",
+            "`custom_env` 值会以明文 JSONB 存入 Multica 服务端 PostgreSQL 数据库",
+            'sandbox_mode = "danger-full-access"',
+            "--permission-mode bypassPermissions",
+            "专用 Unix 用户",
+            "容器内运行 daemon",
+            "专用 VM",
+            "/readyz",
+            "企业微信后端必须只部署单个副本",
+            "自定义 Multica License，纳入 Apache 2.0 条款并附加托管服务、商业嵌入、品牌和署名条件",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
+
+        for issue_status in (
+            "backlog",
+            "todo",
+            "in_progress",
+            "in_review",
+            "done",
+            "blocked",
+            "cancelled",
+        ):
+            with self.subTest(issue_status=issue_status):
+                self.assertIn(f"| `{issue_status}` |", markdown_text)
+        for task_status in (
+            "deferred",
+            "queued",
+            "dispatched",
+            "waiting_local_directory",
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+        ):
+            with self.subTest(task_status=task_status):
+                self.assertIn(f"| `{task_status}` |", markdown_text)
+
+        self.assertRegex(markdown_text, r"queued` 超过 \*\*2 小时\*\*")
+        self.assertIn("修改负责人不会停止活动 Task", markdown_text)
+        self.assertIn("修改 Issue 状态不会停止活动 Task", markdown_text)
+
+    def test_multica_stable_evidence_links_are_pinned(self):
+        markdown_text = Path("/data/Multica-Deep-Dive.md").read_text(
+            encoding="utf-8"
+        )
+        stable_commit = "0dfaac266eed3b7ac710de33d8207e4f71cfb20b"
+        post_release_commit = "47f6e970f6a00c3da3a75172e156f9edd75fa380"
+        product_image = (
+            "https://raw.githubusercontent.com/multica-ai/multica/"
+            f"{stable_commit}/docs/assets/hero-board.png"
+        )
+
+        self.assertIn(product_image, markdown_text)
+        self.assertIn(
+            f"https://github.com/multica-ai/multica/blob/{stable_commit}/"
+            "server/internal/service/task.go",
+            markdown_text,
+        )
+        self.assertNotRegex(
+            markdown_text,
+            r"https://github\.com/multica-ai/multica/(?:blob|tree)/(?:main|master)(?:/|\))",
+        )
+        self.assertNotRegex(
+            markdown_text,
+            r"https://raw\.githubusercontent\.com/multica-ai/multica/(?:main|master)/",
+        )
+        self.assertIn(f"main@{post_release_commit}", markdown_text)
+        self.assertIn("发布后快照只记录审校时的分支边界", markdown_text)
+        self.assertIn("不纳入稳定版兼容承诺", markdown_text)
+
+    def test_render_multica_doc_includes_toc_mermaid_and_product_image(self):
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "Multica-Deep-Dive.md"
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc)
+            rendered_doc["dst"] = str(Path(tmpdir) / "multica.html")
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        self.assertIn(
+            '<a class="toc-chapter" href="#第十二章落地架构建议">',
+            html,
+        )
+        self.assertIn(
+            '<a class="toc-chapter" href="#附录-e官方文档与源码证据">',
+            html,
+        )
+        self.assertGreaterEqual(html.count('<div class="mermaid">'), 5)
+        self.assertIn("sequenceDiagram", html)
+        self.assertIn("stateDiagram-v2", html)
+        self.assertIn(
+            "https://raw.githubusercontent.com/multica-ai/multica/"
+            "0dfaac266eed3b7ac710de33d8207e4f71cfb20b/"
+            "docs/assets/hero-board.png",
+            html,
+        )
+        self.assertNotIn('class="language-mermaid"', html)
 
     def test_nvidia_gpu_operator_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
