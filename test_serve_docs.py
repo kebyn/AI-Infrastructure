@@ -30,13 +30,14 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
-        for release in ("SGLang v0.5.16@fdebc93", "vLLM v0.26.0@568afb3"):
+        for release in ("AIPerf v0.12.0", "GuideLLM v0.7.3", "EvalScope v1.10.0"):
             self.assertIn(release, doc["meta"])
         self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
         for exact_commit in (
-            "c71b5a17919170110e9d6e18d4dcfbf2471356f7",
+            "0e723bb8c984564cddf7274d19aab4eb7714f919",
+            "39383552962841086d05e25c37b58a83ef06c758",
             "a40897e6500e4524adf563a91f7c880eb5296e12",
-            "9d1b353b7b6669c416d79bb259710082283d4c23",
+            "9d052ca0240ebf8b603c053fa44727b863ff3933",
             "4f873e03719c947a101647c6646954d5ebc3d35b",
             "fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1",
             "568afb3a13806beb53bb2e6bd518269357b237c0",
@@ -48,6 +49,20 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("spec_cap_lens_histogram", markdown_text)
         self.assertIn("vllm-bench", markdown_text)
         self.assertIn("Python `vllm bench serve` 本轮没有新增对应的专用 P/D 参数", markdown_text)
+        for required_text in (
+            "AgentX v1.0",
+            "--endpoint-type messages",
+            "adaptive_scale_events.jsonl",
+            "click~=8.4.0",
+            "GUIDELLM_DEFAULT_RESULTS_DIR",
+            "prefix_file",
+            "prefix_role",
+            "Avg Latency (s)",
+            "混合流式/非流式 run",
+            "纯非流式 run 仍保留兼容 fallback",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
 
     def test_refreshed_stable_release_commits_are_pinned(self):
         docs_dir = Path(__file__).resolve().parent
@@ -68,9 +83,10 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "0a56ed331897f5455916a44d3075671376d731d6",
             ),
             "LLM-Benchmark-Deep-Dive.md": (
-                "c71b5a17919170110e9d6e18d4dcfbf2471356f7",
+                "0e723bb8c984564cddf7274d19aab4eb7714f919",
+                "39383552962841086d05e25c37b58a83ef06c758",
                 "a40897e6500e4524adf563a91f7c880eb5296e12",
-                "9d1b353b7b6669c416d79bb259710082283d4c23",
+                "9d052ca0240ebf8b603c053fa44727b863ff3933",
                 "fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1",
                 "568afb3a13806beb53bb2e6bd518269357b237c0",
             ),

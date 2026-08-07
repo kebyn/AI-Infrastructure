@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.11.0`、GuideLLM `v0.7.2`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.16`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.26.0`、EvalScope `v1.9.1`；审校日期：2026-07-28。
+> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.16`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.26.0`、EvalScope `v1.10.0`；审校日期：2026-07-28。
 
 ---
 
@@ -129,7 +129,7 @@ LLM 压测至少应报告：
 
 | 工具 | 核心定位 | 最适合场景 | 不适合场景 |
 |------|----------|------------|------------|
-| AIPerf | 综合生产级 GenAI 压测平台 | 复杂 workload、trace replay、多模态、telemetry、SLO/goodput、插件扩展 | 只想快速测单个 vLLM 参数时略重 |
+| AIPerf | 综合生产级 GenAI 压测平台 | 复杂 workload、AgentX/DAG replay、多模态、adaptive scale、telemetry、SLO/goodput | 只想快速测单个 vLLM 参数时略重 |
 | GuideLLM | SLO-aware LLM benchmarking 平台 | vLLM/OpenAI-compatible 服务优化、sweep、安全工作点、标准 JSON/CSV/HTML 报告 | Kubernetes 原生部署和 WG Serving 标准化不是重点 |
 | inference-perf | Kubernetes SIG/WG Serving 背景的生产压测工具 | K8s 集群、vLLM/SGLang/TGI、公平横评、10k+ QPS、goodput、OTel/trace replay | 只做本地单机小模型体验测试时偏重 |
 | genai-bench | SGLang 生态友好的 token-level benchmark | SGLang/OpenAI-compatible、多任务、Live UI、Excel/plot 报告 | 复杂 trace replay 和 K8s 标准化能力不如前几类 |
@@ -151,7 +151,7 @@ LLM 压测至少应报告：
 | request rate | 支持 | 支持 | 支持 | 较弱 | 支持 | 不主打 | 不适用 | 支持 | 支持 |
 | Poisson | 支持 | 支持 | 支持 | 不主打 | 支持 | 不主打 | 不适用 | 支持 | 支持 |
 | sweep | 支持 | 强 | 支持 | 支持 | 需脚本封装 | 不主打 | 不适用 | 部分支持 | 支持 |
-| trace replay | 强 | 发展中 | 强 | 弱 | Mooncake/agentic | 弱 | 无 | 部分脚本 | 支持 agentic/multi-turn |
+| trace replay | AgentX、DAG、生产 trace | 发展中 | 强 | 弱 | Mooncake/agentic | 弱 | 无 | 部分脚本 | workload trace、agentic/multi-turn |
 | goodput/SLO | 支持 | 强 | 强 | 基础 | 弱 | 弱 | 无 | 弱 | SLA auto tune |
 | 多模态 | 强 | 强 | 支持 | 支持 | 支持 image/MMMU | 弱 | 弱 | 部分 | 强 |
 | 可视化 | dashboard/plot/telemetry | HTML/CSV/JSON | analysis/png | Live UI/Excel/plot | console/JSONL/term plot | JSON | console/json | console/png | WebUI/W&B/SwanLab/ClearML |
@@ -200,11 +200,29 @@ AIPerf 是 ai-dynamo 生态中的综合 GenAI benchmark 工具。它不是简单
 | 到达分布 | constant、Poisson、gamma、fixed schedule、ramping |
 | 数据集 | ShareGPT、AIMO、MMStar、MMVU、VisionArena、LLaVA-OneVision、SPEED-Bench、SpecBench、自定义、inline、raw payload |
 | 多模态 | text、vision、audio、image generation、video generation |
-| 指标 | TTFT、TTST、TTFO、ITL、ICL、request latency、tokens/s、goodput、HTTP trace、GPU energy |
+| 协议与 agentic replay | OpenAI 系列端点、Anthropic Messages；AgentX v1.0 支持 WEKA、agentic replay 和 DAG-shaped workload |
+| 负载控制 | 固定并发/速率、trace replay、ramp，以及按 SLA 单次寻找并维持边界的 adaptive scale |
+| 指标 | TTFT、TTST、TTFO、ITL、ICL、request latency、Decode Duration、tokens/s、goodput、HTTP trace、GPU energy |
 | 可观测 | DCGM GPU telemetry、Prometheus server metrics、OTel、MLflow、W&B |
 | 扩展 | endpoint、dataset、transport、metric 等插件类别 |
 
-### 5.3 典型命令
+### 5.3 v0.12.0 稳定增量
+
+`v0.12.0` 把 agentic workload、协议覆盖和单次自适应压测推进到稳定 release：
+
+| 变化 | 工程含义 |
+|------|----------|
+| AgentX v1.0 | 支持 WEKA、agentic replay 与 DAG-shaped workload，保留 conversation/turn 依赖和 fork 结构；应同时固定 trace corpus、随机种子、路由会话亲和及 prefix cache 状态 |
+| Anthropic Messages API | `--endpoint-type messages` 直接覆盖 `/v1/messages` 的流式/非流式、top-level `system`、extended thinking、tool use 和 `raw_messages` 原样重放，不必先转换成 OpenAI Chat |
+| Adaptive scale | 在一次 YAML benchmark 的 profiling phase 内按 `concurrency`、`prefill_concurrency`、`request_rate` 或 `users` 调节压力；所有 SLA filter 通过才继续升压，找到首个失败边界后在最后通过值附近 sustain |
+| 多阶段与控制 | 单次 run 可定义多个 warmup/profiling phase，支持 JSON 动态 QPS、外部 router session-affinity header，并为每个 adaptive phase 输出 events、summary 和 manifest |
+| 指标与分析 | 新 accumulator engine、流式响应的 client-observed Decode Duration、spec-decode per-request acceptance record，以及 `aiperf analyze` swim-lane/turn-messages viewer |
+
+Adaptive scale 不是离线 sweep 的同义词：它在单次 run 内用窗口指标控制下一步压力，`duration`、`sustain_duration` 和至少一个 phase-level `sla` filter 都是必需项；固定 ramp 不能与同一个 control variable 并用。配置目前只支持 YAML，自动化应消费 phase-scoped `adaptive_scale_events.jsonl`、`adaptive_scale_summary.json` 与总清单，而不是依赖固定 sleep。
+
+本版最低 Python 从 3.10 提升到 3.11，属于升级前必须检查的 breaking change。release 分支还纳入 ffmpeg CVE-2026-8461 修复、ShareGPT 批量编码超时修复、共享前缀 block 合成修复和 multi-run detailed aggregation JSONL fallback 修复；重放旧结果前应先确认依赖环境与 artifact schema。
+
+### 5.4 典型命令
 
 ```bash
 aiperf profile \
@@ -217,7 +235,7 @@ aiperf profile \
   --request-count 200
 ```
 
-### 5.4 适用场景
+### 5.5 适用场景
 
 | 场景 | 价值 |
 |------|------|
@@ -227,7 +245,7 @@ aiperf profile \
 | 多模态压测 | 图像、视频、音频端点都可覆盖 |
 | 观测闭环 | 可以把 client 侧指标与 GPU/server metrics 对齐 |
 
-### 5.5 限制
+### 5.6 限制
 
 | 限制 | 说明 |
 |------|------|
@@ -265,13 +283,26 @@ GuideLLM 是 vLLM 项目下的 SLO-aware benchmarking and evaluation platform。
 | 变化 | 工程含义 |
 |------|----------|
 | `synthetic_image` / `synthetic_video` | 安装 `guidellm[vision]` 后可控制图像分辨率、数量、格式以及视频帧数、FPS、码率；默认按请求生成不同媒体，适合绕过多模态预处理缓存做受控 VLM 压测 |
-| `--output kind=plot,path=<file>` | 生成性能 dashboard 静态图，文件后缀可选 PNG、SVG 或 PDF；重复声明相同 output kind 时不会相互覆盖 |
+| `--output kind=plot,path=<file>` | 生成性能 dashboard 静态图，文件后缀可选 PNG、JPG/JPEG、SVG 或 PDF；重复声明相同 output kind 时不会相互覆盖 |
 | `stopping_scope=all` | 一个 rate、concurrency 或 sweep strategy 触发超饱和/错误等约束后，可跳过同一 profile 中尚未执行的更高压力点，减少已失效工作点的资源消耗 |
 | `guidellm export` | 原 `guidellm benchmark from-file` 提升为顶层命令；行为基本不变，但旧命令路径应从自动化脚本中迁出 |
 
 本版也修复了 console 显示、CSV 序列化、HTML asset、默认结果目录和 CLI help 等问题。升级时应重点检查导出命令路径；若依赖旧版逐个执行所有 rate 的行为，也要确认约束是否设置了 `stopping_scope=all`。
 
-### 6.4 典型命令
+### 6.4 v0.7.3 补丁边界
+
+`v0.7.3` 是在上述 v0.7.2 能力之上的安全与可用性补丁，不改变 GuideLLM 的核心 profile 模型：
+
+| 变化 | 工程含义 |
+|------|----------|
+| 依赖安全 | 解决 RHAI 下游传递依赖把 `transformers` 锁在 `<5.0` 后暴露 CRITICAL/HIGH CVE 的问题；tag 中直接依赖固定为 `click~=8.4.0`，部署时仍应以最终 lockfile/SBOM 扫描结果为准 |
+| Plot 输出 | 正式记录 `--output kind=plot`，路径与其他 output 一样服从 `GUIDELLM_DEFAULT_RESULTS_DIR`；显式绝对路径不受该默认目录影响 |
+| 结构化 chat content | OpenAI backend 支持带 metadata 的结构化 chat content，避免把非纯字符串 message content 当成不可用输入 |
+| 终态错误 | worker 对没有可消费内容的终态 LLM response 给出更清楚的 unusable response 失败，而不是留下误导性状态 |
+
+从 v0.7.2 升级时应重点验证容器/离线镜像的完整依赖解析结果、`GUIDELLM_DEFAULT_RESULTS_DIR` 下的 plot 产物位置，以及上游网关返回结构化 content 或空终态响应时的 CI 判定。
+
+### 6.5 典型命令
 
 ```bash
 guidellm run \
@@ -302,7 +333,7 @@ guidellm run \
   --output kind=plot,path=results/benchmark.svg
 ```
 
-### 6.5 适用场景
+### 6.6 适用场景
 
 | 场景 | 价值 |
 |------|------|
@@ -311,7 +342,7 @@ guidellm run \
 | CI/回归报告 | JSON/CSV/HTML 方便沉淀 |
 | 受控数据实验 | synthetic + HuggingFace/file 数据都可用 |
 
-### 6.6 限制
+### 6.7 限制
 
 | 限制 | 说明 |
 |------|------|
@@ -913,7 +944,7 @@ EvalScope 是 ModelScope 社区的一站式大模型评测框架，覆盖模型�
 | 指标 | latency、TTFT、TPOT、ITL、RPS、output/total throughput、cache hit、speculative decode 指标 |
 | 可视化 | WebUI、W&B、SwanLab、ClearML、HTML/报告文件、Dashboard 历史 performance archive |
 
-### 13.3 v1.9.1 增量
+### 13.3 v1.9.1 基线增量
 
 `v1.9.1` 让 `evalscope perf` 更接近生产流量复现和长期结果管理：
 
@@ -926,7 +957,31 @@ EvalScope 是 ModelScope 社区的一站式大模型评测框架，覆盖模型�
 
 流式路径也修复了包含 `id:` / `event:` / 多行 `data:` 的 SSE block、`delta.reasoning` 未计入首个有效输出导致 TTFT 偏大的问题；模型评测侧则把中断的 stream consumption 纳入整次请求重试边界，避免持久化部分响应。
 
-### 13.4 典型命令
+### 13.4 v1.10.0 稳定增量
+
+`v1.10.0` 在 v1.9.1 的 workload replay 和 archive 基线上补齐长上下文构造、统计口径和报告可靠性：
+
+| 变化 | 工程含义 |
+|------|----------|
+| `prefix_file` / `prefix_role` | 为真实数据集注入共享长文本前缀；必须同时配置 `target_input_len`，默认以 `system` message 注入，也可用 `user` 模式直接前置到首条用户内容 |
+| 定长与缓存语义 | 前缀按 `target_input_len - prompt tokens` 预算裁切，不足时循环填充；`input_len_mode=drop` 与前缀互斥。`system` + chat template 可精确对齐，`user` 或纯文本拼接边界可能有约正负 1 token 偏差 |
+| 延迟统计 | summary 明确输出 `Avg Latency (s)`，percentile 表增加 `min` 行并保留 P1/P5/P10/P25/P50/P75/P90/P95/P99/max，便于同时观察最佳、平均和尾延迟 |
+| 流式指标边界 | 混合流式/非流式 run 中，TTFT/TPOT 只使用流式行，ITL 只汇总实际 chunk interval；纯非流式 run 仍保留兼容 fallback，不能把这些值解释为真实流式首 token/逐 token 指标。另修复无固定 rate 的 open-loop HTML 报告、duration deadline 停止派发和单轮 cached token 同步 |
+| Web 历史记录 | performance 列表增加输入/输出 token 列并支持删除历史记录，降低长期保留多轮结果时的人工整理成本 |
+
+长上下文注入适合用真实低熵文本构造 128K 等固定输入、验证 Prefix Cache 或 MTP；它与只对 `random` 数据集生效的随机 `--prefix-length` 不是同一能力。跨工具对比时仍需记录 chat template 开销、实际 token 数、共享前缀比例和路由会话亲和，否则“目标长度相同”不代表缓存命中路径相同。
+
+```bash
+evalscope perf \
+  --model Qwen2.5-7B-Instruct \
+  --url http://127.0.0.1:8000/v1/chat/completions \
+  --api openai \
+  --dataset openqa \
+  --tokenizer-path Qwen/Qwen2.5-7B-Instruct \
+  --dataset-args '{"target_input_len": 131072, "prefix_file": "/path/to/long_text.txt", "prefix_role": "system"}'
+```
+
+### 13.5 典型命令
 
 ```bash
 evalscope perf \
@@ -973,7 +1028,7 @@ evalscope perf \
   --dataset-args '{"speed": 2.0, "model_mapping": {"gpt-4": "qwen-max"}}'
 ```
 
-### 13.5 vLLM Bench 对齐
+### 13.6 vLLM Bench 对齐
 
 EvalScope 官方文档提供了 `evalscope perf` 与 `vllm bench serve` 的参数映射，关键是：
 
@@ -988,7 +1043,7 @@ EvalScope 官方文档提供了 `evalscope perf` 与 `vllm bench serve` 的参�
 
 这使 EvalScope 很适合在中文团队中做“先用 vLLM Bench 建基线，再用 EvalScope 做多并发、多轮、可视化和能力评测联动”的流程。
 
-### 13.6 限制
+### 13.7 限制
 
 | 限制 | 说明 |
 |------|------|
@@ -1203,28 +1258,32 @@ python3 -m sglang.benchmark.serving \
 
 | 工具 | Release | 提交 |
 |------|---------|------|
-| AIPerf | `v0.11.0` | `38687855e98044fcf12ee48c6794128f10b6780b` |
-| GuideLLM | `v0.7.2` | `c71b5a17919170110e9d6e18d4dcfbf2471356f7` |
+| AIPerf | `v0.12.0` | `0e723bb8c984564cddf7274d19aab4eb7714f919` |
+| GuideLLM | `v0.7.3` | `39383552962841086d05e25c37b58a83ef06c758` |
 | inference-perf | `v0.6.1` | `a40897e6500e4524adf563a91f7c880eb5296e12` |
 | genai-bench | `v0.0.5` | `4f873e03719c947a101647c6646954d5ebc3d35b` |
 | SGLang Bench | `v0.5.16` | `fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1` |
 | LLMPerf | `v2.0` | `1eac866f91773bff401f96e74c1cf20c38778329` |
 | ollama-benchmark | `v0.5.2` | `f9a5edb6554be2d425d6b16f7b740c1524d062a0` |
 | vLLM Bench | `v0.26.0` | `568afb3a13806beb53bb2e6bd518269357b237c0` |
-| EvalScope | `v1.9.1` | `9d1b353b7b6669c416d79bb259710082283d4c23` |
+| EvalScope | `v1.10.0` | `9d052ca0240ebf8b603c053fa44727b863ff3933` |
 
 ### A.2 关键参考
 
 | 主题 | 链接 |
 |------|------|
-| AIPerf README | <https://github.com/ai-dynamo/aiperf/blob/v0.11.0/README.md> |
-| AIPerf Metrics | <https://github.com/ai-dynamo/aiperf/blob/v0.11.0/docs/metrics-reference.md> |
-| AIPerf Benchmark Datasets | <https://github.com/ai-dynamo/aiperf/blob/v0.11.0/docs/benchmark-datasets.md> |
-| GuideLLM v0.7.2 Release | <https://github.com/vllm-project/guidellm/releases/tag/v0.7.2> |
-| GuideLLM README | <https://github.com/vllm-project/guidellm/blob/v0.7.2/README.md> |
-| GuideLLM Synthetic Visual Data | <https://github.com/vllm-project/guidellm/blob/v0.7.2/docs/guides/multimodal/synthetic_vision.md> |
-| GuideLLM Outputs | <https://github.com/vllm-project/guidellm/blob/v0.7.2/docs/guides/outputs.md> |
-| GuideLLM v0.7 Migration | <https://github.com/vllm-project/guidellm/blob/v0.7.2/docs/guides/v0.7.0_migration_guide.md> |
+| AIPerf v0.12.0 Release | <https://github.com/ai-dynamo/aiperf/releases/tag/v0.12.0> |
+| AIPerf README | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/README.md> |
+| AIPerf AgentX | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/docs/tutorials/agentx-mvp.md> |
+| AIPerf Anthropic Messages | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/docs/tutorials/anthropic-messages-endpoint.md> |
+| AIPerf Adaptive Scale | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/docs/tutorials/adaptive-scale.md> |
+| AIPerf Metrics | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/docs/metrics-reference.md> |
+| GuideLLM v0.7.3 Release | <https://github.com/vllm-project/guidellm/releases/tag/v0.7.3> |
+| GuideLLM README | <https://github.com/vllm-project/guidellm/blob/39383552962841086d05e25c37b58a83ef06c758/README.md> |
+| GuideLLM Synthetic Visual Data | <https://github.com/vllm-project/guidellm/blob/39383552962841086d05e25c37b58a83ef06c758/docs/guides/multimodal/synthetic_vision.md> |
+| GuideLLM Outputs | <https://github.com/vllm-project/guidellm/blob/39383552962841086d05e25c37b58a83ef06c758/docs/guides/outputs.md> |
+| GuideLLM v0.7 Migration | <https://github.com/vllm-project/guidellm/blob/39383552962841086d05e25c37b58a83ef06c758/docs/guides/v0.7.0_migration_guide.md> |
+| GuideLLM dependency declaration | <https://github.com/vllm-project/guidellm/blob/39383552962841086d05e25c37b58a83ef06c758/pyproject.toml> |
 | inference-perf v0.6.1 Release | <https://github.com/kubernetes-sigs/inference-perf/releases/tag/v0.6.1> |
 | inference-perf README | <https://github.com/kubernetes-sigs/inference-perf/blob/v0.6.1/README.md> |
 | inference-perf Configuration | <https://github.com/kubernetes-sigs/inference-perf/blob/v0.6.1/docs/config.md> |
@@ -1245,9 +1304,9 @@ python3 -m sglang.benchmark.serving \
 | vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/568afb3a13806beb53bb2e6bd518269357b237c0/benchmarks> |
 | vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/568afb3a13806beb53bb2e6bd518269357b237c0/docs/benchmarking/cli.md> |
 | vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/568afb3a13806beb53bb2e6bd518269357b237c0/rust/src/bench/README.md> |
-| EvalScope v1.9.1 Release | <https://github.com/modelscope/evalscope/releases/tag/v1.9.1> |
-| EvalScope README | <https://github.com/modelscope/evalscope/blob/v1.9.1/README_zh.md> |
-| EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/v1.9.1/docs/zh/user_guides/stress_test/quick_start.md> |
-| EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/v1.9.1/docs/zh/user_guides/stress_test/parameters.md> |
-| EvalScope Examples | <https://github.com/modelscope/evalscope/blob/v1.9.1/docs/zh/user_guides/stress_test/examples.md> |
-| EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/v1.9.1/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
+| EvalScope v1.10.0 Release | <https://github.com/modelscope/evalscope/releases/tag/v1.10.0> |
+| EvalScope README | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/README_zh.md> |
+| EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/quick_start.md> |
+| EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/parameters.md> |
+| EvalScope Examples | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/examples.md> |
+| EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
