@@ -4,7 +4,7 @@
 >
 > 基于 Kubernetes 官方 Scheduling、Preemption and Eviction 文档、调度配置参考与 v1.36.3 源码整理
 >
-> 版本基线：Kubernetes `v1.36.3@0f29094e5b73085e3802ecc1298ecae13866bfe6`；审校日期：2026-07-28。
+> 版本基线：Kubernetes `v1.36.3@0f29094e5b73085e3802ecc1298ecae13866bfe6`；审校日期：2026-08-07。
 
 ---
 

@@ -16,11 +16,34 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-07-28", doc["meta"])
+                self.assertIn("2026-08-07", doc["meta"])
                 self.assertNotIn("2026-07-24", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-07-28", markdown_text)
+                self.assertIn("审校日期：2026-08-07", markdown_text)
                 self.assertNotIn("2026-07-24", markdown_text)
+
+    def test_readme_tracks_current_audit_summary(self):
+        readme_text = (Path(__file__).resolve().parent / "README.md").read_text(
+            encoding="utf-8"
+        )
+
+        for required_text in (
+            "2026-08-07",
+            "8 个正文主稳定基线",
+            "v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
+            "main@88f41f392722a2f56971ea6c1084f0fc574ef1f4",
+            "master@b15ac29c6443340e2f4389a8e376f65fbcf8c6ec",
+            "spec.kvCacheOffloading",
+            "v0.17.0@f218c69bee5e5fc6031273ba555d09916b1ca89a",
+            "v1.15.1@0a56ed331897f5455916a44d3075671376d731d6",
+            "v0.12.0@0e723bb8c984564cddf7274d19aab4eb7714f919",
+            "v0.7.3@39383552962841086d05e25c37b58a83ef06c758",
+            "v1.10.0@9d052ca0240ebf8b603c053fa44727b863ff3933",
+            "v0.1.0-alpha.12-rc1` 是 prerelease",
+            "v1.8.2 → v1.15.1",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, readme_text)
 
     def test_benchmark_snapshot_uses_current_stable_releases(self):
         doc = next(

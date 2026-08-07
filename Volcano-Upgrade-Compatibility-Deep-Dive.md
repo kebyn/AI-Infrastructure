@@ -4,7 +4,7 @@
 
 ---
 
-> 稳定目标版本：Volcano `v1.15.1@0a56ed331897f5455916a44d3075671376d731d6`；官方文档快照 `master@0ef50ca74346b4ef89576f9d864089b5b6b341df`；Helm Charts `main@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-07-28。
+> 稳定目标版本：Volcano `v1.15.1@0a56ed331897f5455916a44d3075671376d731d6`；官方文档快照 `master@0ef50ca74346b4ef89576f9d864089b5b6b341df`；Helm Charts `main@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-08-07。
 
 ---
 
