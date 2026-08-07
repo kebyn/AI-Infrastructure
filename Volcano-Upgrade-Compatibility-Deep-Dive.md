@@ -1,10 +1,10 @@
 # Volcano 升级与 Feature 兼容性深度文档
 
-> **从 v1.8.2 到 v1.15.0：Helm、Webhook、CRD、Queue 调度语义与 Cloud Native Colocation 的兼容边界**
+> **从 v1.8.2 到 v1.15.1：Helm、Webhook、CRD、Queue 调度语义与 Cloud Native Colocation 的兼容边界**
 
 ---
 
-> 稳定目标版本：Volcano `v1.15.0@8fc394c11e8db0d0ada5c17816b58bced9d7213d`；官方文档快照 `master@b9f7d29fe3528f184b2e17aa1159bb866c2c19c2`；Helm Charts `main@ad1fb303fbf057deb196e4e7947fabdbc2472fd0`；审校日期：2026-07-28。
+> 稳定目标版本：Volcano `v1.15.1@0a56ed331897f5455916a44d3075671376d731d6`；官方文档快照 `master@0ef50ca74346b4ef89576f9d864089b5b6b341df`；Helm Charts `main@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-07-28。
 
 ---
 
@@ -12,7 +12,7 @@
 
 - [第一章：结论与适用范围](#第一章结论与适用范围)
 - [第二章：升级成功的六个层次](#第二章升级成功的六个层次)
-- [第三章：v1.8.2 到 v1.15.0 版本矩阵](#第三章v1-8-2-到-v1-15-0-版本矩阵)
+- [第三章：v1.8.2 到 v1.15.1 版本矩阵](#第三章v1-8-2-到-v1-15-1-版本矩阵)
 - [第四章：Helm Chart 与 Release Manifest 差异](#第四章helm-chart-与-release-manifest-差异)
 - [第五章：Queue 资源语义迁移](#第五章queue-资源语义迁移)
 - [第六章：已确认的升级故障](#第六章已确认的升级故障)
@@ -29,7 +29,7 @@
 
 ### 1.1 核心结论
 
-Volcano v1.8.2 到 v1.15.0 不能被视为一次单纯的 Deployment 镜像替换。这个跨度同时经过了 Queue API 字段扩展、默认 Queue plugin 两次切换、admission 证书 Job 生命周期修复、Cloud Native Colocation/Volcano Agent 引入、更多 CRD 加入，以及 v1.15.0 的新抢占和 DRA quota 语义。
+Volcano v1.8.2 到 v1.15.1 不能被视为一次单纯的 Deployment 镜像替换。这个跨度同时经过了 Queue API 字段扩展、默认 Queue plugin 两次切换、admission 证书 Job 生命周期修复、Cloud Native Colocation/Volcano Agent 引入、更多 CRD 加入、v1.15.0 的新抢占与 DRA quota 语义，以及 v1.15.1 的安全和调度补丁。
 
 最需要提前锁定的结论是：
 
@@ -38,7 +38,8 @@ Volcano v1.8.2 到 v1.15.0 不能被视为一次单纯的 Deployment 镜像替�
 3. `capacity` 与 `proportion` 是互斥的 Queue 资源管理模型。前者使用显式 `deserved`，后者使用 `weight` 动态计算份额。字段被 API Server 接受不代表当前 plugin 会按该字段调度。
 4. `custom.colocation_enable=true` 只为 Helm 安装增加 Volcano Agent、RBAC 和节点访问链路，不会自动切换 Queue plugin，也不会自动为 Queue 配置批资源配额。
 5. v1.13.0 起可以把 Agent 限定为通用 Linux 可用的 `OverSubscription,Eviction,Resources`。CPU QoS、Memory QoS、CPU Burst 和 Network QoS 仍有内核、cgroup、BPF/CNI 或特定 OS 能力依赖。
-6. v1.15.0 的 `gangPreempt`/`gangReclaim` 是显式启用的 Alpha actions，官方要求不要与旧 `preempt`/`reclaim` 同时配置。DRA Queue quota 只属于 `capacity` plugin 路径，并需要对应参数和 Kubernetes DRA 环境。
+6. v1.15.0 引入、v1.15.1 延续的 `gangPreempt`/`gangReclaim` 是显式启用的 Alpha actions，官方要求不要与旧 `preempt`/`reclaim` 同时配置。DRA Queue quota 只属于 `capacity` plugin 路径，并需要对应参数和 Kubernetes DRA 环境。
+7. v1.15.1 不改变上述 feature 开关模型，但修复 PVC informer race、PrePredicate 后继续分配、DRA device count 溢出、nil panic、HAMi/Ascend 设备记账与 scalar milli-unit 计算，并升级 `golang.org/x/crypto` 纳入 SSH 安全修复；这些补丁应进入目标验证集。
 
 ### 1.2 本文覆盖什么
 
@@ -96,7 +97,7 @@ Webhook 位于 API Server 写入路径上。证书或 Service 失效时，问题
 
 ---
 
-## 第三章：v1.8.2 到 v1.15.0 版本矩阵
+## 第三章：v1.8.2 到 v1.15.1 版本矩阵
 
 ### 3.1 主版本变化矩阵
 
@@ -110,14 +111,15 @@ Webhook 位于 API Server 写入路径上。证书或 Service 失效时，问题
 | v1.13.0 | `proportion` | Queue schema 延续 `weight`/`deserved`/`parent` | 新增 `agent_supported_features` 与批 CPU/内存资源名配置；admission Pod template 加入 Helm revision 触发滚动重启 | 通用 Linux 可只启用基础 Agent features；自定义资源名必须与 Queue/Pod 一致 |
 | v1.14.0 | `proportion` | Queue 增加 `dequeueStrategy` 等验证；capacity/reclaim 实现继续修正 | 引入 `ColocationConfiguration` CRD、`agent_kube_cgroup_root`、cgroup v2/MemoryQoSV2、更多 Agent 安全配置 | 新 CRD 可被安装不等于 Agent 已启用；通用 OS 与增强内核能力要分开验证 |
 | v1.15.0 | `proportion` | `capacity` 增加 DRA Queue quota；新增互斥于旧 action 的 `gangPreempt`/`gangReclaim` | chart `apiVersion` 升为 v2；DRA RBAC、feature 参数与更多 CRD/配置继续扩展 | 新能力都是显式配置项；默认配置不会自动启用 capacity、DRA quota 或 gang-aware eviction |
+| v1.15.1 | `proportion` | 修复 PrePredicate 失败后未尊重 `NeedContinueAllocating`、DRA device count 溢出、PVC informer race、scheduler nil panic、scalar milli-unit 与 HAMi/Ascend 设备记账 | `golang.org/x/crypto` 升至 v0.53.0，纳入上游 SSH 安全修复；官方 chart 1.15.1 的 `appVersion` 同步为 1.15.1 | 保持 v1.15.0 feature 语义；需要重放 OnDemand PVC、PrePredicate、DRA quota、HAMi vGPU 与 Ascend vNPU 场景 |
 
-> v1.15.0 是本文的稳定目标版本。主线快照只用于核对文档整理时的后续代码方向，不把主线中晚于 v1.15.0 的能力写成 v1.15.0 已发布能力。
+> v1.15.1 是本文的稳定目标版本。官网和 Helm Charts 分支快照只用于固定辅助证据，不把晚于 v1.15.1 tag 的主线能力写成稳定能力。
 
 ### 3.2 Queue CRD 字段不是 Queue 行为
 
 tagged Queue CRD 的关键字段演进如下：
 
-| 字段 | v1.8.2 | v1.9.0 | v1.10.0 到 v1.15.0 | 主要消费者 |
+| 字段 | v1.8.2 | v1.9.0 | v1.10.0 到 v1.15.1 | 主要消费者 |
 |---|---:|---:|---:|---|
 | `weight` | 有 | 有 | 有 | `proportion` 根据权重动态计算份额 |
 | `deserved` | 无 | 新增 | 有 | `capacity` 的显式应得资源 |
@@ -146,6 +148,7 @@ v1.11.0 proportion
 v1.13.0 proportion
 v1.14.0 proportion
 v1.15.0 proportion
+v1.15.1 proportion
 ```
 
 但生产集群可能通过 `custom.scheduler_config_override`、GitOps 覆盖、直接编辑 ConfigMap 或不同 chart 来源改变它。判断现场行为时，唯一可靠的入口是运行中的 ConfigMap以及对应 scheduler Pod 实际挂载内容。
@@ -166,7 +169,7 @@ v1.15.0 proportion
 | 回滚 | Helm 可回滚已记录模板，但不能自动回滚外部节点状态或所有 CRD 语义 | 需要重新 apply 旧 manifest，并自行处理状态兼容 |
 | 切换路径 | 需要核对现有资源 Helm ownership | 需要核对 field manager、资源名和 namespace，不能直接假设可互换 |
 
-不要在一次升级中同时完成“v1.8.2 到 v1.15.0”和“manifest 安装改成 Helm”两种迁移。两者同时发生会把版本差异、字段所有权、资源命名和 hook 生命周期混在同一个故障面中。
+不要在一次升级中同时完成“v1.8.2 到 v1.15.1”和“manifest 安装改成 Helm”两种迁移。两者同时发生会把版本差异、字段所有权、资源命名和 hook 生命周期混在同一个故障面中。
 
 ### 4.2 关键 chart 差异
 
@@ -178,6 +181,7 @@ v1.15.0 proportion
 | v1.12.x -> v1.13.0 | admission Deployment 用 Helm revision annotation 强制滚动；Agent 增加 feature/resource name 参数 | 证书轮换后旧 admission Pod 不应继续持有旧证书；Agent 能限制通用功能集合 |
 | v1.13.0 -> v1.14.0 | 增加 ColocationConfiguration、NodeShard 等 CRD/模板和更多 Agent 配置 | CRD 面扩大；启用 Agent/Agent Scheduler 前要单独评估 RBAC 和节点安全策略 |
 | v1.14.0 -> v1.15.0 | chart metadata 改为 Helm API v2，并加入 DRA 与新 action 所需的配置/RBAC | Helm 客户端和内部 chart 依赖处理需纳入预演；新能力仍不会因升级自动启用 |
+| v1.15.0 -> v1.15.1 | chart/appVersion 切到 1.15.1，控制面采用补丁镜像；Queue/CRD feature 模型不切换 | 不需要新增 feature migration，但必须定向验证安全依赖、PVC、PrePredicate、DRA 与异构设备修复 |
 
 ### 4.3 CRD 不能只看 Helm release 状态
 
@@ -279,6 +283,21 @@ spec:
 4. `capacity.DynamicResourceAllocationEnable: true`；需要 consumable capacity 时再启用 `capacity.DRAConsumableCapacityEnable: true`。
 5. Queue quota 只表达逻辑总量，不解决单设备容量碎片和 driver 的最终物理分配。
 
+### 5.6 v1.15.1 调度补丁的验证边界
+
+v1.15.1 没有新增 Queue 字段或默认 action/plugin，但补丁会改变若干此前可能永久 Pending、错误继续/停止分配或错误记账的路径：
+
+| 修复路径 | 旧风险 | v1.15.1 验证用例 |
+|----------|--------|-----------------|
+| OnDemand PVC informer race | Pod ADD 先于 PVC 进入 informer 时，task 可能不再重试并永久 Pending | 并发创建 Pod/PVC，确认 scheduler 缓存 task、进入 resync，PVC 可见后继续调度 |
+| PrePredicate + `NeedContinueAllocating` | 某个 subJob PrePredicate 失败后可能提前停止整个 Job 的后续分配 | 构造 elastic/partitioned Job，使一个 subJob 失败、另一个仍符合继续分配条件 |
+| DRA count saturating arithmetic | 极大 device count 累加发生 int64 overflow 后可能变负，绕过 capacity quota | 用接近 `MaxInt64` 的合成请求验证拒绝而非溢出放行 |
+| HAMi/Ascend 设备路径 | 中大型集群 HAMi vGPU 失败，Ascend vNPU config/health/accounting 不一致 | 同时覆盖 legacy array 与 `vnpus.configs`、Allocatable health 和释放后 annotation 清理 |
+| scalar resource milli-unit | in-queue scalar 资源用错误单位累计 | 用非整数 quantity 对比 Queue request/inqueue 指标与实际 Pod request |
+| scheduler nil 防护 | 特定空对象/缺失引用路径触发 scheduler panic | 重放异常对象与删除竞态，确认 session 继续运行且产生可诊断事件 |
+
+这些是补丁行为，不代表升级后应改 Queue 配置。验收应保持同一输入对象和 scheduler ConfigMap，对比升级前后的 Pending 原因、分配继续条件、quota 计数、设备释放和 controller/scheduler 重启次数。
+
 ---
 
 ## 第六章：已确认的升级故障
@@ -303,7 +322,7 @@ spec:
 
 官方 issue [#2962](https://github.com/volcano-sh/volcano/issues/2962) 记录了 v1.5.1 创建的旧 vcjob/PodGroup 在升级到 v1.7.0 后，PodGroup 虽进入 `Inqueue`，controller 仍不创建 Pod，也不能正确处理旧 PodGroup 的 kill 路径。
 
-这个版本不在本文主升级起点内，但它提供了重要的兼容性证据：controller 对对象状态机的语义兼容独立于 CRD schema。升级 v1.8.2 到 v1.15.0 时，必须保留 Pending、Inqueue、Running、终止/重试等存量对象用例。
+这个版本不在本文主升级起点内，但它提供了重要的兼容性证据：controller 对对象状态机的语义兼容独立于 CRD schema。升级 v1.8.2 到 v1.15.1 时，必须保留 Pending、Inqueue、Running、终止/重试等存量对象用例。
 
 ### 6.4 卸载后 webhook 配置残留
 
@@ -318,7 +337,7 @@ spec:
 | v1.8.2 -> v1.9.0 immutable Job | issue #3496 | hook/Job 是独立升级门槛 | 所有 Helm upgrade 都失败 |
 | Secret already exists | issue #2833 | Secret 生命周期必须纳入卸载/升级 | 永远应该先删 Secret |
 | 多副本证书代际不一致 | PR #4396 | 证书更新后要验证全部 Pod 滚动 | 单副本也一定复现该问题 |
-| 旧 Job/PodGroup 不推进 | issue #2962 | 运行中对象需要状态机测试 | v1.8.2 -> v1.15.0 必然复现 |
+| 旧 Job/PodGroup 不推进 | issue #2962 | 运行中对象需要状态机测试 | v1.8.2 -> v1.15.1 必然复现 |
 | 卸载后孤儿 webhook | issues #2191/#1488 | 卸载需要检查 cluster-scoped webhook | 新 chart 一定仍有相同 bug |
 
 ---
@@ -329,20 +348,20 @@ spec:
 
 | 组合 | API/部署兼容 | 行为结论 | 主要风险 |
 |---|---|---|---|
-| 标准安装 + `proportion` | 是，v1.15.0 默认路径 | Queue Resource Management 正常工作，按 `weight` 动态计算份额 | `deserved` 字段不会替代权重模型 |
+| 标准安装 + `proportion` | 是，v1.15.1 默认路径 | Queue Resource Management 正常工作，按 `weight` 动态计算份额 | `deserved` 字段不会替代权重模型 |
 | 标准安装 + `capacity` | 是，需覆盖 scheduler 配置 | 显式 `deserved`、借用和回收 | 必须关闭 `proportion`，并维护各资源维度配额 |
 | 标准安装 + Agent 关闭 | 是，默认 | Queue、Gang、reclaim/preempt 与 Agent 无直接部署依赖 | 没有批资源动态上报和节点压力 eviction |
 | `custom.colocation_enable=true` + `proportion` | 是 | Agent 上报的动态批资源可作为扩展资源参与 Pod 调度；Queue 份额随可见总量变化 | 批资源名、Pod request、Queue capability 必须一致 |
 | `custom.colocation_enable=true` + `capacity` | 是，但需要主动设计 | 可对原生资源与批资源分别设置固定 `deserved` | 动态 Node allocatable 不会自动改固定 quota，容易漂移 |
 | `capacity` + `proportion` | 否，官方明确互斥 | 不应部署 | 同一 Queue 注册两套份额/回收语义 |
 | `enqueue` + `reclaim/preempt` | 配置可被接受，但存在官方行为冲突说明 | 必须用真实 Job controller 路径测试 | enqueue 阻止 Pod 创建时后续 action 无对象可处理 |
-| `gangPreempt/gangReclaim` + 旧 actions | v1.15.0 官方明确禁止同列 | 二选一 | 重复或冲突的 eviction 控制流 |
-| DRA quota + `capacity` 参数 | 是，v1.15.0 | Queue 可记账 DeviceClass 数量/容量 | 依赖 Kubernetes DRA、driver、键格式和物理可放置性 |
-| DRA quota + 默认 `proportion` | 不是 v1.15.0 已发布的 quota 路径 | 不应期待 capacity DRA quota 生效 | Queue YAML 可被接受，但没有对应 quota plugin 语义 |
+| `gangPreempt/gangReclaim` + 旧 actions | v1.15.0+ 官方明确禁止同列 | 二选一 | 重复或冲突的 eviction 控制流 |
+| DRA quota + `capacity` 参数 | 是，v1.15.0+ | Queue 可记账 DeviceClass 数量/容量 | 依赖 Kubernetes DRA、driver、键格式和物理可放置性 |
+| DRA quota + 默认 `proportion` | 不是 v1.15.0+ 已发布的 quota 路径 | 不应期待 capacity DRA quota 生效 | Queue YAML 可被接受，但没有对应 quota plugin 语义 |
 
 ### 7.2 Colocation 开关不会改变 scheduler plugin
 
-v1.15.0 chart 的 Agent 模板以 `custom.colocation_enable` 为条件，scheduler 配置仍来自独立的 `config/volcano-scheduler.conf` 或 `custom.scheduler_config_override`。两者没有自动联动。
+v1.15.1 chart 的 Agent 模板以 `custom.colocation_enable` 为条件，scheduler 配置仍来自独立的 `config/volcano-scheduler.conf` 或 `custom.scheduler_config_override`。两者没有自动联动。
 
 ```mermaid
 flowchart LR
@@ -396,7 +415,7 @@ v1.13.0 release notes 把通用 OS 的应用层共置能力明确为：
 OverSubscription,Eviction,Resources
 ```
 
-这三个 feature 分别对应动态超卖计算、节点压力下驱逐离线 Pod、扩展资源管理。v1.15.0 Agent 也把它们作为默认 supported features。对通用 Linux 首次灰度，应显式设置同一列表，避免版本默认值或自定义镜像差异引入增强内核功能：
+这三个 feature 分别对应动态超卖计算、节点压力下驱逐离线 Pod、扩展资源管理。v1.15.1 Agent 也把它们作为默认 supported features。对通用 Linux 首次灰度，应显式设置同一列表，避免版本默认值或自定义镜像差异引入增强内核功能：
 
 ```yaml
 custom:
@@ -406,7 +425,7 @@ custom:
 
 ### 8.2 节点侧权限和路径
 
-v1.15.0 chart 中 Agent DaemonSet 的节点接触面包括：
+v1.15.1 chart 中 Agent DaemonSet 的节点接触面包括：
 
 | 接触面 | chart/代码行为 | 平台约束 |
 |---|---|---|
@@ -423,7 +442,7 @@ v1.15.0 chart 中 Agent DaemonSet 的节点接触面包括：
 
 ### 8.3 增强内核功能只说明依赖，不作为通用基线
 
-| Feature | v1.15.0 代码中的依赖边界 | 本文建议 |
+| Feature | v1.15.1 代码中的依赖边界 | 本文建议 |
 |---|---|---|
 | `CPUQoS` | 注释限定 OpenEuler 能力 | 不纳入通用 Linux 基线 |
 | `MemoryQoS` | 注释限定 OpenEuler 能力 | 不纳入通用 Linux 基线 |
@@ -443,7 +462,7 @@ v1.15.0 chart 中 Agent DaemonSet 的节点接触面包括：
 - Queue 调度与 eviction actions。
 - Agent 对 Node status、taint、cgroup 和 CNI 的写入。
 
-建议第一阶段保持 `custom.colocation_enable=false`，完成 v1.15.0 控制面与 Queue 行为验证。第二阶段使用 `custom.agent_ns` 或等价 nodeSelector 只选择少量带标签节点，并显式限制 supported features。确认停用和清理路径后再扩大节点范围。
+建议第一阶段保持 `custom.colocation_enable=false`，完成 v1.15.1 控制面与 Queue 行为验证。第二阶段使用 `custom.agent_ns` 或等价 nodeSelector 只选择少量带标签节点，并显式限制 supported features。确认停用和清理路径后再扩大节点范围。
 
 ---
 
@@ -490,7 +509,7 @@ kubectl get deploy -n volcano-system volcano-scheduler \
 检查：
 
 - `capacity` 与 `proportion` 只能出现一个。
-- `reclaim`/`preempt` 是否存在，还是使用 v1.15.0 gang actions。
+- `reclaim`/`preempt` 是否存在，还是使用 v1.15.0+ gang actions。
 - `enqueue` 是否与现有 Job controller 行为测试匹配。
 - plugin arguments 是否包含 DRA、层级 Queue 或其他版本特定开关。
 - ConfigMap 修改后 scheduler Pod 是否真的重启并挂载新内容。
@@ -580,7 +599,7 @@ kubectl get events -A --field-selector reason=Evicted --sort-by=.lastTimestamp
 
 ### 10.4 v1.15.0 新 actions 的独立变更
 
-不要在版本升级当天把旧 actions 直接替换为 gang-aware actions。先完成 v1.15.0 默认/现有 action 链验证，再开独立变更：
+不要在版本升级当天把旧 actions 直接替换为 gang-aware actions。先完成 v1.15.1 默认/现有 action 链验证，再开独立变更：
 
 ```yaml
 actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
@@ -636,9 +655,9 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 
 | 仓库 | 分支 | 提交 |
 |---|---|---|
-| Volcano | `master` | `c3598d1927e12393490501b0b81a61982a8cddff` |
-| Volcano Website | `master` | `b9f7d29fe3528f184b2e17aa1159bb866c2c19c2` |
-| Volcano Helm Charts | `main` | `ad1fb303fbf057deb196e4e7947fabdbc2472fd0` |
+| Volcano | `v1.15.1` tag 解引用 | `0a56ed331897f5455916a44d3075671376d731d6` |
+| Volcano Website | `master` | `0ef50ca74346b4ef89576f9d864089b5b6b341df` |
+| Volcano Helm Charts | `main` | `c2050e3debe58dbcdf9bb75b667799eec9409513` |
 
 ### A.2 Release notes
 
@@ -652,6 +671,7 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 | v1.13.0 | <https://github.com/volcano-sh/volcano/releases/tag/v1.13.0> |
 | v1.14.0 | <https://github.com/volcano-sh/volcano/releases/tag/v1.14.0> |
 | v1.15.0 | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.0> |
+| v1.15.1 | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.1> |
 
 ### A.3 Feature 与源码证据
 
@@ -660,14 +680,18 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 | Cloud Native Colocation | <https://volcano.sh/docs/keyfeatures/cloudnativecolocation/> |
 | Queue Resource Management | <https://volcano.sh/docs/keyfeatures/queueresourcemanagement/> |
 | v1.15.0 Capacity Plugin Guide | <https://volcano.sh/docs/userguide/user_guide_how_to_use_capacity_plugin/> |
-| v1.15.0 Cloud Native Colocation 文档快照 | <https://github.com/volcano-sh/website/blob/b9f7d29fe3528f184b2e17aa1159bb866c2c19c2/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md> |
-| v1.15.0 Queue Resource Management 文档快照 | <https://github.com/volcano-sh/website/blob/b9f7d29fe3528f184b2e17aa1159bb866c2c19c2/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md> |
+| v1.15.0 Cloud Native Colocation 文档快照 | <https://github.com/volcano-sh/website/blob/0ef50ca74346b4ef89576f9d864089b5b6b341df/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md> |
+| v1.15.0 Queue Resource Management 文档快照 | <https://github.com/volcano-sh/website/blob/0ef50ca74346b4ef89576f9d864089b5b6b341df/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md> |
 | v1.8.2 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.8.2/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
 | v1.10.0 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.10.0/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
 | v1.11.0 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.11.0/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
 | v1.15.0 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.15.0/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
 | v1.15.0 DRA Queue quota guide | <https://github.com/volcano-sh/volcano/blob/v1.15.0/docs/user-guide/how_to_use_dra_quota.md> |
 | v1.15.0 Gang-aware eviction design | <https://github.com/volcano-sh/volcano/blob/v1.15.0/docs/design/gang-aware-eviction-design.md> |
+| v1.15.1 PVC informer race 修复 | <https://github.com/volcano-sh/volcano/blob/0a56ed331897f5455916a44d3075671376d731d6/pkg/scheduler/cache/event_handlers.go> |
+| v1.15.1 PrePredicate 分配修复 | <https://github.com/volcano-sh/volcano/blob/0a56ed331897f5455916a44d3075671376d731d6/pkg/scheduler/actions/allocate/allocate.go> |
+| v1.15.1 DRA saturating arithmetic | <https://github.com/volcano-sh/volcano/blob/0a56ed331897f5455916a44d3075671376d731d6/pkg/scheduler/api/saturating.go> |
+| v1.15.1 Helm Charts index | <https://github.com/volcano-sh/helm-charts/blob/c2050e3debe58dbcdf9bb75b667799eec9409513/index.yaml> |
 | Helm Charts | <https://github.com/volcano-sh/helm-charts> |
 
 ### A.4 已确认问题与修复
@@ -704,4 +728,4 @@ kubectl get jobs.batch.volcano.sh,podgroups.scheduling.volcano.sh -A
 kubectl get events -A --sort-by=.lastTimestamp
 ```
 
-最终验收必须回到第二章的六层模型。只有 Helm、Pod Ready 或 CRD list 成功，都不足以单独证明 v1.8.2 到 v1.15.0 已实现行为兼容的平滑升级。
+最终验收必须回到第二章的六层模型。只有 Helm、Pod Ready 或 CRD list 成功，都不足以单独证明 v1.8.2 到 v1.15.1 已实现行为兼容的平滑升级。

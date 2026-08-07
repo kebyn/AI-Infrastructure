@@ -142,15 +142,16 @@ DOCS = [
         "title": "Kubernetes AI 调度器深度对比",
         "hero": "Kubernetes AI 调度器深度对比",
         "subtitle": "Koordinator、Kueue、Grove、KAI-Scheduler 与 Volcano 架构、能力边界和生产选型解析",
-        "meta": "Kueue v0.19.0 · KAI-Scheduler v0.16.7 · 2026-07-28",
-        "summary": "覆盖队列准入、Gang Scheduling、GPU/拓扑、配额公平、Grove 调度后端、组合架构、升级治理与场景化选型。",
+        "meta": "Kueue v0.19.0 · KAI-Scheduler v0.17.0 · Volcano v1.15.1 · 2026-07-28",
+        "summary": "覆盖队列准入、Gang Scheduling、GPU/拓扑、配额公平、KAI preemption delay、Grove 调度后端、Volcano 补丁边界与场景化选型。",
         "footer": (
             '基于 <a href="https://github.com/koordinator-sh/koordinator">Koordinator</a>、'
             '<a href="https://github.com/kubernetes-sigs/kueue/tree/v0.19.0">Kueue v0.19.0</a>、'
             '<a href="https://github.com/ai-dynamo/grove">Grove</a>、'
-            '<a href="https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052">'
-            'KAI-Scheduler v0.16.7</a> 与 '
-            '<a href="https://github.com/volcano-sh/volcano">Volcano</a> 官方资料整理'
+            '<a href="https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a">'
+            'KAI-Scheduler v0.17.0</a> 与 '
+            '<a href="https://github.com/volcano-sh/volcano/tree/0a56ed331897f5455916a44d3075671376d731d6">'
+            'Volcano v1.15.1</a> 官方资料整理'
         ),
     },
     {
@@ -159,14 +160,16 @@ DOCS = [
         "href": "/Volcano-Upgrade-Compatibility-Deep-Dive.html",
         "title": "Volcano 升级与 Feature 兼容性",
         "hero": "Volcano 升级与 Feature 兼容性",
-        "subtitle": "v1.8.2 到 v1.15.0 的 Helm、Webhook、Queue 语义与 Cloud Native Colocation 兼容边界",
-        "meta": "Volcano v1.8.2 → v1.15.0 · 2026-07-28",
-        "summary": "覆盖六层升级判定、逐版本矩阵、proportion/capacity 迁移、已确认故障、Agent 节点边界、DRA quota 与 gang-aware eviction。",
+        "subtitle": "v1.8.2 到 v1.15.1 的 Helm、Webhook、Queue 语义与 Cloud Native Colocation 兼容边界",
+        "meta": "Volcano v1.8.2 → v1.15.1 · source@0a56ed3 · 2026-07-28",
+        "summary": "覆盖六层升级判定、逐版本矩阵、proportion/capacity 迁移、v1.15.1 安全与调度修复、Agent 节点边界、DRA quota 与 gang-aware eviction。",
         "footer": (
-            '基于 <a href="https://github.com/volcano-sh/volcano">Volcano</a>、'
+            '基于 <a href="https://github.com/volcano-sh/volcano/tree/0a56ed331897f5455916a44d3075671376d731d6">'
+            'Volcano v1.15.1</a>、'
             '<a href="https://volcano.sh/docs/keyfeatures/cloudnativecolocation/">Cloud Native Colocation</a>、'
             '<a href="https://volcano.sh/docs/keyfeatures/queueresourcemanagement/">Queue Resource Management</a> 与 '
-            '<a href="https://github.com/volcano-sh/helm-charts">Helm Charts</a> 官方资料整理'
+            '<a href="https://github.com/volcano-sh/helm-charts/tree/c2050e3debe58dbcdf9bb75b667799eec9409513">'
+            'Helm Charts</a> 官方资料整理'
         ),
     },
     {

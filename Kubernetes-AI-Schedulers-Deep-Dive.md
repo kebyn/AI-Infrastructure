@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.0@911a822`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.16.7@72af4d7`、Volcano `v1.15.0@8fc394c`；审校日期：2026-07-28。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.0@911a822`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-07-28。
 
 ---
 
@@ -666,6 +666,8 @@ KAI 将“调度优先级”和“是否可被抢占”分成可独立配置的�
 
 生产中必须为 checkpoint 成本、训练恢复时间和在线推理 SLO 设置合理保护期，否则提高公平性可能以频繁重启和 GPU 空转为代价。
 
+v0.17.0 又增加了 preemption delay，用于解决 Pending workload、Cluster Autoscaler 和抢占之间的竞态。Pod/owner annotation `kai.scheduler/preemption-delay: "5m"` 或 PodGroup `spec.preemptionDelay: 5m` 会设置最小等待窗口；窗口内 workload 不能通过 preempt、reclaim 或 consolidation 驱逐别人，但仍可使用空闲容量，也仍可在运行后被其他 workload 驱逐。窗口从 PodGroup 创建时间起算；每次 eviction 后，scheduler 写入 `kai.scheduler/last-eviction-timestamp` 并重新计时，给下一次 autoscaler 扩容新的机会。
+
 ### 6.6 GPU Sharing、DRA 与隔离
 
 KAI 支持整卡和 fractional GPU 调度，Binder 为共享 GPU 创建 reservation/分配信息。当前文档还包含与 HAMi-Core 集成的显存限制路径。
@@ -743,6 +745,19 @@ spec:
 
 这些 patch 不改变 KAI 的总体架构，但直接影响资源可见性、reclaim 可用性、GPU sharing 和分组对象合法性。使用 PyTorch/LWS segmentation 或异构 extended resource 的集群不应停留在 v0.16.4；使用 segmented elastic PyTorchJob 的集群不应停留在 v0.16.6。升级到 v0.16.7 后，应同时重放 `minReplicas` 不是 segment size 整数倍、`minReplicas` 小于 worker replicas，以及 master/worker 数量不同的案例。该修复不改变普通非 elastic Job 的分组语义，也不取消 parent `minSubGroup`。
 
+### 6.12 v0.17.0 稳定增量
+
+| 能力或修复 | 生产影响 |
+|------------|----------|
+| Preemption delay | 为 autoscaler 预留扩容窗口；只延迟 workload 发起 eviction，不延迟空闲容量分配，也不是运行后免抢占保护 |
+| Topology level alias | workload 可用 `rack` 等 alias 代替原始 node label key；alias 在同一 Topology 内必须唯一，且不能与 `nodeLabel` 冲突 |
+| DRA-backed extended resources | 支持 KEP-5004 的 `DeviceClass.extendedResourceName` 请求路径，不要求 workload 显式创建 ResourceClaim |
+| NUMA-aware scoring 与场景去重 | 偏好占用更少 NUMA zone，并跳过同一 Pending Job 已失败的等价 victim set，减少重复 simulation |
+| Karta fallback podgrouper | 可把 Karta `gangScheduling.podGroup` 指令转换成 KAI PodGroup/SubGroups；原生 KAI plugin 优先 |
+| FIPS 与 GitOps 安装 | 发布 `<version>-fips` 镜像，并增加 ArgoCD/离线渲染与外部管理 ServiceAccount、Namespace、PriorityClass 的 Helm 开关 |
+
+v0.17.0 同时修复 operator 全集群缓存导致的内存增长、DRA device count 溢出、root queue reclaim panic、异构 extended resource 丢失、GPU sharing 资源上限判断、部分节点 GPU memory 计算、reclaim victim 排序和 401 token 失效后无限重试等问题。升级验证除原有 segmented workload 外，还应覆盖 preemption delay 到期/重置、Topology alias webhook、DRA extended resource、NUMA 与大规模 reclaim 内存曲线。
+
 ---
 
 ## 第七章：Volcano
@@ -793,7 +808,7 @@ Volcano Job 可以包含多个 Task，例如 parameter server、worker 和 chief
 
 每个调度周期创建 Session，加载当前 Node、Queue、Job/PodGroup 和 Task 快照。Action 决定调度周期做什么，Plugin 为 Action 提供排序、过滤、资源公平和可抢占判断。
 
-Volcano v1.15.0 的主要 actions 包括：
+Volcano v1.15.1 的主要 actions 延续 v1.15.0 基线，包括：
 
 | Action | 作用 |
 |--------|------|
@@ -885,7 +900,7 @@ spec:
 
 生产升级至少应先在 staging 复制以下对象和场景：Queue、运行中的 Volcano Job、外部 controller 创建的 PodGroup、HyperNode/NUMA 对象、webhook certificate、scheduler ConfigMap、Helm ownership 和回滚行为。若目标版本官方 release notes 要求迁移或重装，则按该版本步骤执行。
 
-v1.8.2 到 v1.15.0 的跨度还包含两次默认 Queue plugin 变化、admission hook/Secret 生命周期修复、可选 Volcano Agent、`ColocationConfiguration` CRD，以及 v1.15.0 的 DRA Queue quota 和 gang-aware eviction actions。逐版本矩阵、Feature 组合边界和定向处置命令见独立专篇：[Volcano 升级与 Feature 兼容性深度文档](/Volcano-Upgrade-Compatibility-Deep-Dive.html)。
+v1.8.2 到 v1.15.1 的跨度还包含两次默认 Queue plugin 变化、admission hook/Secret 生命周期修复、可选 Volcano Agent、`ColocationConfiguration` CRD、v1.15.0 的 DRA Queue quota 与 gang-aware eviction actions，以及 v1.15.1 的安全和调度补丁。v1.15.1 升级 `golang.org/x/crypto` 以纳入 SSH 安全修复，并修复 PVC informer race、PrePredicate 失败后的继续分配、DRA device count 溢出、scheduler nil panic、HAMi/Ascend 设备记账和 scalar milli-unit 计算等问题。逐版本矩阵、Feature 组合边界和定向处置命令见独立专篇：[Volcano 升级与 Feature 兼容性深度文档](/Volcano-Upgrade-Compatibility-Deep-Dive.html)。
 
 ### 7.10 优势与限制
 
@@ -1071,7 +1086,7 @@ Volcano 的官方兼容矩阵和目标 release 说明是唯一可泛化依据。
 
 如果某个目标 release 的官方步骤明确要求卸载或迁移，则执行该步骤；否则先在 staging 验证 `helm upgrade`/manifest apply 和回滚。卸载控制面前还必须确认 Helm 是否会删除 CRD、Queue、Job、PodGroup 或其他持久对象，禁止把“重装组件”误操作成“删除业务状态”。
 
-对 v1.8.2 到 v1.15.0，应把成功标准拆为 Helm/Manifest 更新、webhook 可用、CRD/API 可读写、存量 Job 连续推进、Queue 行为不变和 Agent 节点状态可回滚六层。完整证据与检查清单见 [Volcano 升级与 Feature 兼容性专篇](/Volcano-Upgrade-Compatibility-Deep-Dive.html)，本章不重复其版本和组合矩阵。
+对 v1.8.2 到 v1.15.1，应把成功标准拆为 Helm/Manifest 更新、webhook 可用、CRD/API 可读写、存量 Job 连续推进、Queue 行为不变和 Agent 节点状态可回滚六层。完整证据与检查清单见 [Volcano 升级与 Feature 兼容性专篇](/Volcano-Upgrade-Compatibility-Deep-Dive.html)，本章不重复其版本和组合矩阵。
 
 ### 10.6 可观测性
 
@@ -1213,8 +1228,8 @@ Workload API / PodSets
 | Koordinator | `v1.8.0` | `989ca85c62abcca92b303aa12fd2ccff2ed30fed` |
 | Kueue | `v0.19.0` | `911a822a49bcfd99c9c62203a009efa4130ad604` |
 | Grove | `v0.1.0-alpha.11` | `8fa3ece93434d7c0005605b7dc4b0e23610af88b` |
-| KAI-Scheduler | `v0.16.7` | `72af4d75dfd8dec836386f88e50c123eceb6b052` |
-| Volcano | `v1.15.0` | `8fc394c11e8db0d0ada5c17816b58bced9d7213d` |
+| KAI-Scheduler | `v0.17.0` | `f218c69bee5e5fc6031273ba555d09916b1ca89a` |
+| Volcano | `v1.15.1` | `0a56ed331897f5455916a44d3075671376d731d6` |
 
 除明确标为 Alpha 的 Grove 外，正文按表中稳定 release 审校。生产仍须核对各项目的 Kubernetes compatibility、migration guide、Chart 和镜像 digest。
 
@@ -1284,15 +1299,17 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kai-scheduler/KAI-Scheduler> |
-| v0.16.7 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.16.7> |
-| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/quickstart> |
-| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/batch> |
-| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/queues> |
-| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/fairness> |
-| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/topology> |
-| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/gpu-sharing> |
-| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/72af4d75dfd8dec836386f88e50c123eceb6b052/docs/migrationguides> |
-| segmented elastic PyTorchJob 修复源码 | <https://github.com/kai-scheduler/KAI-Scheduler/blob/72af4d75dfd8dec836386f88e50c123eceb6b052/pkg/podgrouper/podgrouper/plugins/kubeflow/pytorch/pytorch_grouper.go> |
+| v0.17.0 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.17.0> |
+| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a/docs/quickstart> |
+| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a/docs/batch> |
+| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a/docs/queues> |
+| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a/docs/fairness> |
+| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a/docs/topology> |
+| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a/docs/gpu-sharing> |
+| Preemption Delay | <https://github.com/kai-scheduler/KAI-Scheduler/blob/f218c69bee5e5fc6031273ba555d09916b1ca89a/docs/preemption-delay/README.md> |
+| Preemption Delay API | <https://github.com/kai-scheduler/KAI-Scheduler/blob/f218c69bee5e5fc6031273ba555d09916b1ca89a/pkg/apis/scheduling/v2alpha2/podgroup_types.go> |
+| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a/docs/migrationguides> |
+| segmented elastic PyTorchJob 修复源码 | <https://github.com/kai-scheduler/KAI-Scheduler/blob/f218c69bee5e5fc6031273ba555d09916b1ca89a/pkg/podgrouper/podgrouper/plugins/kubeflow/pytorch/pytorch_grouper.go> |
 | CNCF Sandbox 申请 | <https://github.com/cncf/sandbox/issues/372> |
 | CNCF Landscape | <https://landscape.cncf.io/?item=orchestration-management--scheduling-orchestration--kai-scheduler> |
 
@@ -1301,6 +1318,10 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/volcano-sh/volcano> |
+| v1.15.1 Release | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.1> |
+| v1.15.1 源码快照 | <https://github.com/volcano-sh/volcano/tree/0a56ed331897f5455916a44d3075671376d731d6> |
+| 官网固定快照 | <https://github.com/volcano-sh/website/tree/0ef50ca74346b4ef89576f9d864089b5b6b341df> |
+| Helm Charts 固定快照 | <https://github.com/volcano-sh/helm-charts/tree/c2050e3debe58dbcdf9bb75b667799eec9409513> |
 | 官方文档 | <https://volcano.sh/en/docs/> |
 | Architecture | <https://volcano.sh/en/docs/architecture/> |
 | Scheduler | <https://volcano.sh/en/docs/schduler_introduction/> |

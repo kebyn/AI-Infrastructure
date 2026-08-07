@@ -1281,9 +1281,9 @@ DRA + Gang 仍不提供 Kueue 的 ClusterQueue/Cohort 配额、公平排队、Jo
 
 ### 10.2 能力矩阵
 
-下表按本站固定版本比较：Kubernetes v1.36.3、Koordinator v1.8.0、Kueue v0.19.0、Grove v0.1.0-alpha.11、KAI-Scheduler v0.16.7 与 Volcano v1.15.0。“Gang 原子性”指 scheduler/admission 的组级提交语义，不代表 API Server 对多个 Pod binding 提供 ACID 事务。
+下表按本站固定版本比较：Kubernetes v1.36.3、Koordinator v1.8.0、Kueue v0.19.0、Grove v0.1.0-alpha.11、KAI-Scheduler v0.17.0 与 Volcano v1.15.1。“Gang 原子性”指 scheduler/admission 的组级提交语义，不代表 API Server 对多个 Pod binding 提供 ACID 事务。
 
-| 维度 | kube-scheduler v1.36.3 | Koordinator v1.8.0 | Kueue v0.19.0 | Grove v0.1.0-alpha.11 | KAI-Scheduler v0.16.7 | Volcano v1.15.0 |
+| 维度 | kube-scheduler v1.36.3 | Koordinator v1.8.0 | Kueue v0.19.0 | Grove v0.1.0-alpha.11 | KAI-Scheduler v0.17.0 | Volcano v1.15.1 |
 |------|------------------------|--------------------|---------------|--------------------------|-----------------------|-----------------|
 | API 稳定性 | 单 Pod API 稳定；DRA `resource.k8s.io/v1`；Workload/PodGroup `v1alpha2` 且默认关闭 | 多组扩展 API/CRD 仍含 `v1alpha1`，需核对 feature gate 与 koordlet | 核心 API 为 `v1beta2`，有明确转换与弃用策略 | 主体 `v1alpha1`，本版本仍明确为 Alpha | PodGroup、Queue、Operator API 快速演进，需按 migration guide 升级 | 历史较长，多组 `v1alpha1`/`v1beta1` CRD，升级面较大 |
 | 最终 Bind | 是，Scheduling Framework | 是，`koord-scheduler` | 通常否，准入后交给下游 scheduler | 否，生成/翻译编排意图给 backend | 是，独立 scheduler + Binder | 是，独立 scheduler |
@@ -1291,8 +1291,8 @@ DRA + Gang 仍不提供 Kueue 的 ClusterQueue/Cohort 配额、公平排队、Jo
 | 队列、借用与公平 | 无完整租户队列或历史公平系统 | ElasticQuota 多树与 quota runtime | ClusterQueue/LocalQueue/Cohort、借用、Fair Sharing 是核心 | 无全局租户队列 | 层级队列、DRF、priority/time-based fairshare | Queue + DRF/Proportion/Capacity，支持 reclaim |
 | Job 准入 | 不负责；`WorkloadWithJob` 只自动接入特定 Indexed Job | 非核心职责 | suspend/admit、ResourceFlavor、AdmissionCheck、MultiKueue | 依赖上游队列或 backend | 支持 Pod Grouper/批调度路径 | Volcano Job、PodGroup 和广泛 controller 集成 |
 | 拓扑 | Pod/Node 约束稳定；PodGroup TAS Alpha、单 topology constraint | NetworkTopology、NUMA 与设备拓扑 | 在准入层分配 topology domain，具体节点仍由 scheduler 选择 | ClusterTopologyBinding 表达多层拓扑，落地依赖 backend | workload/SubGroup 级 TAS、GPU/NVLink domain 与 DRA | HyperNode、network-topology-aware、NUMA/task topology plugins |
-| 具体设备分配 | Device Plugin 或 DRA；DRA 与节点在同一调度周期联合选择 | DeviceShare、joint allocation、NUMA；隔离仍依赖节点实现 | 对 GPU/DRA 资源做 quota/flavor 准入，不直接选择 device ID | 描述共享 claim/ComputeDomain，设备由 DRA/backend 分配 | Binder、GPU sharing、DRA/ComputeDomain；隔离依赖 driver/runtime | DeviceShare、Dynamic MIG、厂商插件；v1.15 可把 DRA 纳入 Queue quota |
-| 工作负载级抢占 | 默认 Pod 抢占稳定；组级抢占 Alpha，可跨节点，但不支持带 TAS 的组；默认抢占不支持 DRA device | priority/preemption 与 Reservation/QoS 组合，需按插件语义验证 | Queue/Cohort 配额层 reclaim/preemption，不等于节点 victims | 不独立抢占，由 backend 解释 PodGang | queue/PodGroup-aware reclaim、preempt、consolidation 与最小运行保护 | preempt/reclaim 及 gangpreempt/gangreclaim actions |
+| 具体设备分配 | Device Plugin 或 DRA；DRA 与节点在同一调度周期联合选择 | DeviceShare、joint allocation、NUMA；隔离仍依赖节点实现 | 对 GPU/DRA 资源做 quota/flavor 准入，不直接选择 device ID | 描述共享 claim/ComputeDomain，设备由 DRA/backend 分配 | Binder、GPU sharing、DRA/ComputeDomain、DRA-backed extended resources；隔离依赖 driver/runtime | DeviceShare、Dynamic MIG、厂商插件；v1.15.0+ 可把 DRA 纳入 Queue quota |
+| 工作负载级抢占 | 默认 Pod 抢占稳定；组级抢占 Alpha，可跨节点，但不支持带 TAS 的组；默认抢占不支持 DRA device | priority/preemption 与 Reservation/QoS 组合，需按插件语义验证 | Queue/Cohort 配额层 reclaim/preemption，不等于节点 victims | 不独立抢占，由 backend 解释 PodGang | queue/PodGroup-aware reclaim、preempt、consolidation、最小运行保护与 preemption delay | preempt/reclaim 及 gangpreempt/gangreclaim actions |
 | 应用编排 | 只对特定 Indexed Job 有 Alpha 自动接入；不管理多角色依赖 | 不负责应用组件图 | 依赖 Job framework/controller | 核心：clique、角色依赖、服务发现、成组扩缩与滚动更新 | 与 JobSet/Grove 等归组集成，不替代业务 controller | Volcano Job 多 Task/策略较完整，也可接外部 Job controller |
 | 运行时隔离与混部 | requests/priority/kubelet 基础；DRA 不自动提供显存隔离 | koordlet/runtime hooks、QoS 与混部闭环是强项 | 不负责节点侧隔离 | 不负责 | GPU sharing 的硬隔离依赖外部 runtime | 批处理为主，设备与混部能力依赖插件/agent/runtime |
 
@@ -1329,13 +1329,15 @@ v1.36 Workload/PodGroup API 提供了上游统一接口的方向，但 Alpha API
 
 KAI 面向 GPU/AI workload，提供层次队列、公平共享、PodGroup/Gang、GPU sharing、拓扑和分片等完整批调度能力。它适合 GPU 集群中“谁先获得多少资源、整组何时运行、放到哪种拓扑”需要由同一系统强协调的场景。
 
-原生 v1.36 Alpha Gang 不提供 KAI Pod Grouper 针对 segmented elastic PyTorchJob 的自动分组语义。KAI v0.16.7 修复了 `elasticPolicy.minReplicas` 与 segment 边界：必需 worker segments 数量为 `ceil(max(0, minReplicas - masterReplicas) / segmentSize)`，其余 segments 的 `MinAvailable` 为 0。使用这一路径的集群应至少升级到 v0.16.7，并验证 `minReplicas` 不是 segment size 整数倍、`minReplicas` 小于 worker replicas 及不同 master 数量的回归案例；parent worker subgroup 的 `minSubGroup` 仍覆盖全部子分段。
+原生 v1.36 Alpha Gang 不提供 KAI Pod Grouper 针对 segmented elastic PyTorchJob 的自动分组语义。KAI v0.16.7 修复了 `elasticPolicy.minReplicas` 与 segment 边界：必需 worker segments 数量为 `ceil(max(0, minReplicas - masterReplicas) / segmentSize)`，其余 segments 的 `MinAvailable` 为 0；v0.17.0 继续保留该修复，并新增 preemption delay。`kai.scheduler/preemption-delay` 或 PodGroup `spec.preemptionDelay` 只让 Pending workload 在窗口内不能通过 preempt、reclaim、consolidation 驱逐别人，仍允许它使用空闲容量，也不让它自身免于 eviction；每次 eviction 后窗口重新计时，适合给 Cluster Autoscaler 留出扩容时间。
 
 代价是引入独立 scheduler、Binder、admission/controllers、CRD 和升级矩阵。普通在线服务或只需少量标准 GPU Pod 的集群，原生 scheduler + DRA/Device Plugin 更容易运维。
 
 ### 10.7 kube-scheduler 与 Volcano
 
 Volcano 的 Session/Action/Plugin 模型与 Scheduling Framework 不同，除了放置还提供 Volcano Job 生命周期、Queue、PodGroup、DRF、reclaim/preempt、HyperNode 和广泛批处理集成。
+
+v1.15.1 延续 v1.15.0 的 DRA Queue quota 与 gang-aware actions，并加入 `golang.org/x/crypto` SSH 安全更新，以及 PVC informer race、PrePredicate 后续分配、DRA device count 溢出、HAMi/Ascend 设备记账、scalar milli-unit 和 nil panic 等调度修复。它是补丁基线，不改变 Volcano 与原生 Scheduling Framework 的架构边界。
 
 已有 Spark、MPI、HPC、训练 Job 和成熟 Queue 治理的集群更适合评估 Volcano。仅希望调整 Pod Filter/Score 时，迁移到完整 Volcano 控制面通常超过实际需求。
 

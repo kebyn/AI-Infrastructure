@@ -64,7 +64,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             ),
             "Kubernetes-AI-Schedulers-Deep-Dive.md": (
                 "911a822a49bcfd99c9c62203a009efa4130ad604",
-                "72af4d75dfd8dec836386f88e50c123eceb6b052",
+                "f218c69bee5e5fc6031273ba555d09916b1ca89a",
+                "0a56ed331897f5455916a44d3075671376d731d6",
             ),
             "LLM-Benchmark-Deep-Dive.md": (
                 "c71b5a17919170110e9d6e18d4dcfbf2471356f7",
@@ -104,6 +105,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             "mandatorySegments",
             "MinAvailable=0",
             "minReplicas",
+            "kai.scheduler/preemption-delay",
+            "kai.scheduler/last-eviction-timestamp",
+            "不能通过 preempt、reclaim 或 consolidation 驱逐别人",
+            "DRA-backed extended resources",
         ):
             with self.subTest(document="KAI-Scheduler", required_text=required_text):
                 self.assertIn(required_text, kai_text)
@@ -121,6 +126,54 @@ class RenderDocLayoutTest(unittest.TestCase):
         ):
             with self.subTest(document="Dynamo", required_text=required_text):
                 self.assertIn(required_text, dynamo_text)
+
+    def test_scheduler_release_snapshots_and_patch_boundaries_are_documented(self):
+        docs_dir = Path(__file__).resolve().parent
+        ai_text = (docs_dir / "Kubernetes-AI-Schedulers-Deep-Dive.md").read_text(
+            encoding="utf-8"
+        )
+        native_text = (
+            docs_dir / "Kubernetes-Native-Scheduler-Deep-Dive.md"
+        ).read_text(encoding="utf-8")
+        volcano_text = (
+            docs_dir / "Volcano-Upgrade-Compatibility-Deep-Dive.md"
+        ).read_text(encoding="utf-8")
+
+        ai_doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "Kubernetes-AI-Schedulers-Deep-Dive.md"
+        )
+        volcano_doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name
+            == "Volcano-Upgrade-Compatibility-Deep-Dive.md"
+        )
+
+        self.assertIn("KAI-Scheduler v0.17.0", ai_doc["meta"])
+        self.assertIn("Volcano v1.15.1", ai_doc["meta"])
+        self.assertIn("v1.8.2 → v1.15.1", volcano_doc["meta"])
+        for revision in (
+            "0a56ed331897f5455916a44d3075671376d731d6",
+            "0ef50ca74346b4ef89576f9d864089b5b6b341df",
+            "c2050e3debe58dbcdf9bb75b667799eec9409513",
+        ):
+            self.assertIn(revision, volcano_text)
+
+        for required_text in (
+            "OnDemand PVC informer race",
+            "NeedContinueAllocating",
+            "DRA count saturating arithmetic",
+            "golang.org/x/crypto",
+            "scalar resource milli-unit",
+        ):
+            self.assertIn(required_text, volcano_text)
+
+        self.assertIn("KAI-Scheduler v0.17.0", native_text)
+        self.assertIn("Volcano v1.15.1", native_text)
+        self.assertIn("preemption delay", native_text)
+        self.assertIn("PVC informer race", native_text)
 
     def test_e2b_get_host_private_ingress_auth_is_documented(self):
         docs_dir = Path(__file__).resolve().parent
