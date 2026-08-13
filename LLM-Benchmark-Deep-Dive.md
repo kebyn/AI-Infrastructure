@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.16`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.26.0`、EvalScope `v1.10.0`；审校日期：2026-08-07。
+> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.17`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.27.1`、EvalScope `v1.10.0`；审校日期：2026-08-13。
 
 ---
 
@@ -517,7 +517,7 @@ genai-bench benchmark \
 
 ### 9.1 定位
 
-SGLang Bench 指 SGLang 仓库内置的 online serving benchmark。v0.5.16 的新 Mintlify 文档仍展示 `python -m sglang.bench_serving`，但该模块已是会发出 `FutureWarning` 的兼容包装，实现位于 `sglang.benchmark.serving`；新自动化脚本应优先使用：
+SGLang Bench 指 SGLang 仓库内置的 online serving benchmark。v0.5.17 的 Bench Serving Guide 仍展示 `python -m sglang.bench_serving`，但该模块已是会发出 `FutureWarning` 的兼容包装，实现位于 `sglang.benchmark.serving`；新自动化脚本应优先使用：
 
 ```bash
 python3 -m sglang.benchmark.serving
@@ -538,6 +538,7 @@ python3 -m sglang.benchmark.serving
 | `sglang-oai-chat` | `POST /v1/chat/completions` | SGLang OpenAI-compatible chat |
 | `sglang-embedding` | `POST /v1/embeddings` | embedding 服务压测 |
 | `vllm` / `vllm-chat` | `POST /v1/completions` 或 `/v1/chat/completions` | 用同一脚本测 vLLM endpoint |
+| `vllm-embedding` | `POST /v1/embeddings` | 与 `sglang-embedding` 使用相同负载口径比较 vLLM embedding endpoint |
 | `lmdeploy` / `lmdeploy-chat` | `POST /v1/completions` 或 `/v1/chat/completions` | LMDeploy endpoint 对比 |
 | `trt` | `POST /v2/models/ensemble/generate_stream` | TensorRT-LLM streaming endpoint |
 | `truss` | `POST /v1/models/model:predict` | Truss endpoint |
@@ -560,11 +561,11 @@ python3 -m sglang.benchmark.serving
 | `random` | 随机文本长度，适合固定 ISL/OSL 基准 | `--random-input-len`、`--random-output-len`、`--random-range-ratio` |
 | `random-ids` | 随机 token id，长度控制更直接但文本可能无意义 | 同 `random` |
 | `generated-shared-prefix` | 合成长共享 system prompt + 短问题，用于 prefix/KV cache 压测 | `--gsp-num-groups`、`--gsp-prompts-per-group`、`--gsp-system-prompt-len`、`--gsp-question-len`、`--gsp-output-len` |
-| `image` | 构造 VLM 图像请求；v0.5.16 除固定 preset/尺寸外还支持 `random:min_hxmin_w-max_hxmax_w` 随机边界 | `--image-count`、`--image-resolution`、`--image-format`、`--image-content` |
+| `image` | 构造 VLM 图像请求；支持固定 preset/尺寸和 `random:min_hxmin_w-max_hxmax_w` 随机边界，v0.5.17 补充 Kimi K3 processor | `--image-count`、`--image-resolution`、`--image-format`、`--image-content` |
 | `mmmu` | MMMU Math split，多模态评测式请求 | 依赖 `datasets`、`pillow`、`pybase64` |
 | `mooncake` | 用 Mooncake trace 评估大规模 KVCache 共享 | `--mooncake-workload`、`--mooncake-slowdown-factor`、`--mooncake-num-rounds`、`--use-trace-timestamps` |
 | `agentic-trace` | agentic multi-turn trace | `--dataset-offset`、`--agentic-max-turns` |
-| `custom` / `openai` / `autobench` / `longbench_v2` / `speed-bench` | 面向自定义、OpenAI 格式和长上下文/速度专项 | 按数据集格式和对应参数配置 |
+| `custom` / `openai` / `longbench_v2` / `speed-bench` | 面向自定义、OpenAI 格式和长上下文/速度专项 | 按数据集格式和对应参数配置；`autobench` 已在 v0.5.17 移除，不应继续用于新命令 |
 
 SGLang Bench 的 `--request-rate` 是 open-loop 入口：默认 `inf` 表示起始时尽快发出所有请求；设成有限值时，请求间隔按 Poisson 过程采样。`--max-concurrency` 是最大在飞请求上限；当 `--request-rate` 与 `--max-concurrency` 同时使用时，如果服务端处理不过来，实际发送速率会被并发上限压低。
 
@@ -582,7 +583,7 @@ SGLang Bench 的 `--request-rate` 是 open-loop 入口：默认 `inf` 表示起�
 | `--extra-request-body` | 向请求体合并额外 JSON，例如 sampling、min_tokens、top_k |
 | `--apply-chat-template` | 构造 chat 请求或计数时应用 tokenizer chat template |
 | `--output-file` / `--output-details` | 输出 JSONL 汇总；开启 details 会写入逐请求长度、错误、TTFT、ITL、生成文本等数组 |
-| `--flush-cache` | 正式压测前调用 SGLang `/flush_cache` |
+| `--flush-cache` | 预热后、正式压测前清缓存；SGLang 调 `/flush_cache` 并允许服务端等待最多 10 秒进入 idle，vLLM 调 `/reset_prefix_cache`，后者要求服务端设置 `VLLM_SERVER_DEV_MODE=1` |
 | `--cache-report` | 压测后收集并展示 SGLang cache 命中统计 |
 | `--profile` | 调用 `/start_profile` 和 `/stop_profile`，服务端需启用 profiler |
 | `--profile-prefill-url` / `--profile-decode-url` | PD 分离部署下分别 profile prefill 或 decode worker |
@@ -609,7 +610,9 @@ SGLang Bench 控制台会输出：
 | Accept length | SGLang speculative decoding 可用时报告接受长度 |
 | Retokenized counts | 用指定 tokenizer 重新计数生成文本，辅助发现服务端 usage 口径差异 |
 
-v0.5.16 的请求结果对象新增 `spec_accept_length`、`spec_cap_length`、`spec_block_accept_length` 和 `spec_cap_lens_histogram` 字段；OpenAI chat 非流式路径可从响应 `meta_info` 读取这些值，SGLang native 流式路径当前只回填 `spec_accept_length`。控制台和汇总 JSON 的 `accept_length` 仍来自 `/server_info` 中的 `avg_spec_accept_length`，不能把新增的逐请求承载字段误写成已经完整聚合的新报表指标。该版本还为 vLLM Kimi 风格响应增加 `reasoning` fallback，避免 retokenized output 漏算 reasoning 文本。
+v0.5.17 延续 v0.5.16 引入的 `spec_accept_length`、`spec_cap_length`、`spec_block_accept_length` 和 `spec_cap_lens_histogram` 请求结果字段；OpenAI chat 非流式路径可从响应 `meta_info` 读取这些值，SGLang native 流式路径当前只回填 `spec_accept_length`。控制台和汇总 JSON 的 `accept_length` 仍来自 `/server_info` 中的 `avg_spec_accept_length`，不能把逐请求承载字段误写成已经完整聚合的新报表指标。vLLM Kimi 风格响应的 `reasoning` fallback 也继续用于避免 retokenized output 漏算 reasoning 文本。
+
+v0.5.17 还修复了 benchmark 可复现性：随机文本只从按 token ID 排序后的 tokenizer vocabulary 采样，避免不同 tokenizer 版本的字典迭代顺序破坏相同 `--seed`；图像数据集在 processor 初始化后重新设置 Python 和 NumPy seed，避免初始化过程消耗全局随机状态。SGLang native stream 的 JSON 解析改为直接对 SSE bytes 使用 `orjson`，这是降低单 asyncio 客户端解析开销的实现优化，不代表服务端 TTFT/ITL 本身变快。
 
 如果指定 `--output-file`，每次 run 会追加一个 JSON 对象；开启 `--output-details` 后还会包含 `input_lens`、`output_lens`、`ttfts`、逐请求 `itls`、`generated_texts` 和 `errors`。它适合接入 CI 或自行汇总，但不像 GuideLLM/EvalScope 那样内置完整 HTML 报告和 SLO sweep。
 
@@ -738,7 +741,8 @@ python3 -m sglang.benchmark.serving \
 | 不适合 | 多团队标准报告、Kubernetes 原生容量平台、自动 SLO/goodput 搜索、复杂 dashboard 交付 |
 | 横评风险 | 必须统一 endpoint、chat template、tokenizer、输出长度、streaming、warmup、cache 状态，否则容易把工具默认差异误判为 serving 性能差异 |
 | 客户端瓶颈 | 高并发时压测机 CPU、文件描述符、端口、网络和 Python event loop 可能先到瓶颈；大规模压测要用更强客户端或分布式压测工具 |
-| 兼容性 | v0.5.16 完成 Mintlify `docs_new/` 切换并删除旧 Sphinx `docs/`；新文档仍展示 `sglang.bench_serving`，但源码已将其标为 deprecated，CI 应迁到 `sglang.benchmark.serving` |
+| 兼容性 | v0.5.17 的指南路径已从上一版 `docs_new/docs/developer_guide/bench_serving.mdx` 调整为 `docs/docs/developer_guide/bench_serving.mdx`；指南仍展示 `sglang.bench_serving`，但源码已将其标为 deprecated，CI 应迁到 `sglang.benchmark.serving` |
+| 一批请求探测 | `one_batch_server` 直连 worker 时可按 internal states 跳过超过 max-running 或 token-capacity 的组合；若目标是 PD router，拿不到 worker internal states，脚本会告警并关闭这层 skip guard，不能把它当成 router 后端的容量保护 |
 
 ---
 
@@ -839,7 +843,7 @@ llm_benchmark run --custombenchmark=path/to/custombenchmarkmodels.yml
 
 ### 12.1 定位
 
-vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。v0.26.0 中原有 Python benchmark 仍通过 vLLM CLI 使用：
+vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。本文固定到 `v0.27.1@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac`；默认 benchmark 仍通过 Python CLI 使用：
 
 ```bash
 vllm bench serve
@@ -858,7 +862,7 @@ vllm bench throughput
 | `vllm bench serve` | 在线服务压测，面向 OpenAI-compatible server |
 | `vllm bench latency` | 单请求/本地 latency 测量 |
 | `vllm bench throughput` | 离线 batch throughput 测量 |
-| `vllm-bench` | v0.26.0 新增的独立 Rust serving benchmark 客户端；与 Python CLI 并存 |
+| `vllm-bench` | v0.26.0 新增的独立 Rust serving benchmark 客户端；v0.27.0 起也可由环境变量选择性接管 `vllm bench serve`，默认仍走 Python |
 | prefix caching | `benchmark_prefix_caching.py` 等专项脚本 |
 | multi-turn | `benchmarks/multi_turn/benchmark_serving_multi_turn.py`，用于 KV cache offloading / 多轮场景 |
 | kernels | paged attention、MoE、FP8 GEMM、RMSNorm、ROPE 等 kernel 级 benchmark |
@@ -892,9 +896,9 @@ python benchmark_serving_multi_turn.py \
   --max-active-conversations 6
 ```
 
-### 12.4 v0.26.0 Rust 客户端边界
+### 12.4 v0.27.x benchmark 增量与边界
 
-v0.26.0 将 `rust/src/bench` 中的原生 `vllm-bench` 纳入 release。其上游 README 将它定义为 `vllm bench serve` 的 drop-in replacement：参数和 JSON/timing 口径以 Python serving benchmark 对齐，同时增加并发/请求率 sweep、多次运行统计、多轮、结果比较和 steady-state 指标，并减少 Python 启动与高并发客户端开销。基本入口例如：
+v0.26.0 将 `rust/src/bench` 中的原生 `vllm-bench` 纳入 release。其上游 README 将它定义为 `vllm bench serve` 的 drop-in replacement：参数和 JSON/timing 口径以 Python serving benchmark 对齐，同时增加并发/请求率 sweep、多次运行统计、多轮、结果比较和 steady-state 指标，并减少 Python 启动与高并发客户端开销。独立入口例如：
 
 ```bash
 vllm-bench \
@@ -908,9 +912,27 @@ vllm-bench \
   --max-concurrency 64
 ```
 
-“drop-in replacement”描述的是独立客户端的兼容目标，不代表 Python 命令被删除或重定向：`vllm bench serve` 在 v0.26.0 中仍注册到 `vllm.benchmarks.serve`，其 serving CLI 源码相对 v0.25.1 没有变化。生产基线应明确记录实际使用的是 `vllm bench serve` 还是 `vllm-bench`，并分别验证 dataset、tokenizer、steady-state window 和输出 schema，而不能只凭近似参数名混合结果。
+v0.27.0 增加了可选的 Rust CLI 委派，但不是默认切换：只有 `VLLM_USE_RUST_BENCH=1` 且 `VLLM_RUST_FRONTEND_PATH` 指向 `vllm-rs` 二进制时，`vllm bench serve` 才通过 `os.execv` 委派给 Rust；否则仍注册并运行 `vllm.benchmarks.serve`。因此不能把独立 `vllm-bench`、可选委派和默认 Python 路径混成同一个客户端。生产基线应记录实际入口，并分别验证 dataset、tokenizer、steady-state window 和输出 schema。
 
-v0.26.0 release notes 还记录了 NIXL push mode 的 pipeline-parallel prefill，但这是服务端 P/D disaggregation 能力；Python `vllm bench serve` 本轮没有新增对应的专用 P/D 参数。压测分离部署时仍应把请求发给统一 router/endpoint，并分别采集 prefill、decode、传输层和 router 指标，不能把引擎能力写成 benchmark CLI 已提供的分角色压测模式。
+Rust random dataset 的 builtin tiktoken 路径也在 v0.27.0 收紧 token ID 集合：只从可解码的 base token 和已登记 special token 中采样，跳过稀疏 vocab 中未分配的 ID；同时继续演进 ordinary-text encoding、异步 tokenizer/dataset 获取和进度显示。该修复针对 Rust 客户端，不能反推 Python dataset 的实现口径完全相同。
+
+Python `vllm bench serve` 在 v0.27.0 增加 `--probe-request-rate`。正值会以指定 RPS 并发发送单 input token、单 output token、纯文本 probe，probe 不占 `--max-concurrency` semaphore，并单独输出 completed/failed 与 median/P99/max E2EL，用来观察主流量对共享前端中无关轻请求的干扰：
+
+```bash
+vllm bench serve \
+  --backend openai-chat \
+  --model Qwen/Qwen2.5-VL-3B-Instruct \
+  --dataset-name random-mm \
+  --random-mm-bucket-config '{(2048, 2048, 1): 1.0}' \
+  --request-rate 4 \
+  --probe-request-rate 20
+```
+
+`--skip-tokenizer-init` 也不能被概括为“所有数据集都不需要 tokenizer”。`custom`、`custom_image`、`custom_audio` 的部分路径允许 tokenizer 为 `None`，此时只能使用退化的长度占位或数据集给定长度；`sonnet`、`hf`、`timed_trace` 及其余需要构造或精确计数 token 的数据集仍显式要求 tokenizer。跨版本结果必须记录是否跳过 tokenizer，以及由客户端还是数据集/服务端提供 token 长度。
+
+v0.27.0 的 benchmark 文档进一步澄清 speculative decoding 指标：一个 stream chunk 可以承载多个 accepted token，ITL 只记录 chunk 之间的间隔，不为同一 chunk 内的 token 人工补零；TPOT 仍按首 token 之后的全部 output token 摊销。所以 speculative decoding 下 ITL 与 TPOT 可能显著不同，横评时应按测量点和公式解释，不能只对照指标名称。
+
+v0.27.1 是这些 v0.27.0 benchmark 行为之上的补丁基线；它相对 v0.27.0 的代码增量主要是 quantized DSpark Markov head 支持及发布/CI 修复，没有新增 benchmark CLI 行为。release 中其他 P/D 或 serving 能力仍属于服务端：Python benchmark 没有专用的 prefill/decode 分角色模式。压测分离部署时应把请求发给统一 router/endpoint，并分别采集 prefill、decode、传输层和 router 指标。
 
 ### 12.5 适用场景与限制
 
@@ -1262,10 +1284,10 @@ python3 -m sglang.benchmark.serving \
 | GuideLLM | `v0.7.3` | `39383552962841086d05e25c37b58a83ef06c758` |
 | inference-perf | `v0.6.1` | `a40897e6500e4524adf563a91f7c880eb5296e12` |
 | genai-bench | `v0.0.5` | `4f873e03719c947a101647c6646954d5ebc3d35b` |
-| SGLang Bench | `v0.5.16` | `fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1` |
+| SGLang Bench | `v0.5.17` | `29481685462732237d80d86076d6563e1f658102` |
 | LLMPerf | `v2.0` | `1eac866f91773bff401f96e74c1cf20c38778329` |
 | ollama-benchmark | `v0.5.2` | `f9a5edb6554be2d425d6b16f7b740c1524d062a0` |
-| vLLM Bench | `v0.26.0` | `568afb3a13806beb53bb2e6bd518269357b237c0` |
+| vLLM Bench | `v0.27.1` | `6e448d0ea9bf3d88d898b65449ca6dc2aec170ac` |
 | EvalScope | `v1.10.0` | `9d052ca0240ebf8b603c053fa44727b863ff3933` |
 
 ### A.2 关键参考
@@ -1294,16 +1316,16 @@ python3 -m sglang.benchmark.serving \
 | genai-bench Tasks | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/task-definition.md> |
 | genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/metrics-definition.md> |
 | genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/user-guide/scenario-definition.md> |
-| SGLang v0.5.16 Release | <https://github.com/sgl-project/sglang/releases/tag/v0.5.16> |
-| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1/docs_new/docs/developer_guide/bench_serving.mdx> |
-| SGLang deprecated entry wrapper | <https://github.com/sgl-project/sglang/blob/fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1/python/sglang/bench_serving.py> |
-| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1/python/sglang/benchmark/serving.py> |
+| SGLang v0.5.17 Release | <https://github.com/sgl-project/sglang/releases/tag/v0.5.17> |
+| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/29481685462732237d80d86076d6563e1f658102/docs/docs/developer_guide/bench_serving.mdx> |
+| SGLang deprecated entry wrapper | <https://github.com/sgl-project/sglang/blob/29481685462732237d80d86076d6563e1f658102/python/sglang/bench_serving.py> |
+| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/29481685462732237d80d86076d6563e1f658102/python/sglang/benchmark/serving.py> |
 | LLMPerf README | <https://github.com/ray-project/llmperf/blob/v2.0/README.md> |
 | ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/v0.5.2/README.md> |
-| vLLM v0.26.0 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.26.0> |
-| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/568afb3a13806beb53bb2e6bd518269357b237c0/benchmarks> |
-| vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/568afb3a13806beb53bb2e6bd518269357b237c0/docs/benchmarking/cli.md> |
-| vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/568afb3a13806beb53bb2e6bd518269357b237c0/rust/src/bench/README.md> |
+| vLLM v0.27.1 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.27.1> |
+| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/benchmarks> |
+| vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/docs/benchmarking/cli.md> |
+| vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/rust/src/bench/README.md> |
 | EvalScope v1.10.0 Release | <https://github.com/modelscope/evalscope/releases/tag/v1.10.0> |
 | EvalScope README | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/README_zh.md> |
 | EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/quick_start.md> |

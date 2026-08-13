@@ -55,17 +55,25 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
-        for release in ("AIPerf v0.12.0", "GuideLLM v0.7.3", "EvalScope v1.10.0"):
+        for release in (
+            "AIPerf v0.12.0",
+            "GuideLLM v0.7.3",
+            "SGLang v0.5.17",
+            "vLLM v0.27.1",
+            "EvalScope v1.10.0",
+        ):
             self.assertIn(release, doc["meta"])
         self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
+        self.assertIn("29481685462732237d80d86076d6563e1f658102", doc["footer"])
+        self.assertIn("6e448d0ea9bf3d88d898b65449ca6dc2aec170ac", doc["footer"])
         for exact_commit in (
             "0e723bb8c984564cddf7274d19aab4eb7714f919",
             "39383552962841086d05e25c37b58a83ef06c758",
             "a40897e6500e4524adf563a91f7c880eb5296e12",
             "9d052ca0240ebf8b603c053fa44727b863ff3933",
             "4f873e03719c947a101647c6646954d5ebc3d35b",
-            "fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1",
-            "568afb3a13806beb53bb2e6bd518269357b237c0",
+            "29481685462732237d80d86076d6563e1f658102",
+            "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
         ):
             self.assertIn(exact_commit, markdown_text)
         self.assertIn("text-to-speech", markdown_text)
@@ -73,7 +81,13 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn('A(500)', markdown_text)
         self.assertIn("spec_cap_lens_histogram", markdown_text)
         self.assertIn("vllm-bench", markdown_text)
-        self.assertIn("Python `vllm bench serve` 本轮没有新增对应的专用 P/D 参数", markdown_text)
+        self.assertNotIn("fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1", markdown_text)
+        self.assertNotIn("568afb3a13806beb53bb2e6bd518269357b237c0", markdown_text)
+        self.assertNotIn(
+            "github.com/sgl-project/sglang/blob/"
+            "29481685462732237d80d86076d6563e1f658102/docs_new/",
+            markdown_text,
+        )
         for required_text in (
             "AgentX v1.0",
             "--endpoint-type messages",
@@ -85,9 +99,49 @@ class RenderDocLayoutTest(unittest.TestCase):
             "Avg Latency (s)",
             "混合流式/非流式 run",
             "纯非流式 run 仍保留兼容 fallback",
+            "vllm-embedding",
+            "autobench` 已在 v0.5.17 移除",
+            "VLLM_SERVER_DEV_MODE=1",
+            "按 token ID 排序后的 tokenizer vocabulary",
+            "processor 初始化后重新设置 Python 和 NumPy seed",
+            "docs/docs/developer_guide/bench_serving.mdx",
+            "拿不到 worker internal states",
+            "--probe-request-rate",
+            "probe 不占 `--max-concurrency` semaphore",
+            "VLLM_USE_RUST_BENCH=1",
+            "VLLM_RUST_FRONTEND_PATH",
+            "跳过稀疏 vocab 中未分配的 ID",
+            "`sonnet`、`hf`、`timed_trace`",
+            "不为同一 chunk 内的 token 人工补零",
+            "quantized DSpark Markov head",
+            "没有专用的 prefill/decode 分角色模式",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
+
+    def test_render_benchmark_doc_uses_refreshed_toc_mermaid_and_links(self):
+        doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "LLM-Benchmark-Deep-Dive.md"
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc)
+            rendered_doc["dst"] = str(Path(tmpdir) / "benchmark.html")
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        self.assertIn(
+            '<a class="toc-chapter" href="#第九章sglang-bench">', html
+        )
+        self.assertIn(
+            '<a class="toc-chapter" href="#第十二章vllm-bench">', html
+        )
+        self.assertIn('<div class="mermaid">', html)
+        self.assertNotIn('class="language-mermaid"', html)
+        self.assertIn("29481685462732237d80d86076d6563e1f658102", html)
+        self.assertIn("6e448d0ea9bf3d88d898b65449ca6dc2aec170ac", html)
 
     def test_refreshed_stable_release_commits_are_pinned(self):
         docs_dir = Path(__file__).resolve().parent
@@ -112,8 +166,8 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "39383552962841086d05e25c37b58a83ef06c758",
                 "a40897e6500e4524adf563a91f7c880eb5296e12",
                 "9d052ca0240ebf8b603c053fa44727b863ff3933",
-                "fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1",
-                "568afb3a13806beb53bb2e6bd518269357b237c0",
+                "29481685462732237d80d86076d6563e1f658102",
+                "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
             ),
         }
         for filename, commits in expected_commits.items():
