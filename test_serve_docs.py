@@ -103,7 +103,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "0f29094e5b73085e3802ecc1298ecae13866bfe6",
             ),
             "Kubernetes-AI-Schedulers-Deep-Dive.md": (
-                "911a822a49bcfd99c9c62203a009efa4130ad604",
+                "df3d3656004f7b2478004a37b34ad8efa9ffabf0",
                 "f218c69bee5e5fc6031273ba555d09916b1ca89a",
                 "0a56ed331897f5455916a44d3075671376d731d6",
             ),
@@ -193,6 +193,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         self.assertIn("KAI-Scheduler v0.17.0", ai_doc["meta"])
+        self.assertIn("Kueue v0.19.1", ai_doc["meta"])
         self.assertIn("Volcano v1.15.1", ai_doc["meta"])
         self.assertIn("v1.8.2 → v1.15.1", volcano_doc["meta"])
         for revision in (
@@ -212,9 +213,30 @@ class RenderDocLayoutTest(unittest.TestCase):
             self.assertIn(required_text, volcano_text)
 
         self.assertIn("KAI-Scheduler v0.17.0", native_text)
+        self.assertIn("Kueue v0.19.1", native_text)
         self.assertIn("Volcano v1.15.1", native_text)
         self.assertIn("preemption delay", native_text)
         self.assertIn("PVC informer race", native_text)
+
+        for required_text in (
+            "df3d3656004f7b2478004a37b34ad8efa9ffabf0",
+            "`LWSImmutableGroupSize` 默认开启",
+            "关闭会同时恢复已知配额绕过",
+            "`TASValidateWorkloadSliceSize`",
+            "`TASRecomputeAssignmentWithinSchedulingCycle=false`",
+            "`WorkloadValidateResourcesAreNonNegative`",
+            "scheduler 实际会分配的 DeviceClass",
+            "小于一个 milli-unit",
+            "`int64`/`int32` wrap",
+            "`PreserveFlavorScanProgress`",
+            "`RecomputeAssignmentUponPreemptionTargetsOverlap`",
+            "留在 `SchedulingGated`",
+            "resourceNames",
+            "unlimited quota 报为 `+Inf`",
+            "不会替代上一节的 minor API",
+        ):
+            with self.subTest(document="Kueue", required_text=required_text):
+                self.assertIn(required_text, ai_text)
 
     def test_e2b_get_host_private_ingress_auth_is_documented(self):
         docs_dir = Path(__file__).resolve().parent

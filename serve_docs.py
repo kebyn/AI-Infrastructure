@@ -157,11 +157,11 @@ DOCS = [
         "title": "Kubernetes AI 调度器深度对比",
         "hero": "Kubernetes AI 调度器深度对比",
         "subtitle": "Koordinator、Kueue、Grove、KAI-Scheduler 与 Volcano 架构、能力边界和生产选型解析",
-        "meta": "Kueue v0.19.0 · KAI-Scheduler v0.17.0 · Volcano v1.15.1 · 2026-08-07",
+        "meta": "Kueue v0.19.1 · KAI-Scheduler v0.17.0 · Volcano v1.15.1 · 2026-08-07",
         "summary": "覆盖队列准入、Gang Scheduling、GPU/拓扑、配额公平、KAI preemption delay、Grove 调度后端、Volcano 补丁边界与场景化选型。",
         "footer": (
             '基于 <a href="https://github.com/koordinator-sh/koordinator">Koordinator</a>、'
-            '<a href="https://github.com/kubernetes-sigs/kueue/tree/v0.19.0">Kueue v0.19.0</a>、'
+            '<a href="https://github.com/kubernetes-sigs/kueue/tree/df3d3656004f7b2478004a37b34ad8efa9ffabf0">Kueue v0.19.1</a>、'
             '<a href="https://github.com/ai-dynamo/grove">Grove</a>、'
             '<a href="https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a">'
             'KAI-Scheduler v0.17.0</a> 与 '

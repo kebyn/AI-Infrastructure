@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.0@911a822`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-07。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.1@df3d365`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-07。
 
 ---
 
@@ -454,6 +454,31 @@ spec:
 | Workload shape | 单 Workload 最大 PodSets 从 10 提升到 18；负 `subGroupCount` 先 warning，v0.20 将拒绝 | 修复非法对象，不把 warning 当长期兼容承诺 |
 
 v0.19.0 还提高默认 client QPS/burst 与 Workload/LQ/CQ reconcile concurrency。大型集群可能受益，但 API Server 较小或 webhook 较慢的环境应监控 throttling、workqueue depth 和 reconciliation latency，而不是无条件沿用新并发值。
+
+### 4.11 v0.19.1 补丁升级前必读
+
+`v0.19.1` 是 `v0.19.0` 上的补丁 release，**不会替代上一节的 minor API、feature gate、Ray 配额和 Helm 清理要求**。从更早版本升级时必须先完成 `v0.19.0` 前置，再处理下面三项新增约束：
+
+| 项目 | v0.19.1 行为 | 升级动作 |
+|------|---------------|----------|
+| LeaderWorkerSet group size | Beta `LWSImmutableGroupSize` 默认开启；受 Kueue 管理时 `spec.leaderWorkerTemplate.size` 不可变，`spec.replicas` 仍可变 | 要改变每组 Pod 数量就重建 LWS；不要为了保留原地更新而关闭 gate，因为关闭会同时恢复已知配额绕过 |
+| TAS slice size | `podSetSliceRequiredTopology` 必须与大于 0 的 `podSetSliceSize` 同时出现；未指定 required topology 时不能单独设置 size；每个 constraint size 也必须大于 0 | 升级前扫描直接创建或自研 controller 生成的 Workload；分阶段只能临时关闭 `TASValidateWorkloadSliceSize`，清理后重新开启 |
+| TAS gate 依赖 | `TASRecomputeAssignmentWithinSchedulingCycle` 依赖 `TopologyAwareScheduling` | 若关闭 TAS，升级前必须同时显式设 `TASRecomputeAssignmentWithinSchedulingCycle=false`，否则配置校验失败 |
+
+LWS 限制修复的是明确的 quota bypass：旧行为允许已 admitted 的 LWS 增大每组 size，让实际启动 Pod 超过已预留配额。关闭默认 gate 不是无害兼容开关，而是重新接受这个资源超发风险。
+
+### 4.12 v0.19.1 资源正确性与调度修复
+
+本补丁集中修复了会改变准入、公平、计费或可观测结论的问题：
+
+- **资源输入与总量**：负 request/limit 默认被 `WorkloadValidateResourcesAreNonNegative` 拒绝且计费时 floor 到 0，避免制造配额 credit；所有资源的 quantity conversion 都做饱和钳制，resource transformation 负输出不能再冲减原始请求或 DRA logical charge；Requests 的 Add/Sub 和 TAS count 对超大总量饱和，避免 `int64`/`int32` wrap 后被视为零或负需求。
+- **DRA 计费**：多个 DeviceClass 映射同一 `extendedResourceName` 时，quota 改为计到 scheduler 实际会分配的 DeviceClass；ResourceSlice API 不可用时相关 gate 不再导致 controller 启动崩溃。
+- **Admission Fair Sharing**：小于一个 milli-unit 的 CPU/GPU 等累计值不再截断为零；修复 AdmissionCheck entry penalty 泄漏、非 usage-based ClusterQueue 的错误 penalty、LocalQueue 缺失时非传递排序和缓存 Workload 被原地修改。升级后公平顺序和 `consumedResources` 可能变化，这是纠正旧统计，不应按旧 dashboard 阈值判回归。
+- **flavor 与 preemption**：默认开启的 `PreserveFlavorScanProgress` 保留跨 scheduling cycle 的 flavor 扫描位置，避免 busy Cohort 中反复提名同一 flavor；无 victim 的 preemption flavor 不再压过真正 fit 的后续 flavor；`RecomputeAssignmentUponPreemptionTargetsOverlap` 可在同周期 victim 重叠时重算 assignment，并修复 concurrent-admission variant 的 preemption gate 顺序。
+- **弹性任务与 TAS**：修复 chain-root/slice 删除或 rollover 后 Pod 长时间留在 `SchedulingGated`、已在 eviction 的 slice 仍 ungate 新 Pod、failed-node replacement 回到坏节点、scale-up 覆盖 leader topology assignment，以及 ResourceFlavor 重建、非 TAS Pod resize/migration/termination造成的 TAS 容量陈旧。
+- **租户与 RBAC**：Kueue 自身 webhook configuration/CRD 的 ClusterRole 权限按 `resourceNames` 收敛；MultiKueue 示例 worker RBAC 补齐 elastic RayCluster/Workload 的必要 update/patch。前者缩小 controller 权限，后者只修复示例多集群弹性更新所需权限，不能合并成宽泛 ClusterRole。
+
+可观测性也需同步复核：超大 quota/usage metric 不再整数溢出，无限 quota 显示 `+Inf`；LocalQueue 删除、ClusterQueue terminating、重复 pending bucket 和 JSON Lines 日志均有修复。升级窗口应同时观察 admission 顺序、quota reserved/used、AFS usage、TAS pending reason、preemption/ungating 和 controller restart，而不能只看“Pod 最终是否启动”。
 
 ---
 
@@ -1102,7 +1127,7 @@ Volcano 的官方兼容矩阵和目标 release 说明是唯一可泛化依据。
 | 设备 | GPU allocation、显存/算力用量、fragmentation、MIG/DRA claim 状态 |
 | 控制面 | leader changes、reconcile errors、webhook latency、workqueue depth、API throttling |
 
-Kueue v0.19.0 可额外采集 `kueue_unadmitted_workloads`、`kueue_local_queue_unadmitted_workloads`、`kueue_pod_scheduling_gate_removal_seconds`、`multikueue_workloads_dispatched_total` 与 `multikueue_workloads_admitted_total`。前两类详细 pending reason 受 `UnadmittedWorkloadsObservability` gate 控制；显式初始化 `QuotaReserved=False`/`Admitted=False` 还需要 `UnadmittedWorkloadsExplicitStatus`，不能在 gate 关闭时期待指标和 condition 自动出现。
+Kueue v0.19.1 延续 v0.19.0 新增的 `kueue_unadmitted_workloads`、`kueue_local_queue_unadmitted_workloads`、`kueue_pod_scheduling_gate_removal_seconds`、`multikueue_workloads_dispatched_total` 与 `multikueue_workloads_admitted_total`。前两类详细 pending reason 受 `UnadmittedWorkloadsObservability` gate 控制；显式初始化 `QuotaReserved=False`/`Admitted=False` 还需要 `UnadmittedWorkloadsExplicitStatus`，不能在 gate 关闭时期待指标和 condition 自动出现。v0.19.1 还修复大 quantity metric 溢出并把 unlimited quota 报为 `+Inf`；PromQL、recording rule 和告警必须能处理 infinity，升级前后不应直接比较曾经 wrap 的旧样本。
 
 Events 必须作为排障入口，但不能作为长期时序存储。关键 pending reason 和队列状态应采集到 Prometheus 或平台数据库。
 
@@ -1226,7 +1251,7 @@ Workload API / PodSets
 | 项目 | Release | 提交 |
 |------|---------|------|
 | Koordinator | `v1.8.0` | `989ca85c62abcca92b303aa12fd2ccff2ed30fed` |
-| Kueue | `v0.19.0` | `911a822a49bcfd99c9c62203a009efa4130ad604` |
+| Kueue | `v0.19.1` | `df3d3656004f7b2478004a37b34ad8efa9ffabf0` |
 | Grove | `v0.1.0-alpha.11` | `8fa3ece93434d7c0005605b7dc4b0e23610af88b` |
 | KAI-Scheduler | `v0.17.0` | `f218c69bee5e5fc6031273ba555d09916b1ca89a` |
 | Volcano | `v1.15.1` | `0a56ed331897f5455916a44d3075671376d731d6` |
@@ -1272,7 +1297,8 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kubernetes-sigs/kueue> |
-| v0.19.0 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.0> |
+| v0.19.1 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.1> |
+| v0.19.0 minor Release（升级前置仍适用） | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.0> |
 | 官方文档 | <https://kueue.sigs.k8s.io/docs/> |
 | Overview | <https://kueue.sigs.k8s.io/docs/overview/> |
 | Workload | <https://kueue.sigs.k8s.io/docs/concepts/workload/> |
