@@ -4,7 +4,7 @@
 
 ---
 
-> 稳定目标版本：Volcano `v1.15.1@0a56ed331897f5455916a44d3075671376d731d6`；官方文档快照 `master@0ef50ca74346b4ef89576f9d864089b5b6b341df`；Helm Charts `main@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-08-07。
+> 稳定目标版本：Volcano `v1.15.1@0a56ed331897f5455916a44d3075671376d731d6`；官方文档快照 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`；Helm Charts `main@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-08-13。官网快照本轮只增加 Mermaid 渲染支持，不改变 Volcano v1.15.1 能力边界。
 
 ---
 
@@ -656,7 +656,7 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 | 仓库 | 分支 | 提交 |
 |---|---|---|
 | Volcano | `v1.15.1` tag 解引用 | `0a56ed331897f5455916a44d3075671376d731d6` |
-| Volcano Website | `master` | `0ef50ca74346b4ef89576f9d864089b5b6b341df` |
+| Volcano Website | `master` | `c8148836e8718e84387f88e8ef3f73b6b78cf5a8` |
 | Volcano Helm Charts | `main` | `c2050e3debe58dbcdf9bb75b667799eec9409513` |
 
 ### A.2 Release notes
@@ -680,8 +680,8 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 | Cloud Native Colocation | <https://volcano.sh/docs/keyfeatures/cloudnativecolocation/> |
 | Queue Resource Management | <https://volcano.sh/docs/keyfeatures/queueresourcemanagement/> |
 | v1.15.0 Capacity Plugin Guide | <https://volcano.sh/docs/userguide/user_guide_how_to_use_capacity_plugin/> |
-| v1.15.0 Cloud Native Colocation 文档快照 | <https://github.com/volcano-sh/website/blob/0ef50ca74346b4ef89576f9d864089b5b6b341df/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md> |
-| v1.15.0 Queue Resource Management 文档快照 | <https://github.com/volcano-sh/website/blob/0ef50ca74346b4ef89576f9d864089b5b6b341df/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md> |
+| v1.15.0 Cloud Native Colocation 文档快照 | <https://github.com/volcano-sh/website/blob/c8148836e8718e84387f88e8ef3f73b6b78cf5a8/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md> |
+| v1.15.0 Queue Resource Management 文档快照 | <https://github.com/volcano-sh/website/blob/c8148836e8718e84387f88e8ef3f73b6b78cf5a8/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md> |
 | v1.8.2 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.8.2/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
 | v1.10.0 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.10.0/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
 | v1.11.0 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.11.0/installer/helm/chart/volcano/config/volcano-scheduler.conf> |

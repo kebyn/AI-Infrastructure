@@ -44,12 +44,12 @@ DOCS = [
         "title": "E2B 深度技术文档",
         "hero": "E2B 深度技术文档",
         "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
-        "meta": "E2B Infra 2026.29 · source@557445f · SDK main@88f41f3 · Agent Sandbox@108be73 · 2026-08-07",
+        "meta": "E2B Infra 2026.29 · source@557445f · SDK main@034c503 · Agent Sandbox@3ea199b · 2026-08-13",
         "summary": "覆盖控制面/数据面、Sandbox fork 与生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管与私有化部署取舍。",
         "footer": (
             '基于 <a href="https://github.com/e2b-dev/infra/tree/557445ffddda8d9a27f6f529a3f4d7732cf81a13">'
             'e2b-dev/infra 2026.29</a> 与 '
-            '<a href="https://github.com/e2b-dev/e2b/tree/88f41f392722a2f56971ea6c1084f0fc574ef1f4">'
+            '<a href="https://github.com/e2b-dev/e2b/tree/034c503f1fd51fd166db76dfae037673714d633b">'
             'E2B SDK 主线快照</a> 官方资料整理'
         ),
     },
@@ -157,7 +157,7 @@ DOCS = [
         "title": "Kubernetes AI 调度器深度对比",
         "hero": "Kubernetes AI 调度器深度对比",
         "subtitle": "Koordinator、Kueue、Grove、KAI-Scheduler 与 Volcano 架构、能力边界和生产选型解析",
-        "meta": "Kueue v0.19.1 · KAI-Scheduler v0.17.0 · Volcano v1.15.1 · 2026-08-07",
+        "meta": "Kueue v0.19.1 · KAI-Scheduler v0.17.0 · Volcano v1.15.1 · 2026-08-13",
         "summary": "覆盖队列准入、Gang Scheduling、GPU/拓扑、配额公平、KAI preemption delay、Grove 调度后端、Volcano 补丁边界与场景化选型。",
         "footer": (
             '基于 <a href="https://github.com/koordinator-sh/koordinator">Koordinator</a>、'
@@ -176,13 +176,13 @@ DOCS = [
         "title": "Volcano 升级与 Feature 兼容性",
         "hero": "Volcano 升级与 Feature 兼容性",
         "subtitle": "v1.8.2 到 v1.15.1 的 Helm、Webhook、Queue 语义与 Cloud Native Colocation 兼容边界",
-        "meta": "Volcano v1.8.2 → v1.15.1 · source@0a56ed3 · 2026-08-07",
+        "meta": "Volcano v1.8.2 → v1.15.1 · source@0a56ed3 · website@c814883 · 2026-08-13",
         "summary": "覆盖六层升级判定、逐版本矩阵、proportion/capacity 迁移、v1.15.1 安全与调度修复、Agent 节点边界、DRA quota 与 gang-aware eviction。",
         "footer": (
             '基于 <a href="https://github.com/volcano-sh/volcano/tree/0a56ed331897f5455916a44d3075671376d731d6">'
             'Volcano v1.15.1</a>、'
-            '<a href="https://volcano.sh/docs/keyfeatures/cloudnativecolocation/">Cloud Native Colocation</a>、'
-            '<a href="https://volcano.sh/docs/keyfeatures/queueresourcemanagement/">Queue Resource Management</a> 与 '
+            '<a href="https://github.com/volcano-sh/website/blob/c8148836e8718e84387f88e8ef3f73b6b78cf5a8/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md">Cloud Native Colocation</a>、'
+            '<a href="https://github.com/volcano-sh/website/blob/c8148836e8718e84387f88e8ef3f73b6b78cf5a8/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md">Queue Resource Management</a> 与 '
             '<a href="https://github.com/volcano-sh/helm-charts/tree/c2050e3debe58dbcdf9bb75b667799eec9409513">'
             'Helm Charts</a> 官方资料整理'
         ),
@@ -194,14 +194,14 @@ DOCS = [
         "title": "KServe 深度技术文档",
         "hero": "KServe 深度技术文档",
         "subtitle": "Kubernetes 生成式 AI 与预测式 AI 推理服务平台架构解析",
-        "meta": "KServe v0.20.0 · source@1fb7810 · master@b15ac29 · website@b561e05 · 2026-08-07",
+        "meta": "KServe v0.20.0 · source@1fb7810 · master@16d6d1d · website@2f613dd · 2026-08-13",
         "summary": "覆盖 InferenceService、LLMInferenceService、ServingRuntime、Gateway API、LocalModelCache、KV cache offloading、分组流量切分与未发布主线边界。",
         "footer": (
             '基于 <a href="https://github.com/kserve/kserve/tree/1fb781055dd1567164358233e1125142ca6ef1fe">'
             'kserve/kserve v0.20.0 源码</a>、'
-            '<a href="https://github.com/kserve/kserve/tree/b15ac29c6443340e2f4389a8e376f65fbcf8c6ec">'
+            '<a href="https://github.com/kserve/kserve/tree/16d6d1dad031a0e821d1a670ce0eff6c88d16a78">'
             '未发布 master 快照</a> 与 '
-            '<a href="https://github.com/kserve/website/tree/b561e05b36abcae07508a83eaf0244f153531c97">'
+            '<a href="https://github.com/kserve/website/tree/2f613dd5d9fd603016e620c704d65146e527ea4e">'
             'KServe 官网快照</a> 整理'
         ),
     },

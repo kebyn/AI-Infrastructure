@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.1@df3d365`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-07。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.1@df3d365`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-13。Volcano 官网证据固定到 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`，本轮只有 Mermaid 渲染支持变化，不改变 v1.15.1 能力结论。
 
 ---
 
@@ -1346,7 +1346,7 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | GitHub | <https://github.com/volcano-sh/volcano> |
 | v1.15.1 Release | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.1> |
 | v1.15.1 源码快照 | <https://github.com/volcano-sh/volcano/tree/0a56ed331897f5455916a44d3075671376d731d6> |
-| 官网固定快照 | <https://github.com/volcano-sh/website/tree/0ef50ca74346b4ef89576f9d864089b5b6b341df> |
+| 官网固定快照 | <https://github.com/volcano-sh/website/tree/c8148836e8718e84387f88e8ef3f73b6b78cf5a8> |
 | Helm Charts 固定快照 | <https://github.com/volcano-sh/helm-charts/tree/c2050e3debe58dbcdf9bb75b667799eec9409513> |
 | 官方文档 | <https://volcano.sh/en/docs/> |
 | Architecture | <https://volcano.sh/en/docs/architecture/> |

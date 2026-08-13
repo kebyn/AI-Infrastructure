@@ -31,8 +31,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "2026-08-07",
             "8 个正文主稳定基线",
             "v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
-            "main@88f41f392722a2f56971ea6c1084f0fc574ef1f4",
-            "master@b15ac29c6443340e2f4389a8e376f65fbcf8c6ec",
+            "main@034c503f1fd51fd166db76dfae037673714d633b",
+            "master@16d6d1dad031a0e821d1a670ce0eff6c88d16a78",
             "spec.kvCacheOffloading",
             "v0.17.0@f218c69bee5e5fc6031273ba555d09916b1ca89a",
             "v1.15.1@0a56ed331897f5455916a44d3075671376d731d6",
@@ -252,7 +252,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("v1.8.2 → v1.15.1", volcano_doc["meta"])
         for revision in (
             "0a56ed331897f5455916a44d3075671376d731d6",
-            "0ef50ca74346b4ef89576f9d864089b5b6b341df",
+            "c8148836e8718e84387f88e8ef3f73b6b78cf5a8",
             "c2050e3debe58dbcdf9bb75b667799eec9409513",
         ):
             self.assertIn(revision, volcano_text)
@@ -324,7 +324,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "88f41f392722a2f56971ea6c1084f0fc574ef1f4/"
+            "034c503f1fd51fd166db76dfae037673714d633b/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -361,7 +361,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
             "Agent Sandbox Go Router（对照，不是 E2B 能力）",
-            "108be73b56d9bff55a0cc626c9e89100d797a9bc",
+            "3ea199b8b910f8e838a6000796c29536d592fbdd",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -374,6 +374,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             "不得用于身份认证或授权",
             "默认 `allow-all`",
             "scoped-token",
+            "raw escaped path 保真",
+            "`scope.raw_path`",
+            "`%2E` / `%2E%2E`",
+            "只属于 Agent Sandbox 的旧 Python Router",
             "两者都不要求进入 Pod 的容器镜像解析 `X-Sandbox-Port`",
             "`X-Sandbox-Port` 不是 E2B 的兼容 Header",
             "在请求进入 Client Proxy 前成对转换",
@@ -413,12 +417,14 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "88f41f392722a2f56971ea6c1084f0fc574ef1f4/"
+            "034c503f1fd51fd166db76dfae037673714d633b/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
             "packages/js-sdk/src/sandbox/index.ts",
             "packages/python-sdk/e2b/connection_config.py",
+            "packages/python-sdk/e2b/api/client_sync/__init__.py",
+            "packages/python-sdk/e2b/envd/client_shared.py",
             "packages/python-sdk/e2b/sandbox_sync/main.py",
         ):
             with self.subTest(source_path=source_path):
@@ -426,7 +432,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "108be73b56d9bff55a0cc626c9e89100d797a9bc/"
+            "3ea199b8b910f8e838a6000796c29536d592fbdd/"
         )
         for source_path in (
             "clients/python/agentic-sandbox-client/sandbox-router/README.md",
@@ -437,6 +443,24 @@ class RenderDocLayoutTest(unittest.TestCase):
         ):
             with self.subTest(source_path=source_path):
                 self.assertIn(agent_sandbox_commit_base + source_path, markdown_text)
+
+        for required_text in (
+            "pyqwest transport",
+            "同步 Sandbox 也只创建一个普通 envd HTTP client",
+            "60 秒 idle-read bound",
+            "best-effort `kill()`",
+            "`SandboxError` / `SandboxException`",
+            "不代表 Infra 2026.29 新增了控制面事务或原子创建语义",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
+
+        self.assertNotIn(
+            "88f41f392722a2f56971ea6c1084f0fc574ef1f4", markdown_text
+        )
+        self.assertNotIn(
+            "108be73b56d9bff55a0cc626c9e89100d797a9bc", markdown_text
+        )
 
     def test_e2b_self_hosted_quota_and_billing_boundaries_are_documented(self):
         docs_dir = Path(__file__).resolve().parent
@@ -569,12 +593,12 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         self.assertIn("KServe v0.20.0", doc["meta"])
-        self.assertIn("master@b15ac29", doc["meta"])
-        self.assertIn("website@b561e05", doc["meta"])
+        self.assertIn("master@16d6d1d", doc["meta"])
+        self.assertIn("website@2f613dd", doc["meta"])
         for revision in (
             "1fb781055dd1567164358233e1125142ca6ef1fe",
-            "b15ac29c6443340e2f4389a8e376f65fbcf8c6ec",
-            "b561e05b36abcae07508a83eaf0244f153531c97",
+            "16d6d1dad031a0e821d1a670ce0eff6c88d16a78",
+            "2f613dd5d9fd603016e620c704d65146e527ea4e",
         ):
             self.assertIn(revision, markdown_text)
 
@@ -586,9 +610,33 @@ class RenderDocLayoutTest(unittest.TestCase):
             "Controller TLS profile",
             "Tokenizer 与 llm-d-router 后续兼容",
             "Python 3.13 与 transformer CA bundle",
+            "LLMISVC rollout 与模板校验",
+            "KEDA true scale-to-zero",
+            "InferenceService canary readiness",
+            "OCI fetch",
         ):
             self.assertIn(unreleased_feature, markdown_text)
+        for required_text in (
+            "`spec.rolloutStrategy.maxUnavailable` / `maxSurge`",
+            "多节点 workload 若 `maxUnavailable=0`",
+            "`PresetsCombined=False/InvalidRenderedConfig`",
+            "只有 Ready canary 才进入 HTTPRoute/Ingress 权重计算",
+            "`idleReplicaCount: 0`",
+            "idle count 严格小于",
+            "`oci+fetch://`",
+            "当前实现明确不支持 LLMInferenceService fetch",
+            "不能用于承诺 v0.20.0",
+            "不属于 v0.20.0",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
         self.assertIn("不把它扩展为 v0.20.0 的兼容承诺", markdown_text)
+        self.assertNotIn(
+            "b15ac29c6443340e2f4389a8e376f65fbcf8c6ec", markdown_text
+        )
+        self.assertNotIn(
+            "b561e05b36abcae07508a83eaf0244f153531c97", markdown_text
+        )
         self.assertNotIn("b0eda63d2c105479140af8ec9149d992b7e44be5", markdown_text)
         self.assertNotIn("f8a0ac1c85c3d06e7f4a9b6872f2778a556c7886", markdown_text)
 
