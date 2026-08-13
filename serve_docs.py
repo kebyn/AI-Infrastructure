@@ -60,11 +60,11 @@ DOCS = [
         "title": "Multica 深度技术文档",
         "hero": "Multica 深度技术文档",
         "subtitle": "AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析",
-        "meta": "Multica v0.4.21 · source@0dfaac2 · 2026-08-07",
+        "meta": "Multica v0.4.24 · source@ad23d1d · 2026-08-13",
         "summary": "覆盖 Issue/Task、Agent/Runtime、Squad、Autopilot、自托管架构，以及本地 CLI 执行默认没有 Sandbox 的安全边界。",
         "footer": (
-            '基于 <a href="https://github.com/multica-ai/multica/tree/0dfaac266eed3b7ac710de33d8207e4f71cfb20b">'
-            'multica-ai/multica v0.4.21 源码</a> 与 '
+            '基于 <a href="https://github.com/multica-ai/multica/tree/ad23d1da3e94093924e06e9adf2745e9c312c7ce">'
+            'multica-ai/multica v0.4.24 源码</a> 与 '
             '<a href="https://multica.ai/docs">Multica 官方文档</a> 整理'
         ),
     },

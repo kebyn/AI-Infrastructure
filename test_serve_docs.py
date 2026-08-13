@@ -526,7 +526,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Multica 深度技术文档")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.4.21 · source@0dfaac2 · 2026-08-07",
+            "Multica v0.4.24 · source@ad23d1d · 2026-08-13",
         )
         for summary_term in (
             "Issue/Task",
@@ -540,7 +540,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 self.assertIn(summary_term, doc["summary"])
         self.assertIn(
             "https://github.com/multica-ai/multica/tree/"
-            "0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
+            "ad23d1da3e94093924e06e9adf2745e9c312c7ce",
             doc["footer"],
         )
         self.assertIn("https://multica.ai/docs", doc["footer"])
@@ -556,7 +556,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Multica 深度技术文档", html)
         self.assertIn('/Multica-Deep-Dive.html', html)
-        self.assertIn("Multica v0.4.21", html)
+        self.assertIn("Multica v0.4.24", html)
         self.assertIn("没有 Sandbox", html)
 
     def test_multica_execution_and_security_contract_is_documented(self):
@@ -568,9 +568,9 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         for required_text in (
-            "v0.4.21",
-            "0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
-            "审校日期：2026-08-07",
+            "v0.4.24",
+            "ad23d1da3e94093924e06e9adf2745e9c312c7ce",
+            "审校日期：2026-08-13",
             "没有强制的 Issue 状态机",
             "Task 完成不等于 Issue 完成",
             "Task 与目标 Runtime 固定绑定且不会自动迁移",
@@ -586,6 +586,14 @@ class RenderDocLayoutTest(unittest.TestCase):
             "/readyz",
             "企业微信后端必须只部署单个副本",
             "自定义 Multica License，纳入 Apache 2.0 条款并附加托管服务、商业嵌入、品牌和署名条件",
+            "Saved Issue Views",
+            "Oh-My-Pi Runtime",
+            "`multica chat history`",
+            "dotenv 风格文本",
+            "60 秒有效",
+            "有界 keyset page",
+            "10 秒 lock wait 上限",
+            "不是文件系统隔离",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -622,8 +630,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path("/data/Multica-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
-        stable_commit = "0dfaac266eed3b7ac710de33d8207e4f71cfb20b"
-        post_release_commit = "47f6e970f6a00c3da3a75172e156f9edd75fa380"
+        stable_commit = "ad23d1da3e94093924e06e9adf2745e9c312c7ce"
+        post_release_commit = "8060aa7277d9c98bdc06c36176f6408bf37e6935"
         product_image = (
             "https://raw.githubusercontent.com/multica-ai/multica/"
             f"{stable_commit}/docs/assets/hero-board.png"
@@ -646,6 +654,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn(f"main@{post_release_commit}", markdown_text)
         self.assertIn("发布后快照只记录审校时的分支边界", markdown_text)
         self.assertIn("不纳入稳定版兼容承诺", markdown_text)
+        self.assertNotIn("0dfaac266eed3b7ac710de33d8207e4f71cfb20b", markdown_text)
 
     def test_render_multica_doc_includes_toc_mermaid_and_product_image(self):
         doc = next(
@@ -673,7 +682,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("stateDiagram-v2", html)
         self.assertIn(
             "https://raw.githubusercontent.com/multica-ai/multica/"
-            "0dfaac266eed3b7ac710de33d8207e4f71cfb20b/"
+            "ad23d1da3e94093924e06e9adf2745e9c312c7ce/"
             "docs/assets/hero-board.png",
             html,
         )
