@@ -15,7 +15,7 @@ DOCS = [
         "title": "Mooncake 深度技术文档",
         "hero": "🌙 Mooncake 深度技术文档",
         "subtitle": "以 KVCache 为中心的分离式 LLM 推理架构全面解析",
-        "meta": "Mooncake v0.3.12.post1 · source@6041a60 · 2026-08-07",
+        "meta": "Mooncake v0.3.12.post1 · source@6041a60 · 2026-08-13",
         "summary": "覆盖 Transfer Engine、Mooncake Store、Conductor、HiCache、SSD/DFS 持久化、租户/多模型隔离与结构化对象接口。",
         "footer": (
             '基于 <a href="https://kvcache-ai.github.io/Mooncake">Mooncake 官方文档</a> 与 '
@@ -30,7 +30,7 @@ DOCS = [
         "title": "Dynamo 深度技术文档",
         "hero": "Dynamo 深度技术文档",
         "subtitle": "数据中心级 LLM 推理编排、KV 路由、KVBM 与 Planner 架构解析",
-        "meta": "Dynamo v1.3.1 · source@a49702e · ModelExpress v0.5.0@0406ac1 · 2026-08-07",
+        "meta": "Dynamo v1.3.1 · source@a49702e · ModelExpress v0.5.0@0406ac1 · 2026-08-13",
         "summary": "覆盖 Request/Control/Storage 三平面、KV-Aware Router、KVBM、Planner、Operator 与部署模式。",
         "footer": (
             '基于 <a href="https://github.com/ai-dynamo/dynamo/tree/a49702e4432e7fa43cbc88175bddb31604340f19">ai-dynamo/dynamo v1.3.1 源码</a> 与 '
@@ -96,7 +96,7 @@ DOCS = [
         "title": "Lustre 与 3FS 深度技术文档",
         "hero": "Lustre 与 3FS 深度技术文档",
         "subtitle": "HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析",
-        "meta": "Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-08-07",
+        "meta": "Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-08-13",
         "summary": "覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV cache 与生产选型。",
         "footer": (
             '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、'
@@ -111,7 +111,7 @@ DOCS = [
         "title": "NVIDIA GPU Operator 深度技术文档",
         "hero": "NVIDIA GPU Operator 深度技术文档",
         "subtitle": "Kubernetes GPU 节点软件栈、ClusterPolicy 调谐、设备暴露、共享隔离与生产运维解析",
-        "meta": "GPU Operator v26.3.3 · source@b0a49c0 · 2026-08-07",
+        "meta": "GPU Operator v26.3.3 · source@b0a49c0 · 2026-08-13",
         "summary": "覆盖 Controller 调谐、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级、安全与故障排查。",
         "footer": (
             '基于 <a href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/overview.html">'
@@ -127,7 +127,7 @@ DOCS = [
         "title": "HAMi 深度技术文档",
         "hero": "HAMi 深度技术文档",
         "subtitle": "Kubernetes 异构 AI 设备虚拟化、共享、隔离与调度架构解析",
-        "meta": "HAMi v2.9.0 · source@3a006c6 · 2026-08-07",
+        "meta": "HAMi v2.9.0 · source@3a006c6 · 2026-08-13",
         "summary": "覆盖 MutatingWebhook、Scheduler Extender、Device Plugin、HAMi-Core、Annotation 协议、多厂商设备与生产实践。",
         "footer": (
             '基于 <a href="https://github.com/Project-HAMi/HAMi/tree/v2.9.0">Project-HAMi/HAMi v2.9.0</a> 与 '
@@ -141,7 +141,7 @@ DOCS = [
         "title": "Kubernetes 原生调度器深度技术文档",
         "hero": "Kubernetes 原生调度器深度技术文档",
         "subtitle": "kube-scheduler 架构、Scheduling Framework、工作负载级调度与 AI 调度器对比",
-        "meta": "Kubernetes v1.36.3 · source@0f29094 · 2026-08-07",
+        "meta": "Kubernetes v1.36.3 · source@0f29094 · 2026-08-13",
         "summary": "覆盖调度队列、Filter/Score/Bind、DRA 对象与生命周期、DynamicResources 调用链、PodGroup/Gang/TAS、工作负载级抢占及 AI 调度器选型。",
         "footer": (
             '基于 <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/">'
@@ -212,7 +212,7 @@ DOCS = [
         "title": "Kubeflow 深度技术文档",
         "hero": "Kubeflow 深度技术文档",
         "subtitle": "Kubeflow Community Distribution、端到端 MLOps 平台与 KServe 节点集成解析",
-        "meta": "Kubeflow Community Distribution 26.03.1 · source@f09f3ee · 2026-08-07",
+        "meta": "Kubeflow Community Distribution 26.03.1 · source@f09f3ee · 2026-08-13",
         "summary": "覆盖 Community Distribution 架构、Dashboard、Profiles、Pipelines、Notebooks、Katib、Trainer、KServe 节点、Istio/OAuth2/Dex 与生产实践。",
         "footer": (
             '基于 <a href="https://github.com/kubeflow/community-distribution/tree/26.03.1">'

@@ -16,10 +16,12 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-08-07", doc["meta"])
+                self.assertIn("2026-08-13", doc["meta"])
+                self.assertNotIn("2026-08-07", doc["meta"])
                 self.assertNotIn("2026-07-24", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-08-07", markdown_text)
+                self.assertIn("审校日期：2026-08-13", markdown_text)
+                self.assertNotIn("审校日期：2026-08-07", markdown_text)
                 self.assertNotIn("2026-07-24", markdown_text)
 
     def test_readme_tracks_current_audit_summary(self):
@@ -28,24 +30,43 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         for required_text in (
-            "2026-08-07",
-            "8 个正文主稳定基线",
+            "2026-08-13",
+            "4 个正文稳定基线发生变化",
+            "v0.4.24@ad23d1da3e94093924e06e9adf2745e9c312c7ce",
+            "v0.19.1@df3d3656004f7b2478004a37b34ad8efa9ffabf0",
+            "v0.5.17@29481685462732237d80d86076d6563e1f658102",
+            "v0.27.1@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
             "v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
             "main@034c503f1fd51fd166db76dfae037673714d633b",
+            "main@3ea199b8b910f8e838a6000796c29536d592fbdd",
             "master@16d6d1dad031a0e821d1a670ce0eff6c88d16a78",
+            "main@2f613dd5d9fd603016e620c704d65146e527ea4e",
+            "master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8",
+            "main@c2050e3debe58dbcdf9bb75b667799eec9409513",
             "spec.kvCacheOffloading",
-            "v0.17.0@f218c69bee5e5fc6031273ba555d09916b1ca89a",
-            "v1.15.1@0a56ed331897f5455916a44d3075671376d731d6",
-            "v0.12.0@0e723bb8c984564cddf7274d19aab4eb7714f919",
-            "v0.7.3@39383552962841086d05e25c37b58a83ef06c758",
-            "v1.10.0@9d052ca0240ebf8b603c053fa44727b863ff3933",
+            "rollout strategy",
+            "KEDA true scale-to-zero",
+            "`oci+fetch://`",
+            "其余已登记稳定 Release 经复核未变化",
             "v0.1.0-alpha.12-rc1` 是 prerelease",
+            "main@22fca04564c7cc230fd8b9523b8b92864e1dad47",
             "v1.8.2 → v1.15.1",
-            "v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
-            "不计入上述“8 个正文主稳定基线发生变化”",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, readme_text)
+
+        for superseded_text in (
+            "审校截止日为 **2026-08-07**",
+            "8 个正文主稳定基线发生变化",
+            "v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
+            "main@88f41f392722a2f56971ea6c1084f0fc574ef1f4",
+            "main@108be73b56d9bff55a0cc626c9e89100d797a9bc",
+            "master@b15ac29c6443340e2f4389a8e376f65fbcf8c6ec",
+            "main@b561e05b36abcae07508a83eaf0244f153531c97",
+            "master@0ef50ca74346b4ef89576f9d864089b5b6b341df",
+        ):
+            with self.subTest(superseded_text=superseded_text):
+                self.assertNotIn(superseded_text, readme_text)
 
     def test_benchmark_snapshot_uses_current_stable_releases(self):
         doc = next(
