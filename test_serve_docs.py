@@ -32,7 +32,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         for required_text in (
             "2026-08-13",
             "4 个正文稳定基线发生变化",
-            "v0.4.24@ad23d1da3e94093924e06e9adf2745e9c312c7ce",
+            "v0.4.26@19155e41f96cb3aec2355ae1d40da80c00030cdf",
             "v0.19.1@df3d3656004f7b2478004a37b34ad8efa9ffabf0",
             "v0.5.17@29481685462732237d80d86076d6563e1f658102",
             "v0.27.1@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
@@ -51,6 +51,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "v0.1.0-alpha.12-rc1` 是 prerelease",
             "main@22fca04564c7cc230fd8b9523b8b92864e1dad47",
             "v1.8.2 → v1.15.1",
+            "v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac",
+            "v0.4.26@19155e41f96cb3aec2355ae1d40da80c00030cdf",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, readme_text)
@@ -713,13 +715,17 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Multica 深度技术文档")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.4.24 · source@ad23d1d · 2026-08-13",
+            "Multica v0.4.26 · source@19155e4 · 2026-08-13",
         )
         for summary_term in (
             "Issue/Task",
             "Agent/Runtime",
             "Squad",
             "Autopilot",
+            "21 种 provider",
+            "DeepSeek Harness",
+            "in_place/worktree",
+            "Private Skill Plugin",
             "自托管",
             "没有 Sandbox",
         ):
@@ -727,7 +733,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 self.assertIn(summary_term, doc["summary"])
         self.assertIn(
             "https://github.com/multica-ai/multica/tree/"
-            "ad23d1da3e94093924e06e9adf2745e9c312c7ce",
+            "19155e41f96cb3aec2355ae1d40da80c00030cdf",
             doc["footer"],
         )
         self.assertIn("https://multica.ai/docs", doc["footer"])
@@ -743,7 +749,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Multica 深度技术文档", html)
         self.assertIn('/Multica-Deep-Dive.html', html)
-        self.assertIn("Multica v0.4.24", html)
+        self.assertIn("Multica v0.4.26", html)
         self.assertIn("没有 Sandbox", html)
 
     def test_multica_execution_and_security_contract_is_documented(self):
@@ -755,8 +761,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         for required_text in (
-            "v0.4.24",
-            "ad23d1da3e94093924e06e9adf2745e9c312c7ce",
+            "v0.4.26",
+            "19155e41f96cb3aec2355ae1d40da80c00030cdf",
             "审校日期：2026-08-13",
             "没有强制的 Issue 状态机",
             "Task 完成不等于 Issue 完成",
@@ -781,6 +787,31 @@ class RenderDocLayoutTest(unittest.TestCase):
             "有界 keyset page",
             "10 秒 lock wait 上限",
             "不是文件系统隔离",
+            "DeepSeek Harness",
+            "`dsh`",
+            "DEEPSEEK_API_KEY",
+            "dsh --profile multica --probe",
+            "21 个 protocol family",
+            "`in_place`（默认）",
+            "`worktree`",
+            "agent/<agent>/<task>",
+            "2000 个文件 / 200 MiB",
+            "capability 双校验",
+            "回滚风险",
+            "MULTICA_WORKSPACES_ROOT",
+            "MULTICA_AGENT_TEMP_BASE",
+            "AF_UNIX",
+            "MULTICA_CODEX_FIRST_TURN_TIMEOUT",
+            "严格小于",
+            "owner-only API/CLI",
+            "Private Skill Plugin V1",
+            "multica.plugin/v1",
+            "agent.skill.contribute",
+            "multica plugin validate",
+            "Kernel Policy",
+            "不可运行的 CLI",
+            "Hermes",
+            "Windows",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -817,8 +848,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path("/data/Multica-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
-        stable_commit = "ad23d1da3e94093924e06e9adf2745e9c312c7ce"
-        post_release_commit = "8060aa7277d9c98bdc06c36176f6408bf37e6935"
+        stable_commit = "19155e41f96cb3aec2355ae1d40da80c00030cdf"
+        post_release_commit = "2832f003aed5eaac2d8f0813fc88bf77571e76d5"
         product_image = (
             "https://raw.githubusercontent.com/multica-ai/multica/"
             f"{stable_commit}/docs/assets/hero-board.png"
@@ -869,7 +900,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("stateDiagram-v2", html)
         self.assertIn(
             "https://raw.githubusercontent.com/multica-ai/multica/"
-            "ad23d1da3e94093924e06e9adf2745e9c312c7ce/"
+            "19155e41f96cb3aec2355ae1d40da80c00030cdf/"
             "docs/assets/hero-board.png",
             html,
         )

@@ -4,11 +4,11 @@
 >
 > 基于 Multica 官方仓库和官方文档整理：<https://github.com/multica-ai/multica>
 >
-> 稳定版本基线：annotated tag `v0.4.24` 解引用后的 `ad23d1da3e94093924e06e9adf2745e9c312c7ce`；发布后快照：`main@8060aa7277d9c98bdc06c36176f6408bf37e6935`；审校日期：2026-08-13。正文的产品契约、默认参数和部署行为只以 `v0.4.24` 的 peeled source commit 为准；发布后快照只记录审校时的分支边界，不纳入稳定版兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
+> 稳定版本基线：annotated tag `v0.4.26` 解引用后的 `19155e41f96cb3aec2355ae1d40da80c00030cdf`；发布后快照：`main@2832f003aed5eaac2d8f0813fc88bf77571e76d5`；审校日期：2026-08-13。正文的产品契约、默认参数和部署行为只以 `v0.4.26` 的 peeled source commit 为准；发布后快照只记录审校时的分支边界，不纳入稳定版兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
 
-![Multica v0.4.24 产品看板：成员与 AI Agent 在同一 Workspace 中围绕 Issue 协作，界面展示状态列、负责人、优先级和项目上下文](https://raw.githubusercontent.com/multica-ai/multica/ad23d1da3e94093924e06e9adf2745e9c312c7ce/docs/assets/hero-board.png)
+![Multica v0.4.26 产品看板：成员与 AI Agent 在同一 Workspace 中围绕 Issue 协作，界面展示状态列、负责人、优先级和项目上下文](https://raw.githubusercontent.com/multica-ai/multica/19155e41f96cb3aec2355ae1d40da80c00030cdf/docs/assets/hero-board.png)
 
-> 图片来源：Multica 官方仓库 [`docs/assets/hero-board.png`](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/docs/assets/hero-board.png)，固定到 `v0.4.24` exact source commit；本仓库不复制该二进制文件。
+> 图片来源：Multica 官方仓库 [`docs/assets/hero-board.png`](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/docs/assets/hero-board.png)，固定到 `v0.4.26` exact source commit；本仓库不复制该二进制文件。
 
 ---
 
@@ -61,18 +61,18 @@ Multica 的核心产品价值不是“给模型一台隔离机器”，而是把
 
 本文使用以下优先级：
 
-1. `v0.4.24` peeled commit 中的数据库 migration、Go 服务端、daemon 和 provider adapter 源码；
+1. `v0.4.26` peeled commit 中的数据库 migration、Go 服务端、daemon 和 provider adapter 源码；
 2. 同一 commit 中的中文官方文档、`README.zh.md` 和自托管指南；
 3. annotated tag 与 GitHub Release 元数据；
-4. 发布后 `main@8060aa72...` 只用于说明“审校时 main 已经前进”，不证明任何稳定行为。
+4. 发布后 `main@2832f003...` 只用于说明“审校时 main 已经前进”，不证明任何稳定行为。
 
 本文所有 GitHub 稳定行为链接都固定到 tag 或 40 位 exact commit，不使用浮动 `main`/`master` URL。官网路由适合日常阅读，但未来可能随发布更新；需要审计时应回到附录 E 的固定源码链接。
 
-### 1.5 v0.4.22 到 v0.4.24 的累计变化
+### 1.5 v0.4.22 到 v0.4.26 的累计变化
 
-`v0.4.24` 包含此前两个补丁 release 的全部变化。与本文上一基线 `v0.4.21` 相比，和架构、执行或运维边界直接相关的增量如下：
+`v0.4.26` 包含此前两个补丁 release 的全部变化。与本文上一基线 `v0.4.21` 相比，和架构、执行或运维边界直接相关的增量如下：
 
-| 累计变化 | v0.4.24 固定实现 | 落地边界 |
+| 累计变化 | v0.4.26 固定实现 | 落地边界 |
 | --- | --- | --- |
 | Saved Issue Views | 服务端保存命名 filter，支持 private/workspace visibility、scope、revision 与每用户 display preference | 这是看板查询与显示偏好，不改变 Issue 七状态或 Task 调度语义 |
 | Oh-My-Pi Runtime | daemon 独立探测 `omp`，以 `provider=omp` 注册并复用 `pi` protocol family backend | 新增 Runtime identity，不是第 21 种自定义 Runtime protocol family |
@@ -83,7 +83,79 @@ Multica 的核心产品价值不是“给模型一台隔离机器”，而是把
 | Workspace teardown | 删除过程改为单事务、有界 keyset page、owner/task fence 和 10 秒 lock wait 上限 | 避免无限等待或提交半清理租户；失败会回滚并要求重试，不代表跨存储自动删除 Runtime 本地数据 |
 | provider/权限修复 | 修复跨 Workspace project 更新、PR close intent 歧义、Reasonix per-task deny、Cursor MCP shape 与 resumed auth recovery | 这些修复收紧租户、工具与恢复边界，不放宽 Agent Access 或主机权限 |
 
-发布后 `main@8060aa72...` 只记录 2026-08-13 审计时主线已经越过 `v0.4.24`；其中后续提交仍按未发布快照处理，不反推为本表的稳定能力。
+发布后 `main@2832f003...` 只记录 2026-08-17 审计时主线已经越过 `v0.4.26`；其中后续提交仍按未发布快照处理，不反推为本表的稳定能力。
+
+### 1.6 v0.4.25/v0.4.26 执行与治理增量
+
+以下变化来自 `v0.4.25` 与 `v0.4.26` 的 release commit，并合并进当前 `v0.4.26` 稳定基线。它们改变了本地执行、Runtime 治理和插件生命周期，不能只把本轮升级理解成 UI 或 provider 数量变化。
+
+#### DeepSeek Harness Runtime（`dsh`）
+
+v0.4.26 新增 DeepSeek Harness provider，CLI/Runtime key 为 `dsh`，协议为其 ACP/stdio profile。安装前置条件是 Node.js 20+、`npm install -g @deepseek-ai/dsh`，以及安装 Multica profile（`dsh plugin --profile multica add <bundle>`）。daemon 只有在 `dsh --profile multica --probe` 成功时才注册 Runtime；仅 PATH 中存在裸 `dsh` 不足以通过 capability probe。
+
+模型目录由 `dsh --profile multica --list-models` 提供，模型值使用完整的 `provider/model`（例如 `deepseek-official/deepseek-chat`）。执行前需要 `DEEPSEEK_API_KEY` 或 dsh 自己保存的认证；`MULTICA_DSH_PATH`、`MULTICA_DSH_MODEL` 可覆盖命令和默认模型。Skill 从 `.dsh/skills`（以及运行时允许的 `AGENTS.md`）发现。它把 provider 表从 20 个 protocol family 扩展为 **21 个**；Oh-My-Pi `omp` 仍是复用 Pi family 的独立 Runtime identity，不另造协议族。
+
+#### 本地目录的 `in_place` 与 `worktree`
+
+`local_directory` 仍是需要复用超大 checkout 时的逃生舱，不是普通 Git 仓库的首选。每个资源显式选择执行模式：
+
+| 模式 | 并发与目录 | 分支/状态 | 失败与能力边界 |
+|------|------|------|------|
+| `in_place`（默认） | 同一真实目录一次只运行一个 Task；后续进入 `waiting_local_directory` | 直接使用当前分支、未提交和未跟踪文件；Multica 不自动 branch/stash/commit/push/PR | 不是隔离；目录锁只协调并发 |
+| `worktree` | 同一 Git 目录的 Task 并发执行，各自使用 Runtime workspace 内的独立 worktree | 分支命名 `agent/<agent>/<task>`；保存时把未提交/未跟踪状态回放，结果由用户 review/merge/cherry-pick | 必须是至少有一次提交的 Git 仓库；运行时必须声明 capability，不满足即 fail-closed |
+
+`worktree` 的 capability 双重校验发生在保存资源和 Task 实际领取时，不能用版本字符串推断能力。回放上限是 2000 个文件或 200 MiB；超过或无法忠实回放时 Task 失败而不退回原地执行。Task 中途失败也会把已经产生的改动提交到 `agent/<agent>/<task>` 分支；如果 commit 因 GPG 签名或其他原因失败，worktree 会保留供人工救援，不会静默丢改动。没有产生改动的分支才会在清理时删除。
+
+这是服务端强制的执行语义。只要仍存在 `worktree` 资源，就不能把服务端回滚到不认识 `execution_mode` 的旧版本：旧服务端可能忽略该字段，让没有 capability 的旧 Runtime 直接改写原目录，形成安全回退风险。
+
+#### 路径、临时目录与 Codex 首轮超时
+
+本地目录必须是已存在、可读写的绝对路径；系统根、用户根、`/etc`、`/var`、`/tmp`、`/usr`、`/opt` 等路径以及解析后落入这些范围的符号链接会被拒绝。daemon 工作区根的优先级是：`daemon start/restart --workspaces-root` > `MULTICA_WORKSPACES_ROOT` > 当前 profile 的 `workspaces_root` 配置；修改根不会迁移既有 Task 目录。
+
+`MULTICA_AGENT_TEMP_BASE` 只适用于 Linux/macOS，必须是已存在且可写的绝对目录，无效时 Task 启动失败而不会回退到 `/tmp`。子工具可能在其下创建 AF_UNIX socket，因此要为路径长度留余量（Linux `sun_path` 上限 108 字节，macOS 104 字节）。
+
+Codex 可用 `MULTICA_CODEX_FIRST_TURN_TIMEOUT` 提高首轮无进展等待；它必须严格小于 `MULTICA_CODEX_SEMANTIC_INACTIVITY_TIMEOUT`，相等也不安全，因为 semantic timer 先触发会跳过模型目录启动重试。`0` 保持默认行为，实际等待仍受总执行超时约束。
+
+#### Runtime 权限与 provider 生命周期
+
+private Runtime 的 owner-only 规则在 v0.4.25/v0.4.26 同时应用于 API 和 CLI：只有 Runtime owner 可以在其上创建/绑定 Agent；Workspace owner/admin 可以管理 Runtime 对象，但不能借管理权限绕过 owner-only 调用约束。只有 owner 能把 Runtime 改为 public，public 只放宽 Agent 绑定，不复制 CLI 登录凭据。
+
+daemon 现在对不可运行的 CLI 做 fail-closed 诊断（例如格式错误、缺失解释器或 probe 失败），记录可修复原因而不是把原始 `exec format error` 泄漏给用户或反复领取 Task。Windows daemon 保留 npm/Volta/Vite Plus 生成的 `.cmd` 入口，并用 Job Object 归属 Codex 进程树，避免取消或退出后留下孤儿进程。
+
+#### Private Skill Plugin V1
+
+Private Skill Plugin 是静态 Skill 交付系统，不是 npm、Python、WASM、native 扩展或任意代码执行系统。必须同时打开 `plugins_v1` 和 `private_plugins_v1` feature flag；关闭基础 `plugins_v1` 会关闭全部 Plugin 管理 API。
+
+最小 manifest 形态如下：
+
+```json
+{
+  "api_version": "multica.plugin/v1",
+  "kind": "Plugin",
+  "metadata": {
+    "key": "dev.example.release-notes",
+    "version": "0.1.0",
+    "name": "Release Notes",
+    "publisher": "example.internal"
+  },
+  "contributions": [{
+    "type": "agent.skill.v1",
+    "path": "skills/release-notes/SKILL.md"
+  }],
+  "requested_capabilities": ["agent.skill.contribute"]
+}
+```
+
+V1 只接受静态 UTF-8 `SKILL.md`，拒绝未知字段/能力、符号链接、可执行文件、二进制、包管理 manifest、install/build hook、未声明路径和超限归档。`multica plugin validate`/`pack` 可在本地生成确定性 ZIP，但 Server 上传后会完整复验，CLI 成功不等于授权。
+
+安装、升级、Binding、回滚和卸载需要 Workspace `owner`/`admin`。安装先进入 disabled 的 Private/Unverified 状态；Plugin 本身不授予工具或网络权限，有效能力是 Kernel Policy、Agent tool permission、Plugin Grant、Binding 与 actor approval 的交集。版本与 artifact 不可变，同 key/version 的不同内容冲突，历史 Task 保留 pinned Execution Manifest；每 Workspace 当前最多 100 个 private release、256 MiB validated artifact。Plugin 不包含 remote MCP、Secrets、network grant、Git/HTTP registry、install hook、UI/automation contribution 或 publisher verification。
+
+#### 其他 v0.4.25/v0.4.26 运维行为
+
+- Runtime GC 不再删除 Task history；只清理满足 TTL 的 worktree、artifact、repo cache、Hermes memory/session store，正在运行的 Task 永不触碰。
+- Hermes 的 `state.db` 按 conversation 建立持久 session，Task 结束后仍可 resume；daemon 会报告实际读取的 `HERMES_HOME`，并把 Hermes memory 与 transcript 分开按 TTL 回收。
+- MCP/Skill 传递继续由 provider capability 决定：ACP provider 在 session/new 和 resume 时传递 MCP，远端 transport 缺少 capability 时丢弃并告警；Skill 仍只是内容，不改变无 Sandbox 的宿主机边界。
+- Issue 重新指派或改状态可以选择跳过新 run；修复了同一 Issue 的重复 self-assignment，不能把一次 UI 更新误解为隐式取消已有 Task。
 
 ---
 
@@ -163,7 +235,7 @@ Project 是组织层而不是执行器：
 
 ### 2.4 Issue 的七种状态
 
-`v0.4.24` 固定七种 Issue 状态：
+`v0.4.26` 固定七种 Issue 状态：
 
 | 状态 | 产品语义 |
 | --- | --- |
@@ -192,7 +264,7 @@ Project 是组织层而不是执行器：
 
 ### 2.6 Saved Issue Views
 
-`v0.4.24` 可把当前 Issue filter 保存为命名 view。服务端对象记录 `scope_type`、可选 `scope_id`/`scope_variant`、`visibility`、版本化 `query`、初始 `display` 与乐观并发 `revision`：
+`v0.4.26` 可把当前 Issue filter 保存为命名 view。服务端对象记录 `scope_type`、可选 `scope_id`/`scope_variant`、`visibility`、版本化 `query`、初始 `display` 与乐观并发 `revision`：
 
 - Workspace 与 Project view 可按 members/agents 变体限定范围；My Issues view 可按 assigned/created/involved/any 变体保存，但必须保持 private；
 - `query` 是共享查询定义，`display` 只作为首次打开的布局、分组、排序和卡片字段种子，之后由每个用户的 preference 覆盖；
@@ -291,7 +363,7 @@ daemon 运行在用户连接的电脑上，负责：
 
 ### 4.1 Task 的八种状态
 
-`v0.4.24` 的 Task 状态全集是：
+`v0.4.26` 的 Task 状态全集是：
 
 | 状态 | 含义 | 是否可由 daemon 领取 |
 | --- | --- | --- |
@@ -471,7 +543,7 @@ Skill 有两类来源：
 
 `custom_env` 用于把 provider key、base URL、云凭据或工具变量传给 Agent 子进程。固定版本 migration 把它定义为 `agent.custom_env JSONB NOT NULL DEFAULT '{}'`，管理 API 可在授权和审计后返回 plaintext map。
 
-`v0.4.24` 的 Agent 设置支持粘贴或批量编辑 dotenv 风格文本：接受空行、注释、可选 `export` 和带引号值，报告首个 malformed/duplicate key 的物理行号，并在值含换行或无法无损 round-trip 时拒绝序列化。它是 UI 输入与校验能力，不会执行 shell expansion，也没有改变服务端存储格式。
+`v0.4.26` 的 Agent 设置支持粘贴或批量编辑 dotenv 风格文本：接受空行、注释、可选 `export` 和带引号值，报告首个 malformed/duplicate key 的物理行号，并在值含换行或无法无损 round-trip 时拒绝序列化。它是 UI 输入与校验能力，不会执行 shell expansion，也没有改变服务端存储格式。
 
 因此必须明确：**`custom_env` 值会以明文 JSONB 存入 Multica 服务端 PostgreSQL 数据库。** UI 遮罩、专用读取 endpoint 和读取审计可以降低误暴露概率，但不等于数据库加密。数据库备份、只读副本、管理员查询和泄漏响应都必须把它当 secret 处理。
 
@@ -507,11 +579,11 @@ effective concurrency
 
 同一 daemon 可同时注册 Claude Code、Codex、Cursor 等多个 Runtime。重启 daemon 会更新原 Runtime 记录，不应无限创建重复行。
 
-`v0.4.24` 还把 Oh-My-Pi 作为独立内置 Runtime identity：daemon 探测 PATH 中的 `omp`（或 `MULTICA_OMP_PATH`），注册 `provider=omp`，从 `omp models --json` 发现模型，并读取 `.omp/skills` 与用户级 `.omp/agent/skills`。执行时它复用 Pi 的 JSON event protocol backend，但保持自己的命令、显示名、Skill 路径和模型探测；因此 `omp` 不能被当成任意自定义 profile 可选择的新 protocol family。
+`v0.4.26` 还把 Oh-My-Pi 作为独立内置 Runtime identity：daemon 探测 PATH 中的 `omp`（或 `MULTICA_OMP_PATH`），注册 `provider=omp`，从 `omp models --json` 发现模型，并读取 `.omp/skills` 与用户级 `.omp/agent/skills`。执行时它复用 Pi 的 JSON event protocol backend，但保持自己的命令、显示名、Skill 路径和模型探测；因此 `omp` 不能被当成任意自定义 profile 可选择的新 protocol family。
 
 ### 6.2 私有与公开 Runtime
 
-本地 Runtime 默认是 private：Runtime owner 和 Workspace owner/admin 可以在其上创建或绑定 Agent。Runtime 可改为 public，让其他 Workspace member 选择该执行环境。
+本地 Runtime 默认是 private：只有 Runtime owner 可以在其上创建或绑定 Agent，Workspace owner/admin 不能通过管理权限绕过 owner-only API/CLI 约束。只有 owner 可以把 Runtime 改为 public，让其他 Workspace member 选择该执行环境。
 
 “public”只放宽 **绑定 Agent 到该 Runtime** 的权限，不会把 CLI 登录凭据复制给其他用户。但一旦他们有权触发绑定的 Agent，Task 进程会在那台机器上执行，因此 Runtime owner 必须把主机权限和 Agent Access 一并审查。
 
@@ -519,7 +591,7 @@ effective concurrency
 
 daemon 的 Task 环境默认位于 `~/multica_workspaces/` 之下，并按 Workspace/Issue/Task 管理 workdir、session 和可回收 artifact。Git 资源通常生成独立 checkout；显式 local-directory 资源则直接使用既有路径并加目录锁。
 
-这些路径主要解决并发和状态复用：
+这些路径主要解决并发和状态复用。路径配置的优先级是 `--workspaces-root` > `MULTICA_WORKSPACES_ROOT` > profile `workspaces_root`；另外，`MULTICA_AGENT_TEMP_BASE` 是 Linux/macOS 的绝对路径临时目录前缀，必须已存在且可写，不能把无效值回退为 `/tmp`。AF_UNIX 子路径受 Linux 108 字节、macOS 104 字节 `sun_path` 上限约束，生产环境应选短路径。
 
 - 不同 Task 避免在同一 checkout 上互相覆盖；
 - 重试可以复用原目录中的未提交工作；
@@ -556,7 +628,7 @@ adapter **不提供模型、不代替用户购买额度、不自动完成 CLI �
 
 自定义 Runtime Profile 允许团队把内部 wrapper 或固定命令映射到已有协议族。它包含 display name、protocol family、command name、fixed args、visibility 和 enabled 状态。
 
-它不会创造第 21 种通信协议。自定义命令必须兼容所选的 20 种 protocol family 之一；配置字段不是 shell script，pipe、重定向、`&&`、`;`、反引号和环境变量展开应放进受审计的 wrapper script。
+它不会创造第 22 种通信协议。自定义命令必须兼容所选的 21 种 protocol family 之一；配置字段不是 shell script，pipe、重定向、`&&`、`;`、反引号和环境变量展开应放进受审计的 wrapper script。
 
 ---
 
@@ -613,7 +685,7 @@ Chat 是用户与一个 Agent 的一对一私有会话：
 - Workspace 其他成员和管理员不能读取该 Chat；
 - Agent 仍可按调用者权限通过 Multica CLI 查询或修改 Workspace 对象。
 
-`v0.4.24` 为会话恢复补上 `multica chat history`：Slack-backed Chat 读取平台 channel/thread history，Web、飞书、企业微信和钉钉等非 Slack session 则分页读取 Multica `chat_message` transcript。它解决 provider resume 失效后“Agent 无法回看本会话”的问题，但不会让其他 Workspace 成员或管理员读取该用户的私有 Chat，也不会把 Chat 自动转成团队可见 Issue。
+`v0.4.26` 为会话恢复补上 `multica chat history`：Slack-backed Chat 读取平台 channel/thread history，Web、飞书、企业微信和钉钉等非 Slack session 则分页读取 Multica `chat_message` transcript。它解决 provider resume 失效后“Agent 无法回看本会话”的问题，但不会让其他 Workspace 成员或管理员读取该用户的私有 Chat，也不会把 Chat 自动转成团队可见 Issue。
 
 Chat 适合探索和私有草稿；需要负责人、状态、团队可见历史和交付确认时，应使用 Issue。
 
@@ -766,7 +838,7 @@ flowchart TB
 | Mobile | Expo / React Native（iOS） |
 | Backend | Go、Chi router、sqlc、gorilla/websocket |
 | Database | PostgreSQL 17 + pgvector |
-| Local execution | Go daemon + 20 种 provider adapter |
+| Local execution | Go daemon + 21 种 provider adapter（另有 `omp` identity） |
 | Packaging | Docker Compose、OCI Helm Chart |
 
 服务端和 Runtime 不在同一个安全域：Backend 可以部署在数据中心或 Kubernetes，daemon 则运行在靠近代码与 CLI 凭据的工作站、构建机、容器或 VM。
@@ -813,7 +885,7 @@ flowchart TB
 固定生产版本时不要使用 Compose 默认的 mutable `latest`。应在 `.env` 中显式设置：
 
 ```dotenv
-MULTICA_IMAGE_TAG=v0.4.24
+MULTICA_IMAGE_TAG=v0.4.26
 ```
 
 Backend entrypoint 先运行 `./migrate up`，成功后再启动 server。Compose 默认只把 frontend/backend 绑定到 `127.0.0.1`；对外访问应由 TLS reverse proxy 转发，不能为了省事直接把原始端口改成 `0.0.0.0`。
@@ -832,9 +904,9 @@ Backend entrypoint 先运行 `./migrate up`，成功后再启动 server。Compos
 ```yaml
 images:
   backend:
-    tag: v0.4.24
+    tag: v0.4.26
   frontend:
-    tag: v0.4.24
+    tag: v0.4.26
 ```
 
 Secret 由 `existingSecret` 引用，真实值不应进入 values 文件和 Git。默认 uploads PVC 是 `ReadWriteOnce`；需要多个 backend replica 时，应使用 S3-compatible storage、支持 `ReadWriteMany` 的存储，或明确设计附件共享。
@@ -851,7 +923,7 @@ Secret 由 `existingSecret` 引用，真实值不应进入 values 文件和 Git�
 
 服务端备份不能恢复 Runtime 本地未提交代码。需要保留执行产物时，应要求 Agent 提交到 VCS、上传 artifact，或为 Runtime 工作盘建立独立策略。
 
-`v0.4.24` 在 proxy storage 路径为浏览器/桌面原生下载补充短期 capability URL：它绑定单个 attachment ID、过期时间和 load/download intent，默认 60 秒有效，且与 JWT 签名域分离。该公开下载 URL 本身就是 bearer credential，应避免写入长期日志或消息；它只修复携带不了 Authorization/cookie 的下载请求，不改变附件 membership 校验发生在 capability 签发时这一信任模型。
+`v0.4.26` 在 proxy storage 路径为浏览器/桌面原生下载补充短期 capability URL：它绑定单个 attachment ID、过期时间和 load/download intent，默认 60 秒有效，且与 JWT 签名域分离。该公开下载 URL 本身就是 bearer credential，应避免写入长期日志或消息；它只修复携带不了 Authorization/cookie 的下载请求，不改变附件 membership 校验发生在 capability 签发时这一信任模型。
 
 ---
 
@@ -861,10 +933,10 @@ Secret 由 `existingSecret` 引用，真实值不应进入 values 文件和 Git�
 
 Compose、Chart 和源码示例中的 `latest` 适合快速体验，不适合作为生产变更控制。生产基线应同时固定：
 
-- backend image `v0.4.24`；
-- frontend image `v0.4.24`；
+- backend image `v0.4.26`；
+- frontend image `v0.4.26`；
 - matching Helm Chart version 或固定 Chart digest；
-- daemon/CLI `v0.4.24`；
+- daemon/CLI `v0.4.26`；
 - provider CLI 版本与登录方式；
 - PostgreSQL 17/pgvector、附件存储和 reverse proxy 配置。
 
@@ -882,7 +954,7 @@ Compose、Chart 和源码示例中的 `latest` 适合快速体验，不适合作
 - 阅读 release notes 中的历史 backfill 或 fail-closed guard；
 - 确认应用镜像与 schema 版本配套。
 
-Workspace 删除也在 `v0.4.24` 收紧：Backend 在一个数据库事务中锁定 Workspace 与相关 owner，按固定大小的 keyset page 删除 Task 及其引用，并用 migration fence 阻止 teardown 窗口内新建或迁移 Task。等待全局 usage rollup/owner lock 最多 10 秒；遇到 lock timeout 或 deadlock 返回可重试错误并整体回滚，而不是无限挂起或提交残缺清理。这个流程只覆盖服务端关系图；daemon 主机上的 workdir、provider session 和外部对象生命周期仍要按独立保留策略治理。
+Workspace 删除也在 `v0.4.26` 收紧：Backend 在一个数据库事务中锁定 Workspace 与相关 owner，按固定大小的 keyset page 删除 Task 及其引用，并用 migration fence 阻止 teardown 窗口内新建或迁移 Task。等待全局 usage rollup/owner lock 最多 10 秒；遇到 lock timeout 或 deadlock 返回可重试错误并整体回滚，而不是无限挂起或提交残缺清理。这个流程只覆盖服务端关系图；daemon 主机上的 workdir、provider session 和外部对象生命周期仍要按独立保留策略治理。
 
 ### 10.3 Readiness 与 liveness
 
@@ -996,9 +1068,9 @@ Multica 不是简单的 Apache-2.0 项目。准确表述是：
 
 ### 11.3 固定官方文本
 
-- [`LICENSE`](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/LICENSE)
-- [`NOTICE`](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/NOTICE)
-- [`README.zh.md`](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/README.zh.md)
+- [`LICENSE`](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/LICENSE)
+- [`NOTICE`](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/NOTICE)
+- [`README.zh.md`](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/README.zh.md)
 
 本文只说明固定版本文本中的工程边界，不提供法律意见。对外托管、产品嵌入、品牌修改、再分发或商业使用前，应让有资质的法律顾问审查你的具体使用方式和当时有效许可证。
 
@@ -1051,52 +1123,53 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 | 对象 | 固定值 | 本文用途 | 兼容承诺 |
 | --- | --- | --- | --- |
-| Stable tag | `v0.4.24` | 官方最新稳定基线 | 是 |
-| Annotated tag object | `1029f42ebb06a8c78a8a1aec7b76f085a4efd536` | 证明 tag 是 annotated tag | 元数据，不是源码 commit |
-| Peeled source commit | `ad23d1da3e94093924e06e9adf2745e9c312c7ce` | 正文所有稳定实现与文档证据 | 是 |
+| Stable tag | `v0.4.26` | 官方最新稳定基线 | 是 |
+| Annotated tag object | `4cd3b23f1e9deda32ab68cfa939a3652adf97e7a` | 证明 tag 是 annotated tag | 元数据，不是源码 commit |
+| Peeled source commit | `19155e41f96cb3aec2355ae1d40da80c00030cdf` | 正文所有稳定实现与文档证据 | 是 |
 | 审校日期 | `2026-08-13` | 本文证据截止日 | 不代表未来版本 |
-| 发布后 main 快照 | [`main@8060aa7277d9c98bdc06c36176f6408bf37e6935`](https://github.com/multica-ai/multica/tree/8060aa7277d9c98bdc06c36176f6408bf37e6935) | 只记录审校时分支已越过 release | 否，不纳入 v0.4.24 稳定兼容承诺 |
-| Release | [`v0.4.24`](https://github.com/multica-ai/multica/releases/tag/v0.4.24) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
+| 发布后 main 快照 | [`main@2832f003aed5eaac2d8f0813fc88bf77571e76d5`](https://github.com/multica-ai/multica/tree/2832f003aed5eaac2d8f0813fc88bf77571e76d5) | 只记录审校时分支已越过 release | 否，不纳入 v0.4.26 稳定兼容承诺 |
+| Release | [`v0.4.26`](https://github.com/multica-ai/multica/releases/tag/v0.4.26) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
 
 版本升级时应重新解引用 tag，并分别记录 tag object、source commit、Chart、backend/frontend image digest 和 daemon/CLI 版本。
 
 ---
 
-## 附录 B：20 种 protocol family 与 Oh-My-Pi Runtime
+## 附录 B：21 种 protocol family 与 Oh-My-Pi Runtime
 
-以下是 `v0.4.24` 的 20 种 protocol family，以及复用 Pi family 的 Oh-My-Pi Runtime identity。命令名、会话恢复和 MCP 能力来自固定 README、provider 文档与 adapter 源码；“Multica 管理 MCP”是指 Agent 配置中的 MCP server 会在执行前传给该工具，不代表该工具自身不能通过其他方式配置 MCP。实际支持模型、版本、Skill 和 usage 解析能力仍应以目标 CLI 的当前兼容性检查为准。
+以下是 `v0.4.26` 的 21 种 protocol family，以及复用 Pi family 的 Oh-My-Pi Runtime identity。命令名、会话恢复和 MCP 能力来自固定 README、provider 文档与 adapter 源码；“Multica 管理 MCP”是指 Agent 配置中的 MCP server 会在执行前传给该工具，不代表该工具自身不能通过其他方式配置 MCP。实际支持模型、版本、Skill 和 usage 解析能力仍应以目标 CLI 的当前兼容性检查为准。
 
 | # | 产品/CLI | provider key | 默认命令 | 会话恢复 | Multica 管理 MCP |
 | ---: | --- | --- | --- | :---: | :---: |
 | 1 | Claude Code | `claude` | `claude` | 是 | 是 |
 | 2 | OpenAI Codex | `codex` | `codex` | 是 | 是 |
 | 3 | Cursor Agent | `cursor` | `cursor-agent` | 是 | 是 |
-| 4 | GitHub Copilot CLI | `copilot` | `copilot` | 是 | 否 |
-| 5 | OpenCode | `opencode` | `opencode` | 是 | 是 |
-| 6 | OpenClaw | `openclaw` | `openclaw` | 是 | 是 |
-| 7 | Hermes | `hermes` | `hermes` | 是 | 是 |
-| 8 | Pi | `pi` | `pi` | 是 | 否 |
-| 9 | Antigravity | `antigravity` | `agy` | 是 | 否 |
-| 10 | CodeBuddy | `codebuddy` | `codebuddy` | 是 | 是 |
-| 11 | DevEco Code | `deveco` | `deveco` | 是 | 否 |
-| 12 | Grok | `grok` | `grok` | 是 | 是 |
-| 13 | Kimi CLI | `kimi` | `kimi` | 是 | 是 |
-| 14 | Kiro CLI | `kiro` | `kiro-cli` | 是 | 是 |
-| 15 | Qoder CLI | `qoder` | `qodercli` | 是 | 是 |
-| 16 | Qoder CN CLI | `qoderclicn` | `qoderclicn` | 是 | 是 |
-| 17 | Qwen Code | `qwen` | `qwen` | 是 | 是 |
-| 18 | QwenPaw | `qwenpaw` | `qwenpaw` | 是 | 是 |
-| 19 | Reasonix | `reasonix` | `reasonix` | 是 | 是 |
-| 20 | Trae CLI | `traecli` | `traecli` | 是 | 是 |
+| 4 | DeepSeek Harness | `dsh` | `dsh` | 是 | 是 |
+| 5 | GitHub Copilot CLI | `copilot` | `copilot` | 是 | 否 |
+| 6 | OpenCode | `opencode` | `opencode` | 是 | 是 |
+| 7 | OpenClaw | `openclaw` | `openclaw` | 是 | 是 |
+| 8 | Hermes | `hermes` | `hermes` | 是 | 是 |
+| 9 | Pi | `pi` | `pi` | 是 | 否 |
+| 10 | Antigravity | `antigravity` | `agy` | 是 | 否 |
+| 11 | CodeBuddy | `codebuddy` | `codebuddy` | 是 | 是 |
+| 12 | DevEco Code | `deveco` | `deveco` | 是 | 否 |
+| 13 | Grok | `grok` | `grok` | 是 | 是 |
+| 14 | Kimi CLI | `kimi` | `kimi` | 是 | 是 |
+| 15 | Kiro CLI | `kiro` | `kiro-cli` | 是 | 是 |
+| 16 | Qoder CLI | `qoder` | `qodercli` | 是 | 是 |
+| 17 | Qoder CN CLI | `qoderclicn` | `qoderclicn` | 是 | 是 |
+| 18 | Qwen Code | `qwen` | `qwen` | 是 | 是 |
+| 19 | QwenPaw | `qwenpaw` | `qwenpaw` | 是 | 是 |
+| 20 | Reasonix | `reasonix` | `reasonix` | 是 | 是 |
+| 21 | Trae CLI | `traecli` | `traecli` | 是 | 是 |
 | runtime identity | Oh-My-Pi | `omp`（protocol family: `pi`） | `omp` | 是 | 否 |
 
-自定义 Runtime 只能选择上述 20 种 protocol family 作为兼容协议；`omp` 是内置 identity，不是额外可选 family。wrapper 可以改变命令位置和固定参数，但不能让不兼容输出自动变成受支持协议。
+自定义 Runtime 只能选择上述 21 种 protocol family 作为兼容协议；`omp` 是内置 identity，不是额外可选 family。wrapper 可以改变命令位置和固定参数，但不能让不兼容输出自动变成受支持协议。
 
 ---
 
 ## 附录 C：默认超时与并发参数
 
-| 参数/行为 | v0.4.24 默认值 | 作用与边界 |
+| 参数/行为 | v0.4.26 默认值 | 作用与边界 |
 | --- | ---: | --- |
 | daemon heartbeat | 15 秒 | Runtime 存活信号 |
 | runtime stale threshold | 150 秒 | 加 30 秒 sweeper 周期，最迟约 3 分钟判离线 |
@@ -1107,7 +1180,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 | absolute `agent_timeout` | 0，不限制 | 可用 `MULTICA_AGENT_TIMEOUT` 设置硬上限 |
 | idle watchdog | 30 分钟 | 无 daemon-visible message 且队列为空时判停滞 |
 | tool watchdog | 2 小时 | tool_use 后长期没有 tool_result 的后备限制 |
-| Codex semantic inactivity | 10 分钟 | 无有效语义进展时失败并使用新 session 重试 |
+| Codex semantic inactivity | 10 分钟 | 无有效语义进展时失败并使用新 session 重试；`MULTICA_CODEX_FIRST_TURN_TIMEOUT` 必须严格小于该值 |
 | daemon max concurrency | 20 | `MULTICA_DAEMON_MAX_CONCURRENT_TASKS` |
 | Agent max concurrency | 默认 6，范围 1 到 50 | 与 daemon slot 共同限制 |
 | generic auto attempts | 2 | 首次执行 + 一次自动重试 |
@@ -1123,8 +1196,8 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 ### D.1 版本与供应链
 
-- [ ] Backend、frontend、daemon/CLI 全部固定 `v0.4.24` 或 image digest，不使用 `latest`。
-- [ ] 记录 annotated tag peeled commit `ad23d1da3e94093924e06e9adf2745e9c312c7ce`。
+- [ ] Backend、frontend、daemon/CLI 全部固定 `v0.4.26` 或 image digest，不使用 `latest`。
+- [ ] 记录 annotated tag peeled commit `19155e41f96cb3aec2355ae1d40da80c00030cdf`。
 - [ ] 固定 Helm Chart version/digest、PostgreSQL/pgvector 和 provider CLI 版本。
 - [ ] 检查镜像来源、SBOM/CVE、TLS reverse proxy 和依赖 registry。
 
@@ -1167,79 +1240,85 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 ## 附录 E：官方文档与源码证据
 
-以下链接均固定到 `v0.4.24` peeled commit `ad23d1da3e94093924e06e9adf2745e9c312c7ce`，用于复核本文各章结论。
+以下链接均固定到 `v0.4.26` peeled commit `19155e41f96cb3aec2355ae1d40da80c00030cdf`，用于复核本文各章结论。
 
 ### E.1 产品定位与对象模型
 
-- [中文 README 与 20 种 Runtime、技术栈](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/README.zh.md)
-- [核心概念](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/concepts.zh.mdx)
-- [Workspace](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/workspaces.zh.mdx)
-- [Project](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/projects.zh.mdx)
-- [Issue 七状态与无固定流转](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/issues.zh.mdx)
-- [`IssueStatus` TypeScript 类型](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/packages/core/types/issue.ts)
-- [Issue update、触发与不隐式取消活动 Task](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/handler/issue.go)
-- [Saved Issue View schema](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/265_issue_view.up.sql)
-- [Saved View scope variant 约束](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/269_issue_view_workspace_variant.up.sql)
+- [中文 README 与 21 种 Runtime、技术栈](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/README.zh.md)
+- [核心概念](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/concepts.zh.mdx)
+- [Workspace](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/workspaces.zh.mdx)
+- [Project](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/projects.zh.mdx)
+- [Issue 七状态与无固定流转](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/issues.zh.mdx)
+- [`IssueStatus` TypeScript 类型](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/packages/core/types/issue.ts)
+- [Issue update、触发与不隐式取消活动 Task](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/handler/issue.go)
+- [Saved Issue View schema](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/265_issue_view.up.sql)
+- [Saved View scope variant 约束](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/269_issue_view_workspace_variant.up.sql)
 
 ### E.2 执行、Task 与重试
 
-- [Multica 完整执行链](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/how-multica-works.zh.mdx)
-- [Task 八状态、超时和重试官方文档](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/tasks.zh.mdx)
-- [Issue 分配与 Runtime 固定绑定](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/assigning-issues.zh.mdx)
-- [Task enqueue、`runtime_id` 快照和重试服务](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/service/task.go)
-- [Task 默认 attempt/max_attempts migration](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/055_task_lease_and_retry.up.sql)
-- [`waiting_local_directory` 状态 migration](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/109_agent_task_waiting_local_directory.up.sql)
-- [`deferred` 状态 migration](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/128_comment_routing_escalation.up.sql)
-- [Runtime/Task sweeper 默认阈值](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/cmd/server/runtime_sweeper.go)
-- [Task 内 daemon status 与 disk-usage scope](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/cmd/multica/cmd_daemon.go)
+- [Multica 完整执行链](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/how-multica-works.zh.mdx)
+- [Task 八状态、超时和重试官方文档](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/tasks.zh.mdx)
+- [Issue 分配与 Runtime 固定绑定](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/assigning-issues.zh.mdx)
+- [Task enqueue、`runtime_id` 快照和重试服务](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/service/task.go)
+- [Task 默认 attempt/max_attempts migration](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/055_task_lease_and_retry.up.sql)
+- [`waiting_local_directory` 状态 migration](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/109_agent_task_waiting_local_directory.up.sql)
+- [`deferred` 状态 migration](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/128_comment_routing_escalation.up.sql)
+- [Runtime/Task sweeper 默认阈值](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/cmd/server/runtime_sweeper.go)
+- [Task 内 daemon status 与 disk-usage scope](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/cmd/multica/cmd_daemon.go)
 
 ### E.3 Agent、权限与 provider
 
-- [Agent 概念、配置和三档 Access](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/agents.zh.mdx)
-- [工作区角色与 Access 分离](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/members-roles.zh.mdx)
-- [Agent invocation permission 实现](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/handler/agent_permission.go)
-- [Agent Access migration](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/130_agent_invocation_permission.up.sql)
-- [Skill 模型](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/skills.zh.mdx)
-- [20 种 provider 与统一 Backend 接口](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/pkg/agent/agent.go)
-- [Oh-My-Pi Runtime identity 与 Pi protocol 复用](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/pkg/agent/builtin_runtimes.go)
-- [daemon 默认参数与 20 并发](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/daemon/config.go)
-- [Agent 默认并发和 1 到 50 范围](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/agentconfig/concurrency.go)
-- [Agent dotenv 批量编辑 parser](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/packages/views/agents/components/tabs/env-file.ts)
+- [Agent 概念、配置和三档 Access](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/agents.zh.mdx)
+- [工作区角色与 Access 分离](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/members-roles.zh.mdx)
+- [Agent invocation permission 实现](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/handler/agent_permission.go)
+- [Agent Access migration](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/130_agent_invocation_permission.up.sql)
+- [Skill 模型](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/skills.zh.mdx)
+- [21 种 provider 与统一 Backend 接口](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/pkg/agent/agent.go)
+- [21 种 provider、`dsh` backend 与 capability](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/pkg/agent/agent.go)
+- [DeepSeek Harness 探测与 probe](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/daemon/agents_probe.go)
+- [DeepSeek Harness 安装与 `DEEPSEEK_API_KEY`](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/install-agent-runtime.zh.mdx)
+- [本地目录 `in_place`/`worktree`、回放与失败保留](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/project-resources.zh.mdx)
+- [Private Skill Plugin V1 manifest、校验与回滚](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/developers/private-plugins.mdx)
+- [Oh-My-Pi Runtime identity 与 Pi protocol 复用](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/pkg/agent/builtin_runtimes.go)
+- [daemon 默认参数与 20 并发](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/daemon/config.go)
+- [Agent 默认并发和 1 到 50 范围](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/agentconfig/concurrency.go)
+- [Agent dotenv 批量编辑 parser](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/packages/views/agents/components/tabs/env-file.ts)
+- [工作区根、临时目录和 Codex 首轮超时](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/environment-variables.zh.mdx)
 
 ### E.4 协作入口
 
-- [评论提及与回复路由](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/mentioning-agents.zh.mdx)
-- [Squad leader 委派协议](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/squads.zh.mdx)
-- [Chat 私有会话](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/chat.zh.mdx)
-- [Chat history 服务端 transcript fallback](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/handler/chat_history.go)
-- [Autopilot 两种模式和触发器](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/autopilots.zh.mdx)
-- [Channel 支持与企业微信单副本说明](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/channels.zh.mdx)
-- [人类专用 Inbox](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/inbox.zh.mdx)
+- [评论提及与回复路由](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/mentioning-agents.zh.mdx)
+- [Squad leader 委派协议](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/squads.zh.mdx)
+- [Chat 私有会话](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/chat.zh.mdx)
+- [Chat history 服务端 transcript fallback](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/handler/chat_history.go)
+- [Autopilot 两种模式和触发器](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/autopilots.zh.mdx)
+- [Channel 支持与企业微信单副本说明](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/channels.zh.mdx)
+- [人类专用 Inbox](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/inbox.zh.mdx)
 
 ### E.5 安全与 secret
 
-- [官方安全模型](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/apps/docs/content/docs/security-model.zh.mdx)
-- [Codex sandbox policy](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/daemon/execenv/codex_sandbox.go)
-- [Claude Code `bypassPermissions` adapter](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/pkg/agent/claude.go)
-- [`custom_env` plaintext JSONB migration](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/040_agent_custom_env.up.sql)
-- [`custom_env` plaintext reveal 与审计 endpoint](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/handler/agent_env.go)
-- [Task-bound `MULTICA_TOKEN` 与 daemon 执行](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/daemon/daemon.go)
-- [单附件短期 download capability](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/handler/attachment_capability.go)
+- [官方安全模型](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/apps/docs/content/docs/security-model.zh.mdx)
+- [Codex sandbox policy](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/daemon/execenv/codex_sandbox.go)
+- [Claude Code `bypassPermissions` adapter](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/pkg/agent/claude.go)
+- [`custom_env` plaintext JSONB migration](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/040_agent_custom_env.up.sql)
+- [`custom_env` plaintext reveal 与审计 endpoint](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/handler/agent_env.go)
+- [Task-bound `MULTICA_TOKEN` 与 daemon 执行](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/daemon/daemon.go)
+- [单附件短期 download capability](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/handler/attachment_capability.go)
 
 ### E.6 自托管、运维与许可证
 
-- [Self-Hosting Guide](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/SELF_HOSTING.md)
-- [Advanced Self-Hosting Guide](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/SELF_HOSTING_ADVANCED.md)
-- [Docker Compose](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/docker-compose.selfhost.yml)
-- [Backend migration entrypoint](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/docker/entrypoint.sh)
-- [Helm values](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/deploy/helm/multica/values.yaml)
-- [Helm backend probes、PVC 与 migration](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/deploy/helm/multica/templates/backend.yaml)
-- [`/readyz` 与 `/healthz` readiness 实现](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/cmd/server/health.go)
-- [`task_usage_hourly` 与 scheduler 启动](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/cmd/server/main.go)
-- [`sys_cron_executions` migration](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/113_sys_cron_executions.up.sql)
-- [Workspace 有界事务清理与 lock timeout](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/internal/handler/workspace.go)
-- [Workspace Task owner write fence](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/server/migrations/284_task_owner_row_fence.up.sql)
-- [Multica License](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/LICENSE)
-- [NOTICE](https://github.com/multica-ai/multica/blob/ad23d1da3e94093924e06e9adf2745e9c312c7ce/NOTICE)
+- [Self-Hosting Guide](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/SELF_HOSTING.md)
+- [Advanced Self-Hosting Guide](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/SELF_HOSTING_ADVANCED.md)
+- [Docker Compose](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/docker-compose.selfhost.yml)
+- [Backend migration entrypoint](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/docker/entrypoint.sh)
+- [Helm values](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/deploy/helm/multica/values.yaml)
+- [Helm backend probes、PVC 与 migration](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/deploy/helm/multica/templates/backend.yaml)
+- [`/readyz` 与 `/healthz` readiness 实现](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/cmd/server/health.go)
+- [`task_usage_hourly` 与 scheduler 启动](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/cmd/server/main.go)
+- [`sys_cron_executions` migration](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/113_sys_cron_executions.up.sql)
+- [Workspace 有界事务清理与 lock timeout](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/internal/handler/workspace.go)
+- [Workspace Task owner write fence](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/server/migrations/284_task_owner_row_fence.up.sql)
+- [Multica License](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/LICENSE)
+- [NOTICE](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/NOTICE)
 
-本文固定的是 2026-08-13 的 `v0.4.24`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
+本文固定的是 2026-08-13 的 `v0.4.26`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
