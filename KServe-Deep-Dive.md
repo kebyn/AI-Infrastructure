@@ -4,7 +4,7 @@
 >
 > 基于 KServe 官方仓库与官网文档整理：<https://github.com/kserve/kserve>
 >
-> 稳定版本基线：`kserve/kserve v0.20.0@1fb781055dd1567164358233e1125142ca6ef1fe`；未发布主线快照：`kserve/kserve master@b4997f1ddbf021fbb524ede187b4a9bd0c488d88`、官网 `kserve/website main@efcc8770573cb7a979ec397656f5321b524d62b9`；审校日期：2026-08-13。主线快照只用于说明未进入 tag 的后续方向，不计入 v0.20.0 兼容承诺。
+> 稳定版本基线：`kserve/kserve v0.20.0@1fb781055dd1567164358233e1125142ca6ef1fe`；未发布主线快照：`kserve/kserve master@b4997f1ddbf021fbb524ede187b4a9bd0c488d88`、官网 `kserve/website main@efcc8770573cb7a979ec397656f5321b524d62b9`；审校日期：2026-08-17。主线快照只用于说明未进入 tag 的后续方向，不计入 v0.20.0 兼容承诺。
 
 ---
 

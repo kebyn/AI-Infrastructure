@@ -4,7 +4,7 @@
 >
 > 基于 Kubernetes 官方 Scheduling、Preemption and Eviction 文档、调度配置参考与 v1.36.3 源码整理
 >
-> 版本基线：Kubernetes `v1.36.3@0f29094e5b73085e3802ecc1298ecae13866bfe6`；审校日期：2026-08-13。
+> 版本基线：Kubernetes `v1.36.3@0f29094e5b73085e3802ecc1298ecae13866bfe6`；审校日期：2026-08-17。
 
 ---
 
@@ -1519,7 +1519,7 @@ kubectl describe podgroup -n <namespace> <podgroup>
 | TopologyAwareWorkloadScheduling | v1.36 Alpha，默认关闭 |
 | WorkloadAwarePreemption | v1.36 Alpha，默认关闭 |
 | OpportunisticBatching | v1.35 Beta，v1.36.3 默认开启 |
-| 审校日期 | 2026-08-13 |
+| 审校日期 | 2026-08-17 |
 
 `v1.36.3` 是 annotated tag：tag object 为 `49c14f82ca9748897f0189be31cbf9c2f4085fc1`，解引用后的源码 commit 为 `0f29094e5b73085e3802ecc1298ecae13866bfe6`。本文页头和站点元数据使用后者；保留 tag object 仅用于复核 Git ref，不把它当作 source commit。
 

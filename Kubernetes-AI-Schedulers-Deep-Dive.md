@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.1@df3d365`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-13。Volcano 官网证据固定到 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`，本轮只有 Mermaid 渲染支持变化，不改变 v1.15.1 能力结论。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.1@df3d365`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-17。Volcano 官网证据固定到 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`，本轮只有 Mermaid 渲染支持变化，不改变 v1.15.1 能力结论。
 
 ---
 

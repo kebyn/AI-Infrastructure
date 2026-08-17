@@ -4,7 +4,7 @@
 
 ---
 
-> 稳定目标版本：Volcano `v1.15.1@0a56ed331897f5455916a44d3075671376d731d6`；官方文档快照 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`；Helm Charts `main@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-08-13。官网快照本轮只增加 Mermaid 渲染支持，不改变 Volcano v1.15.1 能力边界。
+> 稳定目标版本：Volcano `v1.15.1@0a56ed331897f5455916a44d3075671376d731d6`；官方文档快照 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`；Helm Charts `main@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-08-17。官网快照本轮只增加 Mermaid 渲染支持，不改变 Volcano v1.15.1 能力边界。
 
 ---
 
