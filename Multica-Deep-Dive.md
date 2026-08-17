@@ -4,7 +4,7 @@
 >
 > 基于 Multica 官方仓库和官方文档整理：<https://github.com/multica-ai/multica>
 >
-> 稳定版本基线：annotated tag `v0.4.26` 解引用后的 `19155e41f96cb3aec2355ae1d40da80c00030cdf`；发布后快照：`main@2832f003aed5eaac2d8f0813fc88bf77571e76d5`；审校日期：2026-08-13。正文的产品契约、默认参数和部署行为只以 `v0.4.26` 的 peeled source commit 为准；发布后快照只记录审校时的分支边界，不纳入稳定版兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
+> 稳定版本基线：annotated tag `v0.4.26` 解引用后的 `19155e41f96cb3aec2355ae1d40da80c00030cdf`；发布后快照：`main@2832f003aed5eaac2d8f0813fc88bf77571e76d5`；审校日期：2026-08-17。正文的产品契约、默认参数和部署行为只以 `v0.4.26` 的 peeled source commit 为准；发布后快照只记录审校时的分支边界，不纳入稳定版兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
 
 ![Multica v0.4.26 产品看板：成员与 AI Agent 在同一 Workspace 中围绕 Issue 协作，界面展示状态列、负责人、优先级和项目上下文](https://raw.githubusercontent.com/multica-ai/multica/19155e41f96cb3aec2355ae1d40da80c00030cdf/docs/assets/hero-board.png)
 
@@ -1126,7 +1126,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 | Stable tag | `v0.4.26` | 官方最新稳定基线 | 是 |
 | Annotated tag object | `4cd3b23f1e9deda32ab68cfa939a3652adf97e7a` | 证明 tag 是 annotated tag | 元数据，不是源码 commit |
 | Peeled source commit | `19155e41f96cb3aec2355ae1d40da80c00030cdf` | 正文所有稳定实现与文档证据 | 是 |
-| 审校日期 | `2026-08-13` | 本文证据截止日 | 不代表未来版本 |
+| 审校日期 | `2026-08-17` | 本文证据截止日 | 不代表未来版本 |
 | 发布后 main 快照 | [`main@2832f003aed5eaac2d8f0813fc88bf77571e76d5`](https://github.com/multica-ai/multica/tree/2832f003aed5eaac2d8f0813fc88bf77571e76d5) | 只记录审校时分支已越过 release | 否，不纳入 v0.4.26 稳定兼容承诺 |
 | Release | [`v0.4.26`](https://github.com/multica-ai/multica/releases/tag/v0.4.26) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
 
@@ -1321,4 +1321,4 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 - [Multica License](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/LICENSE)
 - [NOTICE](https://github.com/multica-ai/multica/blob/19155e41f96cb3aec2355ae1d40da80c00030cdf/NOTICE)
 
-本文固定的是 2026-08-13 的 `v0.4.26`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
+本文固定的是 2026-08-17 的 `v0.4.26`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。

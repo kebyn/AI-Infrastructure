@@ -4,7 +4,7 @@
 >
 > 基于 E2B 官方基础设施仓库整理：<https://github.com/e2b-dev/infra>
 >
-> 稳定版本基线：`2026.29@557445ffddda8d9a27f6f529a3f4d7732cf81a13`；SDK 未发布主线快照 `main@f5d702a520de52ac0e5d4dda3ca0d5fca01d7993`；Agent Sandbox 对照快照 `main@5f2699524aa3a9c23f9c1d8e4d62e50be3ebfa94`；审校日期：2026-08-13。正文中的产品能力与支持状态仅以 E2B 官方仓库和官方文档为依据，两个主线快照不扩大 Infra 稳定兼容承诺。
+> 稳定版本基线：`2026.29@557445ffddda8d9a27f6f529a3f4d7732cf81a13`；SDK 未发布主线快照 `main@f5d702a520de52ac0e5d4dda3ca0d5fca01d7993`；Agent Sandbox 对照快照 `main@5f2699524aa3a9c23f9c1d8e4d62e50be3ebfa94`；审校日期：2026-08-17。正文中的产品能力与支持状态仅以 E2B 官方仓库和官方文档为依据，两个主线快照不扩大 Infra 稳定兼容承诺。
 
 ---
 

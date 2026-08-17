@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.17`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.27.1`、EvalScope `v1.10.0`；审校日期：2026-08-13。
+> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.17`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.27.1`、EvalScope `v1.10.0`；审校日期：2026-08-17。
 
 ---
 
@@ -1280,7 +1280,7 @@ python3 -m sglang.benchmark.serving \
 
 | 工具 | Release | 提交 |
 |------|---------|------|
-| AIPerf | `v0.12.0` | `0e723bb8c984564cddf7274d19aab4eb7714f919` |
+| AIPerf | `v0.12.0` | `be53bf2953d30e46c500e6a80fc1f8b6f84bc718` |
 | GuideLLM | `v0.7.3` | `39383552962841086d05e25c37b58a83ef06c758` |
 | inference-perf | `v0.6.1` | `a40897e6500e4524adf563a91f7c880eb5296e12` |
 | genai-bench | `v0.0.5` | `4f873e03719c947a101647c6646954d5ebc3d35b` |
@@ -1295,11 +1295,11 @@ python3 -m sglang.benchmark.serving \
 | 主题 | 链接 |
 |------|------|
 | AIPerf v0.12.0 Release | <https://github.com/ai-dynamo/aiperf/releases/tag/v0.12.0> |
-| AIPerf README | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/README.md> |
-| AIPerf AgentX | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/docs/tutorials/agentx-mvp.md> |
-| AIPerf Anthropic Messages | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/docs/tutorials/anthropic-messages-endpoint.md> |
-| AIPerf Adaptive Scale | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/docs/tutorials/adaptive-scale.md> |
-| AIPerf Metrics | <https://github.com/ai-dynamo/aiperf/blob/0e723bb8c984564cddf7274d19aab4eb7714f919/docs/metrics-reference.md> |
+| AIPerf README | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/README.md> |
+| AIPerf AgentX | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/docs/tutorials/agentx-mvp.md> |
+| AIPerf Anthropic Messages | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/docs/tutorials/anthropic-messages-endpoint.md> |
+| AIPerf Adaptive Scale | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/docs/tutorials/adaptive-scale.md> |
+| AIPerf Metrics | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/docs/metrics-reference.md> |
 | GuideLLM v0.7.3 Release | <https://github.com/vllm-project/guidellm/releases/tag/v0.7.3> |
 | GuideLLM README | <https://github.com/vllm-project/guidellm/blob/39383552962841086d05e25c37b58a83ef06c758/README.md> |
 | GuideLLM Synthetic Visual Data | <https://github.com/vllm-project/guidellm/blob/39383552962841086d05e25c37b58a83ef06c758/docs/guides/multimodal/synthetic_vision.md> |

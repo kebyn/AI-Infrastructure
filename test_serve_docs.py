@@ -16,11 +16,11 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-08-13", doc["meta"])
+                self.assertIn("2026-08-17", doc["meta"])
                 self.assertNotIn("2026-08-07", doc["meta"])
                 self.assertNotIn("2026-07-24", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-08-13", markdown_text)
+                self.assertIn("审校日期：2026-08-17", markdown_text)
                 self.assertNotIn("审校日期：2026-08-07", markdown_text)
                 self.assertNotIn("2026-07-24", markdown_text)
 
@@ -30,17 +30,18 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         for required_text in (
-            "2026-08-13",
-            "4 个正文稳定基线发生变化",
+            "2026-08-17",
+            "2 个正文稳定基线发生变化",
+            "v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac",
             "v0.4.26@19155e41f96cb3aec2355ae1d40da80c00030cdf",
             "v0.19.1@df3d3656004f7b2478004a37b34ad8efa9ffabf0",
             "v0.5.17@29481685462732237d80d86076d6563e1f658102",
             "v0.27.1@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
             "v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
-            "main@034c503f1fd51fd166db76dfae037673714d633b",
-            "main@3ea199b8b910f8e838a6000796c29536d592fbdd",
-            "master@16d6d1dad031a0e821d1a670ce0eff6c88d16a78",
-            "main@2f613dd5d9fd603016e620c704d65146e527ea4e",
+            "main@f5d702a520de52ac0e5d4dda3ca0d5fca01d7993",
+            "main@5f2699524aa3a9c23f9c1d8e4d62e50be3ebfa94",
+            "master@b4997f1ddbf021fbb524ede187b4a9bd0c488d88",
+            "main@efcc8770573cb7a979ec397656f5321b524d62b9",
             "master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8",
             "main@c2050e3debe58dbcdf9bb75b667799eec9409513",
             "spec.kvCacheOffloading",
@@ -51,14 +52,16 @@ class RenderDocLayoutTest(unittest.TestCase):
             "v0.1.0-alpha.12-rc1` 是 prerelease",
             "main@22fca04564c7cc230fd8b9523b8b92864e1dad47",
             "v1.8.2 → v1.15.1",
-            "v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac",
-            "v0.4.26@19155e41f96cb3aec2355ae1d40da80c00030cdf",
+            "v0.16.9@724da8388358b7673495a935948ea0a67a86140b",
+            "IAM workload identity",
+            "`ms://` ModelScope storage provider",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, readme_text)
 
         for superseded_text in (
-            "审校截止日为 **2026-08-07**",
+            "审校截止日为 **2026-08-13**",
+            "v0.4.24@ad23d1da3e94093924e06e9adf2745e9c312c7ce",
             "8 个正文主稳定基线发生变化",
             "v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
             "main@88f41f392722a2f56971ea6c1084f0fc574ef1f4",
@@ -90,7 +93,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("29481685462732237d80d86076d6563e1f658102", doc["footer"])
         self.assertIn("6e448d0ea9bf3d88d898b65449ca6dc2aec170ac", doc["footer"])
         for exact_commit in (
-            "0e723bb8c984564cddf7274d19aab4eb7714f919",
+            "be53bf2953d30e46c500e6a80fc1f8b6f84bc718",
             "39383552962841086d05e25c37b58a83ef06c758",
             "a40897e6500e4524adf563a91f7c880eb5296e12",
             "9d052ca0240ebf8b603c053fa44727b863ff3933",
@@ -106,6 +109,9 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("vllm-bench", markdown_text)
         self.assertNotIn("fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1", markdown_text)
         self.assertNotIn("568afb3a13806beb53bb2e6bd518269357b237c0", markdown_text)
+        self.assertNotIn(
+            "0e723bb8c984564cddf7274d19aab4eb7714f919", markdown_text
+        )
         self.assertNotIn(
             "github.com/sgl-project/sglang/blob/"
             "29481685462732237d80d86076d6563e1f658102/docs_new/",
@@ -185,7 +191,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "0a56ed331897f5455916a44d3075671376d731d6",
             ),
             "LLM-Benchmark-Deep-Dive.md": (
-                "0e723bb8c984564cddf7274d19aab4eb7714f919",
+                "be53bf2953d30e46c500e6a80fc1f8b6f84bc718",
                 "39383552962841086d05e25c37b58a83ef06c758",
                 "a40897e6500e4524adf563a91f7c880eb5296e12",
                 "9d052ca0240ebf8b603c053fa44727b863ff3933",
@@ -316,6 +322,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         self.assertIn("KAI-Scheduler v0.17.0", ai_doc["meta"])
+        self.assertIn("v0.16.9 旧维护分支边界", ai_doc["summary"])
         self.assertIn("Kueue v0.19.1", ai_doc["meta"])
         self.assertIn("Volcano v1.15.1", ai_doc["meta"])
         self.assertIn("v1.8.2 → v1.15.1", volcano_doc["meta"])
@@ -340,6 +347,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("Volcano v1.15.1", native_text)
         self.assertIn("preemption delay", native_text)
         self.assertIn("PVC informer race", native_text)
+        self.assertIn("724da8388358b7673495a935948ea0a67a86140b", ai_text)
 
         for required_text in (
             "df3d3656004f7b2478004a37b34ad8efa9ffabf0",
@@ -736,7 +744,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Multica 深度技术文档")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.4.26 · source@19155e4 · 2026-08-13",
+            "Multica v0.4.26 · source@19155e4 · 2026-08-17",
         )
         for summary_term in (
             "Issue/Task",
@@ -784,7 +792,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         for required_text in (
             "v0.4.26",
             "19155e41f96cb3aec2355ae1d40da80c00030cdf",
-            "审校日期：2026-08-13",
+            "审校日期：2026-08-17",
             "没有强制的 Issue 状态机",
             "Task 完成不等于 Issue 完成",
             "Task 与目标 Runtime 固定绑定且不会自动迁移",
@@ -812,13 +820,13 @@ class RenderDocLayoutTest(unittest.TestCase):
             "`dsh`",
             "DEEPSEEK_API_KEY",
             "dsh --profile multica --probe",
-            "21 个 protocol family",
+            "21 种 protocol family",
             "`in_place`（默认）",
             "`worktree`",
             "agent/<agent>/<task>",
-            "2000 个文件 / 200 MiB",
-            "capability 双校验",
-            "回滚风险",
+            "2000 个文件或 200 MiB",
+            "capability 双重校验",
+            "安全回退风险",
             "MULTICA_WORKSPACES_ROOT",
             "MULTICA_AGENT_TEMP_BASE",
             "AF_UNIX",

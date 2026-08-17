@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac`；ModelExpress 章节固定到其独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`；审校日期：2026-08-13。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
+> 稳定版本基线：`v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac`；ModelExpress 章节固定到其独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`；审校日期：2026-08-17。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 
