@@ -168,7 +168,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         docs_dir = Path(__file__).resolve().parent
         expected_commits = {
             "Dynamo-Deep-Dive.md": (
-                "a49702e4432e7fa43cbc88175bddb31604340f19",
+                "03014943323e78feb5bd672ef08b72caea0918ac",
                 "0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
             ),
             "Mooncake-Deep-Dive.md": (
@@ -233,15 +233,57 @@ class RenderDocLayoutTest(unittest.TestCase):
             encoding="utf-8"
         )
         for required_text in (
+            "v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac",
             "nixl==1.3.2",
             "EFA Installer `1.49.0`",
             "libfabric `2.4.0amzn5.0`",
             "Lost connection with prefill instance",
             "空 HTTP 200/零 token",
             "ModelExpress 独立稳定版 `v0.5.0",
+            "reservation replay",
+            "sequenced KV relay",
+            "endpoint-scoped event transport",
+            "tenant cache salt",
+            "/inference/v1/generate",
+            "tokenizer prefix cache 在 v1.4.0 默认开启",
+            "NIXL RDMA 多节点分离",
+            "modality-aware routing",
+            "自定义 vision encoder",
+            "Omni realtime worker",
+            "Spica",
+            "request trace",
+            "SATF",
+            "G1 Mocker",
+            "SGLang radix scheduling",
+            "rollout strategy",
+            "v1alpha1 → v1beta1",
+            "shadow-engine failover",
+            "XPU 场景有 DRA 示例",
+            "standalone EPP",
+            "dynamo.request.trace.v1",
+            "OTLP sink",
+            "allowlisted headers",
+            "DYN_SELF_HOST_METADATA",
+            "NATS subchart",
+            "KVBM | v1.4.0 **deprecated**",
+            "agg_kvbm.yaml",
         ):
             with self.subTest(document="Dynamo", required_text=required_text):
                 self.assertIn(required_text, dynamo_text)
+
+        dynamo_doc = next(
+            doc
+            for doc in serve_docs.DOCS
+            if Path(doc["src"]).name == "Dynamo-Deep-Dive.md"
+        )
+        self.assertIn("Dynamo v1.4.0", dynamo_doc["meta"])
+        self.assertIn("source@0301494", dynamo_doc["meta"])
+        self.assertIn(
+            "03014943323e78feb5bd672ef08b72caea0918ac", dynamo_doc["footer"]
+        )
+        self.assertNotIn(
+            "a49702e4432e7fa43cbc88175bddb31604340f19", dynamo_text
+        )
 
     def test_scheduler_release_snapshots_and_patch_boundaries_are_documented(self):
         docs_dir = Path(__file__).resolve().parent
