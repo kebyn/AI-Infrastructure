@@ -227,6 +227,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             "kai.scheduler/last-eviction-timestamp",
             "不能通过 preempt、reclaim 或 consolidation 驱逐别人",
             "DRA-backed extended resources",
+            "v0.16.9@724da8388358b7673495a935948ea0a67a86140b",
+            "GitHub 的 “latest” 指向旧维护分支",
+            "不能因为 release 页面把它标为 latest 就降级",
+            "不替代上表的 v0.17.0",
         ):
             with self.subTest(document="KAI-Scheduler", required_text=required_text):
                 self.assertIn(required_text, kai_text)
@@ -389,7 +393,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "034c503f1fd51fd166db76dfae037673714d633b/"
+            "f5d702a520de52ac0e5d4dda3ca0d5fca01d7993/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -426,7 +430,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
             "Agent Sandbox Go Router（对照，不是 E2B 能力）",
-            "3ea199b8b910f8e838a6000796c29536d592fbdd",
+            "5f2699524aa3a9c23f9c1d8e4d62e50be3ebfa94",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -482,7 +486,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "034c503f1fd51fd166db76dfae037673714d633b/"
+            "f5d702a520de52ac0e5d4dda3ca0d5fca01d7993/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -497,7 +501,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "3ea199b8b910f8e838a6000796c29536d592fbdd/"
+            "5f2699524aa3a9c23f9c1d8e4d62e50be3ebfa94/"
         )
         for source_path in (
             "clients/python/agentic-sandbox-client/sandbox-router/README.md",
@@ -516,6 +520,19 @@ class RenderDocLayoutTest(unittest.TestCase):
             "best-effort `kill()`",
             "`SandboxError` / `SandboxException`",
             "不代表 Infra 2026.29 新增了控制面事务或原子创建语义",
+            "IAM workload identity",
+            "Secret.iamToken",
+            "iam_token",
+            "callback token placeholder",
+            "token name",
+            "http2",
+            "只属于未发布 SDK 主线",
+            "WarmPool status",
+            "ServiceMonitor",
+            "PodScheduled image",
+            "Pi 示例",
+            "Podman kind",
+            "不能回填成 E2B",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -658,12 +675,12 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         self.assertIn("KServe v0.20.0", doc["meta"])
-        self.assertIn("master@16d6d1d", doc["meta"])
-        self.assertIn("website@2f613dd", doc["meta"])
+        self.assertIn("master@b4997f1", doc["meta"])
+        self.assertIn("website@efcc877", doc["meta"])
         for revision in (
             "1fb781055dd1567164358233e1125142ca6ef1fe",
-            "16d6d1dad031a0e821d1a670ce0eff6c88d16a78",
-            "2f613dd5d9fd603016e620c704d65146e527ea4e",
+            "b4997f1ddbf021fbb524ede187b4a9bd0c488d88",
+            "efcc8770573cb7a979ec397656f5321b524d62b9",
         ):
             self.assertIn(revision, markdown_text)
 
@@ -689,6 +706,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             "`idleReplicaCount: 0`",
             "idle count 严格小于",
             "`oci+fetch://`",
+            "`ms://` ModelScope storage provider",
+            "依赖树包含针对已披露依赖漏洞的安全修复",
+            "weighted `InferencePool` 后端选择",
+            "versioned docs",
             "当前实现明确不支持 LLMInferenceService fetch",
             "不能用于承诺 v0.20.0",
             "不属于 v0.20.0",
