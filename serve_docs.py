@@ -44,12 +44,12 @@ DOCS = [
         "title": "E2B 深度技术文档",
         "hero": "E2B 深度技术文档",
         "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
-        "meta": "E2B Infra 2026.29 · source@557445f · SDK main@034c503 · Agent Sandbox@3ea199b · 2026-08-13",
-        "summary": "覆盖控制面/数据面、Sandbox fork 与生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、Terraform/Nomad 自托管与私有化部署取舍。",
+        "meta": "E2B Infra 2026.29 · source@557445f · SDK main@f5d702a · Agent Sandbox@5f26995 · 2026-08-13",
+        "summary": "覆盖控制面/数据面、Sandbox fork 与生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、SDK IAM 主线和 Agent Sandbox 对照快照的未发布边界。",
         "footer": (
             '基于 <a href="https://github.com/e2b-dev/infra/tree/557445ffddda8d9a27f6f529a3f4d7732cf81a13">'
             'e2b-dev/infra 2026.29</a> 与 '
-            '<a href="https://github.com/e2b-dev/e2b/tree/034c503f1fd51fd166db76dfae037673714d633b">'
+            '<a href="https://github.com/e2b-dev/e2b/tree/f5d702a520de52ac0e5d4dda3ca0d5fca01d7993">'
             'E2B SDK 主线快照</a> 官方资料整理'
         ),
     },
@@ -194,14 +194,14 @@ DOCS = [
         "title": "KServe 深度技术文档",
         "hero": "KServe 深度技术文档",
         "subtitle": "Kubernetes 生成式 AI 与预测式 AI 推理服务平台架构解析",
-        "meta": "KServe v0.20.0 · source@1fb7810 · master@16d6d1d · website@2f613dd · 2026-08-13",
-        "summary": "覆盖 InferenceService、LLMInferenceService、ServingRuntime、Gateway API、LocalModelCache、KV cache offloading、分组流量切分与未发布主线边界。",
+        "meta": "KServe v0.20.0 · source@1fb7810 · master@b4997f1 · website@efcc877 · 2026-08-13",
+        "summary": "覆盖 InferenceService、LLMInferenceService、ServingRuntime、Gateway API、LocalModelCache、KV cache offloading、ModelScope ms://、加权 InferencePool 测试与未发布主线边界。",
         "footer": (
             '基于 <a href="https://github.com/kserve/kserve/tree/1fb781055dd1567164358233e1125142ca6ef1fe">'
             'kserve/kserve v0.20.0 源码</a>、'
-            '<a href="https://github.com/kserve/kserve/tree/16d6d1dad031a0e821d1a670ce0eff6c88d16a78">'
+            '<a href="https://github.com/kserve/kserve/tree/b4997f1ddbf021fbb524ede187b4a9bd0c488d88">'
             '未发布 master 快照</a> 与 '
-            '<a href="https://github.com/kserve/website/tree/2f613dd5d9fd603016e620c704d65146e527ea4e">'
+            '<a href="https://github.com/kserve/website/tree/efcc8770573cb7a979ec397656f5321b524d62b9">'
             'KServe 官网快照</a> 整理'
         ),
     },

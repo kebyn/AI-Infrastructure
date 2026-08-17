@@ -783,6 +783,10 @@ spec:
 
 v0.17.0 同时修复 operator 全集群缓存导致的内存增长、DRA device count 溢出、root queue reclaim panic、异构 extended resource 丢失、GPU sharing 资源上限判断、部分节点 GPU memory 计算、reclaim victim 排序和 401 token 失效后无限重试等问题。升级验证除原有 segmented workload 外，还应覆盖 preemption delay 到期/重置、Topology alias webhook、DRA extended resource、NUMA 与大规模 reclaim 内存曲线。
 
+### 6.13 v0.16.9 维护分支边界
+
+审校时 GitHub 的 “latest” 指向旧维护分支 `v0.16.9@724da8388358b7673495a935948ea0a67a86140b`。这是针对旧 minor 线的补丁事实，不能因为 release 页面把它标为 latest 就降级正文的 `v0.17.0@f218c69bee5e5fc6031273ba555d09916b1ca89a` 稳定基线；`v0.16.9` 的修复也不能反推 `v0.17.0` 已包含同一行为。需要维护旧集群时，应按 `v0.16.9` 的 migration/CRD/镜像约束单独评估，并把它与 v0.17.0 的 preemption delay、DRA、Topology alias 等能力分开回归。
+
 ---
 
 ## 第七章：Volcano
@@ -1257,6 +1261,8 @@ Workload API / PodSets
 | Volcano | `v1.15.1` | `0a56ed331897f5455916a44d3075671376d731d6` |
 
 除明确标为 Alpha 的 Grove 外，正文按表中稳定 release 审校。生产仍须核对各项目的 Kubernetes compatibility、migration guide、Chart 和镜像 digest。
+
+KAI 的旧维护分支证据：[`v0.16.9@724da838`](https://github.com/kai-scheduler/KAI-Scheduler/tree/724da8388358b7673495a935948ea0a67a86140b)；该提交只用于记录 GitHub latest 的分支补丁，不替代上表的 v0.17.0。
 
 ### A.2 通用排障命令
 
