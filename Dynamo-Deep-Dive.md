@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.3.1@a49702e4432e7fa43cbc88175bddb31604340f19`；ModelExpress 章节固定到其独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`；审校日期：2026-08-13。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
+> 稳定版本基线：`v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac`；ModelExpress 章节固定到其独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`；审校日期：2026-08-13。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 
@@ -74,7 +74,7 @@ Dynamo 适合以下场景：
 | Operational resilience | 把 worker 崩溃、重启、过载视为常态并自动恢复 |
 | Deployment portability | 同时支持 Kubernetes-native 和非 Kubernetes 运行方式 |
 
-### 1.5 v1.3.0 与 v1.3.1 稳定版增量
+### 1.5 v1.3.0 与 v1.4.0 稳定版增量
 
 `v1.3.0` 相对 `v1.2.1` 不是单纯的依赖刷新，而是同时扩展 Router、Planner、Kubernetes 控制面、强化学习和多模态路径。下表只列入 tag 内已经发布的能力：
 
@@ -86,11 +86,73 @@ Dynamo 适合以下场景：
 | RL / Agent | Tokens-in-Tokens-Out（TITO）、原地权重更新、worker discovery、rollout metadata、trajectory headers | 可避免 RL loop 的重复 detokenize/retokenize；该路径通过 `DYN_ENABLE_RL` 显式启用 |
 | 多模态 | media-aware KV routing、SGLang 图像/视频 P/D 分离、统一 diffusion backend | 多模态 worker 必须显式启用，媒体 URL、格式和 encoder-to-prefill 契约需要单独验证 |
 
-`v1.3.1` 是建立在 v1.3.0 上的补丁 release，后端版本仍为 vLLM `v0.23.0`、SGLang `v0.5.14`、TensorRT-LLM `v1.3.0rc19`。它针对 AWS EFA 上 GB200 的 SGLang P/D 分离 KV transfer 卡住问题，将 SGLang EFA runtime 改为已发布的 `nixl==1.3.2` / `nixl-cu13==1.3.2` wheel，并把三种 `-efa` runtime image 的 EFA Installer 统一升级到 `1.49.0`（stock libfabric `2.4.0amzn5.0`）。这个 NIXL 覆盖只属于 SGLang EFA 镜像；其他 runtime 的后端/NIXL 基线沿用 v1.3.0，不能把 `1.3.2` 当成全部镜像的统一依赖。
+`v1.4.0` 在 v1.3.x 的基础上合并了 Router、Frontend、Planner、Operator 和多模态路径的大量稳定修复，并继续保留 CUDA 13 镜像约束。SGLang EFA 的 `nixl==1.3.2` / `nixl-cu13==1.3.2` wheel、三种 `-efa` runtime image 的 EFA Installer `1.49.0`（stock libfabric `2.4.0amzn5.0`）仍只属于对应 EFA 镜像；不能把该 NIXL 版本推断为所有 runtime 的统一依赖。
 
 补丁并未消除所有 EFA 风险。release notes 仍记录两类会表现为空 HTTP 200、零 completion token 的问题：LIBFABRIC backend 可能在约 300 秒后发生无错误、无丢包计数的间歇性 stall；只申请节点部分 EFA device 时，Kubernetes 的 GPU 与 EFA 独立 device plugin 可能分配到不同 PCIe switch，约 10 到 20 秒后由 decode worker 报 `Lost connection with prefill instance`。前者等待 AWS EFA 修复；后者优先申请节点全部 EFA device，或组合 EFA DRA 与 NVIDIA DRA 做 PCIe 拓扑约束。健康检查不能只看 HTTP 状态码和网卡 drop，还应验证 completion token、decode worker 连接日志与新 worker 冷启动后的首批请求。
 
 Dynamo 镜像从 v1.3.0 起只发布 CUDA 13 变体，不能沿用 v1.2.x 的 CUDA 12.9 运行时假设。v1.3.0 的非 EFA 核心依赖矩阵中，NIXL 随后端分别固定为 `v1.1.0`、`v1.3.0`、`v1.0.1`，UCX 为 `v1.20.x`；部署时必须以具体 runtime image 为单位核对，而不是只读 Python optional dependency。
+
+### 1.6 v1.4.0 新增行为、边界与迁移
+
+本节只记录 `v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac` 已发布的实现。发布后的 `main` 可能继续改变 API 或默认值，不能把主线观察回填为 v1.4.0 的兼容承诺。
+
+#### Router：跨数据中心前缀与预留重放
+
+v1.4.0 的 KV Router 把 prefix routing 的作用域从单一 worker 集群扩展到可声明的 data-center/domain。跨 DC 场景会把 prefix 的 owner、候选 endpoint 和拓扑代价一起纳入选择；它仍优先复用本地 device/host 命中，跨 DC 只在复用收益超过网络代价时发生。新请求可以携带 reservation，Router 在 endpoint 尚未完全 ready 时先保存 booking facts，并通过 **reservation replay** 在重连后重放；replay 结果包含规范化 reservation，而不是把旧 endpoint 地址当作永久事实。
+
+KV relay 在 v1.4.0 使用带序号的 **sequenced KV relay**。relay receiver 按 sequence 丢弃重复事件、检测 gap 并触发补齐；因此 event consumer 必须持久化最后确认的 sequence，不能把 unordered UDP-like 通道直接接入索引。多 Router 的 session affinity 同步也带 request identity 和版本，避免一个 Router 的 sticky 视图覆盖另一个 Router 的新分配。
+
+事件订阅从全局 topic 改为 **endpoint-scoped event transport**：事件 subject 同时含 endpoint/worker scope，跨 endpoint 的 stored/remove 事件不会互相污染。混合版本集群中，旧 Router 不理解 scoped subject，必须先滚动升级消费者和 publisher，再启用该模式；不能把 endpoint-scoped events 与旧版消费者混跑。
+
+多租户部署应为每个 tenant 设置独立的 **tenant cache salt**（并在 hash 输入中保留模型/LoRA 维度），避免不同租户的相同 prompt 共享 KV。salt 不是访问控制，租户授权、存储加密和 Remove event 清理仍需独立治理。
+
+#### Frontend：实验协议、tokenizer cache 与 thinking 默认值
+
+Frontend 在 v1.4.0 提供实验性的 `/inference/v1/generate` token-in/token-out 接口。请求直接携带 token IDs，响应返回 token IDs 与可选的 usage/finish reason；该接口标记为 experimental，不能替代 OpenAI-compatible `/v1/chat/completions` 的稳定兼容承诺。协议协商使用新的 protocol version，老 worker 会被拒绝或回落到兼容 codec，而不会静默解释不同字段。
+
+tokenizer prefix cache 在 v1.4.0 默认开启。它只缓存 tokenizer 输出和可复用的前缀结果，不等同于 GPU KV cache；清理、模型 revision、LoRA/tenant salt 变化都会使条目失效。部署时若希望复现实验基准，应显式记录 `--no-tokenizer-prefix-cache`（或对应配置）而不是依赖隐含默认。
+
+Chat template 的 thinking 默认配置改为由 deployment/endpoint 配置决定，Frontend 会在请求归一化时写入明确的 thinking policy；请求级显式值优先于 deployment 默认。迁移时应检查 reasoning summary、tool-call 和 streaming response 的字段，不要把旧版“未设置即关闭”假定带入 v1.4.0。
+
+#### 多模态与 Omni
+
+v1.4.0 将多模态 backend 的请求预处理、媒体错误和路由信号统一到 common backend。vLLM-Omni 支持通过 **NIXL RDMA 多节点分离**把 encode、prefill、decode/realtime worker 放入不同节点；NIXL stage 配置必须与实际 entry-stage engine input source 对齐，不能沿用旧的单节点路径。
+
+Router 现在可以按模态（文本、图像、视频、音频）做 modality-aware routing，并把 encoder cache/embedding cache 的命中作为候选成本。`examples/custom_encoder` 展示了自定义 vision encoder；它只约束 encoder 输出与 prefill 的协议，不自动提供模型权重或媒体下载安全策略。Omni realtime worker 处理流式媒体输出，需单独验证 codec、NVDEC/音频依赖和 backpressure，不能按普通文本 decode worker 估算容量。
+
+#### Planner 与仿真
+
+Planner/仿真路径新增实验性 **Spica**。Spica 读取 request trace，将 trace 转换为 SATF（Synthetic/Scenario Arrival Trace Format）后在候选并行形状、KV load ratio 和 throughput/load scaling 之间做搜索。它是容量评估工具，不是线上 autoscaler；实验结果必须注明硬件、backend、AIC 数据库版本和 SLA（TTFT/ITL 或 e2e）约束。
+
+Native **G1 Mocker** 保留 SGLang radix scheduling 的 cache-hit 观察和事件顺序，可用于离线 replay；它不是实际 SGLang worker，也不会证明真实 RDMA、CUDA kernel 或 GPU 容量。request-trace 到 SATF 的转换、mock replay 和线上 Planner 执行要分别验收，避免把模拟吞吐当作生产 SLO。
+
+#### Kubernetes、Operator 与 Gateway
+
+Operator 的 DGD 在 v1.4.0 支持声明式 **rollout strategy**（`maxUnavailable` / `maxSurge`），并在 DGD/DGDR 的 Ready condition 中返回原因（例如 webhook 未 ready、rendered config 无效、worker 未注册）。多节点 rollout 设置 `maxUnavailable=0` 时仍要预留新旧副本所需的 GPU，不能只按 Deployment 的 CPU 余量判断可滚动升级。
+
+DGD schema 提供 `v1alpha1 → v1beta1` conversion 工具；转换只迁移字段和默认值，不替代 CRD storage-version migration。升级前必须先安装 webhook、备份 CRD/对象并检查 conversion webhook 的 TLS 与可达性。
+
+GMS 支持 shadow-engine failover：影子 engine 先同步 checkpoint/状态，主 engine 不健康时才提升；它不是跨集群灾备，也不绕过模型版本和 KV layout 校验。XPU 场景有 DRA 示例，必须安装相应 DeviceClass/ResourceClaim 与 Intel XPU runtime，不能把 NVIDIA DRA 资源名复制过去。
+
+Frontend image 继续包含 Gateway API Inference Extension 的 EPP；v1.4.0 同时保留 standalone EPP/standalone selector router 的方向。Volcano/Grove 的部署示例分别依赖其自身 chart、webhook 和 gang/topology 配置，Dynamo Operator 不会替用户安装或升级这些调度器。
+
+#### 可观测性
+
+请求链路统一使用 `dynamo.request.trace.v1` request trace。Frontend、Router、worker 和 replay 可以把 trace 写入 OTLP sink；allowlisted headers 只允许显式列出的请求头进入 trace，禁止把 Authorization、cookie 或原始 token 写入观测系统。ITL buffer 在流式输出中记录 token 间隔，避免只看平均 ITL 遗漏尾延迟；多模态指标另行区分 encode、prefill、decode 和 media bytes。
+
+#### v1.4.0 兼容性与 breaking changes
+
+| 迁移项 | v1.4.0 行为 | 操作建议 |
+|------|------|------|
+| Router queue threshold | 默认值与 v1.3.x 不同，按 aggregate ISL/queue 信号计算 | 显式设置阈值并重新压测，不依赖旧默认 |
+| `DYN_SELF_HOST_METADATA` | self-hosted metadata 默认开启 | 私有环境检查暴露面，必要时显式关闭并记录审计理由 |
+| endpoint-scoped events | subject 含 endpoint scope，旧 consumer 不兼容 | 先升级全链路，再切换 publisher/consumer |
+| tokenizer truncation | tokenizer 在 context limit 处执行明确 truncation/拒绝策略 | 检查长上下文请求的 finish reason 与 usage |
+| NATS subchart | Helm 默认不再启用内置 NATS subchart | 预置外部 NATS/JetStream，并把连接信息写入 values/Secret |
+| audit variables | 旧审计环境变量迁移到 v1.4.0 的统一命名 | 先双写/观察，再删除旧变量，避免审计链路静默缺失 |
+| KVBM | v1.4.0 **deprecated** | 新生产部署优先使用后端原生 KV offload、LMCache、FlexKV 或 HiCache；不要新增 KVBM 依赖 |
+
+官方 `agg_kvbm.yaml` 在 v1.4.0 仍有已知不可部署问题（资源/字段与当前 Operator schema 不一致）。它只能作为架构示例，必须先做 dry-run 和 schema 校验，不能直接作为生产清单。
 
 ---
 
@@ -428,7 +490,7 @@ DYN_ROUTER_MODE=kv
 | `--router-kv-overlap-score-credit` | `1.0` | device-local 前缀命中 credit，0.0 到 1.0 |
 | `--router-prefill-load-scale` | `1.0` | Prefill load 相对 Decode blocks 的权重 |
 | `--router-kv-events` / `--no-router-kv-events` | events enabled | 是否消费 worker KV events |
-| `--router-queue-threshold` | `16.0` | backpressure queue threshold |
+| `--router-queue-threshold` | unset (`None`) | 可选 backpressure queue threshold；设置数值才启用 queueing |
 | `--router-queue-policy` | `fcfs` | `fcfs`、`wspt`、`lcfs` |
 | `--no-router-track-prefill-tokens` | disabled | 路由负载中忽略 prompt-side Prefill tokens |
 
@@ -461,6 +523,8 @@ KV-aware routing 让系统“知道缓存在哪里并用它做调度”。KVBM �
 ### 5.2 KVBM 的定位
 
 Dynamo KV Block Manager 是统一的 KV block 内存层和 write-through cache。官方组件文档把它描述为跨 GPU、pinned host memory、远端 RDMA memory、本地/分布式 SSD、远端文件/对象/云存储的统一 memory API。
+
+> **v1.4.0 状态边界：** KVBM 架构和既有代码仍保留，本文也保留其机制说明用于理解历史部署，但 v1.4.0 已将 KVBM 标为 deprecated。新的生产系统不应据此新增 KVBM 依赖，应优先评估后端原生 KV offload、LMCache、FlexKV 或 SGLang HiCache，并为既有 KVBM 部署制定退出计划。
 
 它主要解决四类问题：
 
@@ -1374,7 +1438,7 @@ python -m dynamo.frontend \
 
 ModelExpress 是 Dynamo 生态里的**模型权重生命周期与冷启动加速组件**。它关注的是模型文件、权重、JIT 编译产物如何更快到达新 worker；KVBM、LMCache、FlexKV、HiCache 关注的是请求运行期间产生的 KV block 如何复用、迁移和分层存储。两者都能降低延迟或扩容成本，但服务的对象完全不同。
 
-本节固定到 ModelExpress 独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`。该版本把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；它不是 Dynamo v1.3.1 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
+本节固定到 ModelExpress 独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`。该版本把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；它不是 Dynamo v1.4.0 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
 
 | 维度 | ModelExpress | KV cache/offloading 系统 |
 |------|--------------|--------------------------|
@@ -1621,6 +1685,7 @@ ModelExpress 与 KV cache 系统可以叠加：
 | 开启 KVBM 就能无限上下文 | 容量扩大不等于零成本，onboard/offload 会影响延迟 |
 | 用 QPS 扩缩即可 | LLM 需要考虑 ISL、OSL、KV hit、TTFT、ITL |
 | JetStream 可只在 Frontend 开启 | durable KV events 需要 Frontend 和所有 workers 一致配置 |
+| KVBM 仍是新部署推荐路径 | v1.4.0 已 deprecated KVBM；保留本文章节只为解释既有架构和迁移 |
 
 ### 12.3 从 v1.2.x 升级到 v1.3.0
 
@@ -1636,18 +1701,22 @@ ModelExpress 与 KV cache 系统可以叠加：
 | DGD restart | 创建时的 `spec.restart.id` 视为已观察，不触发 restart | 创建后再更新 `spec.restart.id` |
 | vLLM runner | 不再强制默认 `generate` | 依赖旧行为时显式传 `--runner generate` |
 
-`--router-queue-threshold=16.0` 已经体现在本文配置表中；它是 v1.3.0 的新默认值，不应误抄到旧 release 的容量基线。
+v1.4.0 又把 `--router-queue-threshold` 从 `16.0` 改为 unset (`None`)：不显式设置数值时 queueing 关闭。升级不能只继承 v1.3.0 的容量结论，应根据 aggregate ISL、`max_num_batched_tokens` 和真实 TTFT/ITL 重新选择阈值。
 
-#### v1.3.1 EFA 补丁升级检查
+#### v1.4.0 EFA 与 breaking-change 升级检查
 
-| 检查项 | v1.3.1 要求 |
+| 检查项 | v1.4.0 要求 |
 |--------|-------------|
-| 镜像 | 三种 EFA runtime 使用 `1.3.1-efa`；不要只替换 Dynamo wheel 而保留旧 EFA 镜像 |
+| 镜像 | 固定 `v1.4.0` runtime image digest；不要只替换 Dynamo wheel 而保留旧 EFA 镜像 |
 | SGLang | 确认镜像内 `nixl` 与 `nixl-cu13` 为 `1.3.2`，LIBFABRIC plugin 从同一安装前缀加载 |
 | EFA 栈 | 确认 EFA Installer `1.49.0` 与 stock libfabric `2.4.0amzn5.0`，同时验证 host driver/设备插件兼容 |
 | GB200 回归 | 覆盖新 decode worker、worker restart、连续 P/D KV transfer，并把空 HTTP 200/零 token 视为失败 |
 | PCIe 拓扑 | 申请部分 EFA device 时验证 GPU/NIC locality；无法保证时申请整节点 EFA 或使用协同 DRA |
 | 观测 | 同时检查 completion token、约 10--20 秒与约 300 秒超时特征、`Lost connection with prefill instance` 和 EFA counters |
+| Router | 确认 queue threshold 从 `16.0` 变为 unset，endpoint-scoped events 不与旧 consumer 混跑 |
+| Metadata | `DYN_SELF_HOST_METADATA` 从默认关闭变为默认开启；显式记录是否允许 self-host metadata |
+| Helm | 内置 NATS subchart 默认关闭，预先验证外部 NATS/JetStream 地址和凭据 |
+| Trace | 从 `DYN_AUDIT_*` 迁到 `DYN_REQUEST_TRACE_*`，并只配置必要的 header allowlist |
 
 ### 12.4 生产落地检查清单
 
@@ -1712,20 +1781,20 @@ helm install dynamo-platform \
 |------|------|
 | GitHub 仓库 | <https://github.com/ai-dynamo/dynamo> |
 | 官方文档 | <https://docs.nvidia.com/dynamo/> |
-| v1.3.1 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.3.1> |
-| v1.3.1 源码快照 | <https://github.com/ai-dynamo/dynamo/tree/a49702e4432e7fa43cbc88175bddb31604340f19> |
-| README | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/README.md> |
-| Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/architecture.md> |
-| Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/disagg-serving.md> |
-| Router Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/router-design.md> |
-| KVBM Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/kvbm-design.md> |
-| Planner Design | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/design-docs/planner-design.md> |
-| Router Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/components/router/README.md> |
-| KVBM Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/components/kvbm/README.md> |
-| vLLM KV Cache Offloading | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/backends/vllm/vllm-kv-offloading.md> |
-| LMCache Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/integrations/lmcache-integration.md> |
-| FlexKV Integration | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/integrations/flexkv-integration.md> |
-| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/backends/sglang/sglang-hicache.md> |
+| v1.4.0 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.0> |
+| v1.4.0 exact source | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac> |
+| README | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/README.md> |
+| Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/architecture-flow.md> |
+| Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/disaggregated-serving.md> |
+| Router Design | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/router/router-design.md> |
+| KVBM Design | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/kvbm/kvbm-design.md> |
+| Planner Design | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/planner/planner-design.md> |
+| Spica（实验性） | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac/aisimulate/src/aisimulate/spica> |
+| vLLM-Omni Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/vllm/vllm-omni-disaggregated-serving.md> |
+| Request Traces | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/reference/observability/request-traces.mdx> |
+| v1.4.0 Breaking Changes | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/reference/general/releases/deprecations.mdx> |
+| Known Issues | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/reference/general/releases/known-issues.mdx> |
+| SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/sglang/hicache.md> |
 | SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
 | ModelExpress GitHub | <https://github.com/ai-dynamo/modelexpress> |
 | ModelExpress v0.5.0 源码快照 | <https://github.com/ai-dynamo/modelexpress/tree/0406ac16d5daeef985de1bf4d09c9f0a5e188c1a> |
@@ -1736,7 +1805,6 @@ helm install dynamo-platform \
 | ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/SGLANG.md> |
 | Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/examples/dynamo_model_cache_k8s/README.md> |
 | Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/examples/dynamo_p2p_transfer_k8s/README.md> |
-| Planner Component | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/components/planner/README.md> |
-| Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/kubernetes/dynamo-operator.md> |
-| Kubernetes Quickstart | <https://github.com/ai-dynamo/dynamo/blob/v1.3.1/docs/kubernetes/README.md> |
-| Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/v1.3.1#quick-start> |
+| Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/kubernetes/kubernetes-operator/dynamo-operator.md> |
+| Kubernetes Installation | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/kubernetes/installation> |
+| Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac#quick-start> |
