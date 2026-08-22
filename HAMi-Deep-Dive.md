@@ -4,7 +4,7 @@
 >
 > 基于 HAMi 官方仓库与官网文档整理：<https://github.com/Project-HAMi/HAMi>
 >
-> 稳定版本基线：`v2.9.0@3a006c6ae2f077a2683df7805c43656c07f6dc15`，审校日期：2026-08-17。主线中的后续实现不作为 v2.9.0 的稳定能力。
+> 稳定版本基线：`v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e`，审校日期：2026-08-22。主线中的后续实现不作为 v2.10.0 的稳定能力。
 
 ---
 
@@ -718,11 +718,11 @@ NVIDIA 后端代码中定义了 `mps` 模式。MPS 的核心价值是提升多 C
 
 ### 8.5 DRA 方向
 
-Kubernetes Dynamic Resource Allocation 在 v1.34 进入 GA。DRA 提供 `ResourceClaim`、`DeviceClass`、`ResourceSlice` 等 API，让调度器能直接读取设备属性。HAMi v2.9.0 的默认路径仍是 Device Plugin + annotations，但 chart 已包含默认关闭的 `dra.enabled` 和 `hami-dra` subchart；启用后不会部署原 scheduler extender/device plugin 路径。
+Kubernetes Dynamic Resource Allocation 在 v1.34 进入 GA。DRA 提供 `ResourceClaim`、`DeviceClass`、`ResourceSlice` 等 API，让调度器能直接读取设备属性。HAMi v2.10.0 的默认路径仍是 Device Plugin + annotations，但 chart 已包含默认关闭的 `dra.enabled` 和 `hami-dra` subchart；启用后不会部署原 scheduler extender/device plugin 路径。
 
 这说明 HAMi 正在向 Kubernetes 原生细粒度设备 API 演进：
 
-| v2.9.0 默认路径 | DRA 路径 |
+| v2.10.0 默认路径 | DRA 路径 |
 |----------|----------|
 | Node annotations 承载设备规格 | ResourceSlice 承载设备属性 |
 | Pod annotations 传递分配结果 | ResourceClaim 表达资源声明 |
@@ -735,7 +735,7 @@ Kubernetes Dynamic Resource Allocation 在 v1.34 进入 GA。DRA 提供 `Resourc
 
 ### 9.1 官方支持矩阵
 
-HAMi 官网 v2.9.0 支持矩阵列出的设备包括：
+HAMi 官网 v2.10.0 支持矩阵列出的设备包括：
 
 | 类型 | 厂商 | 型号 | 显存隔离 | 算力隔离 | 多卡支持 |
 |------|------|------|----------|----------|----------|
@@ -858,7 +858,7 @@ kubectl get pods -n kube-system
 
 | 配置 | 默认 | 说明 |
 |------|------|------|
-| `global.imageTag` | `v2.9.0` | chart 默认镜像 tag |
+| `global.imageTag` | `v2.10.0` | chart 默认镜像 tag |
 | `schedulerName` | `hami-scheduler` | Webhook 改写的 schedulerName |
 | `scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy` | `binpack` | 默认节点策略 |
 | `scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy` | `spread` | 默认 GPU 策略 |
@@ -1159,17 +1159,17 @@ curl http://<scheduler-ip>:31993/metrics
 | 主题 | 链接 |
 |------|------|
 | GitHub 仓库 | <https://github.com/Project-HAMi/HAMi> |
-| v2.9.0 源码快照 | <https://github.com/Project-HAMi/HAMi/tree/v2.9.0> |
+| v2.10.0 源码快照 | <https://github.com/Project-HAMi/HAMi/tree/v2.10.0> |
 | 官网文档 | <https://project-hami.io/docs> |
 | HAMi 是什么 | <https://project-hami.io/docs/> |
 | 架构 | <https://project-hami.io/docs/core-concepts/architecture> |
 | GPU Virtualization Principles | <https://project-hami.io/docs/core-concepts/gpu-virtualization> |
 | Helm 安装 | <https://project-hami.io/docs/get-started/deploy-with-helm> |
 | 支持设备矩阵 | <https://project-hami.io/docs/userguide/device-supported> |
-| README | <https://github.com/Project-HAMi/HAMi/blob/v2.9.0/README.md> |
-| 中文 README | <https://github.com/Project-HAMi/HAMi/blob/v2.9.0/README_cn.md> |
-| Design | <https://github.com/Project-HAMi/HAMi/blob/v2.9.0/docs/develop/design.md> |
-| Protocol | <https://github.com/Project-HAMi/HAMi/blob/v2.9.0/docs/develop/protocol.md> |
-| Scheduler Policy | <https://github.com/Project-HAMi/HAMi/blob/v2.9.0/docs/develop/scheduler-policy.md> |
-| Dynamic MIG | <https://github.com/Project-HAMi/HAMi/blob/v2.9.0/docs/develop/dynamic-mig.md> |
-| Helm Chart Values | <https://github.com/Project-HAMi/HAMi/blob/v2.9.0/charts/hami/README.md> |
+| README | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/README.md> |
+| 中文 README | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/README_cn.md> |
+| Design | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/docs/develop/design.md> |
+| Protocol | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/docs/develop/protocol.md> |
+| Scheduler Policy | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/docs/develop/scheduler-policy.md> |
+| Dynamic MIG | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/docs/develop/dynamic-mig.md> |
+| Helm Chart Values | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/charts/hami/README.md> |

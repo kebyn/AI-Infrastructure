@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.1@df3d365`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-17。Volcano 官网证据固定到 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`，本轮只有 Mermaid 渲染支持变化，不改变 v1.15.1 能力结论。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.2@8eab687`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-22。Volcano 官网证据固定到 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`，本轮只有 Mermaid 渲染支持变化，不改变 v1.15.1 能力结论。
 
 ---
 
@@ -36,9 +36,9 @@ Koordinator、Kueue、Grove、KAI-Scheduler 和 Volcano 经常一起出现在 Ku
 
 ### 1.2 Kubernetes 原生稳定能力还缺什么
 
-标准 kube-scheduler 擅长对单个 Pending Pod 执行 Filter、Score、Reserve、Permit、PreBind 和 Bind。Kubernetes v1.35/v1.36 已引入 Workload/PodGroup、Gang、Topology-Aware Workload Scheduling 和 workload-aware preemption，但在 v1.36.3 中这些工作负载级能力仍为默认关闭的 Alpha feature。因此，以默认稳定能力为生产基线时，AI 与批处理工作负载通常还有六类集群级问题：
+标准 kube-scheduler 擅长对单个 Pending Pod 执行 Filter、Score、Reserve、Permit、PreBind 和 Bind。Kubernetes v1.35/v1.36 已引入 Workload/PodGroup、Gang、Topology-Aware Workload Scheduling 和 workload-aware preemption，但在 v1.36.4 中这些工作负载级能力仍为默认关闭的 Alpha feature。因此，以默认稳定能力为生产基线时，AI 与批处理工作负载通常还有六类集群级问题：
 
-| 问题 | v1.36.3 默认稳定能力的缺口 |
+| 问题 | v1.36.4 默认稳定能力的缺口 |
 |------|----------------------------|
 | 多 Pod 原子启动 | 默认仍逐 Pod 调度；原生 PodGroup/Gang 可解决部分问题，但为 Alpha 且默认关闭 |
 | 团队队列和配额 | `ResourceQuota` 限制命名空间总量，但不直接提供集群队列、公平借用和排队顺序 |
@@ -455,11 +455,11 @@ spec:
 
 v0.19.0 还提高默认 client QPS/burst 与 Workload/LQ/CQ reconcile concurrency。大型集群可能受益，但 API Server 较小或 webhook 较慢的环境应监控 throttling、workqueue depth 和 reconciliation latency，而不是无条件沿用新并发值。
 
-### 4.11 v0.19.1 补丁升级前必读
+### 4.11 v0.19.2 补丁升级前必读
 
-`v0.19.1` 是 `v0.19.0` 上的补丁 release，**不会替代上一节的 minor API、feature gate、Ray 配额和 Helm 清理要求**。从更早版本升级时必须先完成 `v0.19.0` 前置，再处理下面三项新增约束：
+`v0.19.2` 是 `v0.19.0` 上的补丁 release，**不会替代上一节的 minor API、feature gate、Ray 配额和 Helm 清理要求**。从更早版本升级时必须先完成 `v0.19.0` 前置，再处理下面三项新增约束：
 
-| 项目 | v0.19.1 行为 | 升级动作 |
+| 项目 | v0.19.2 行为 | 升级动作 |
 |------|---------------|----------|
 | LeaderWorkerSet group size | Beta `LWSImmutableGroupSize` 默认开启；受 Kueue 管理时 `spec.leaderWorkerTemplate.size` 不可变，`spec.replicas` 仍可变 | 要改变每组 Pod 数量就重建 LWS；不要为了保留原地更新而关闭 gate，因为关闭会同时恢复已知配额绕过 |
 | TAS slice size | `podSetSliceRequiredTopology` 必须与大于 0 的 `podSetSliceSize` 同时出现；未指定 required topology 时不能单独设置 size；每个 constraint size 也必须大于 0 | 升级前扫描直接创建或自研 controller 生成的 Workload；分阶段只能临时关闭 `TASValidateWorkloadSliceSize`，清理后重新开启 |
@@ -467,7 +467,7 @@ v0.19.0 还提高默认 client QPS/burst 与 Workload/LQ/CQ reconcile concurrenc
 
 LWS 限制修复的是明确的 quota bypass：旧行为允许已 admitted 的 LWS 增大每组 size，让实际启动 Pod 超过已预留配额。关闭默认 gate 不是无害兼容开关，而是重新接受这个资源超发风险。
 
-### 4.12 v0.19.1 资源正确性与调度修复
+### 4.12 v0.19.2 资源正确性与调度修复
 
 本补丁集中修复了会改变准入、公平、计费或可观测结论的问题：
 
@@ -1131,7 +1131,7 @@ Volcano 的官方兼容矩阵和目标 release 说明是唯一可泛化依据。
 | 设备 | GPU allocation、显存/算力用量、fragmentation、MIG/DRA claim 状态 |
 | 控制面 | leader changes、reconcile errors、webhook latency、workqueue depth、API throttling |
 
-Kueue v0.19.1 延续 v0.19.0 新增的 `kueue_unadmitted_workloads`、`kueue_local_queue_unadmitted_workloads`、`kueue_pod_scheduling_gate_removal_seconds`、`multikueue_workloads_dispatched_total` 与 `multikueue_workloads_admitted_total`。前两类详细 pending reason 受 `UnadmittedWorkloadsObservability` gate 控制；显式初始化 `QuotaReserved=False`/`Admitted=False` 还需要 `UnadmittedWorkloadsExplicitStatus`，不能在 gate 关闭时期待指标和 condition 自动出现。v0.19.1 还修复大 quantity metric 溢出并把 unlimited quota 报为 `+Inf`；PromQL、recording rule 和告警必须能处理 infinity，升级前后不应直接比较曾经 wrap 的旧样本。
+Kueue v0.19.2 延续 v0.19.0 新增的 `kueue_unadmitted_workloads`、`kueue_local_queue_unadmitted_workloads`、`kueue_pod_scheduling_gate_removal_seconds`、`multikueue_workloads_dispatched_total` 与 `multikueue_workloads_admitted_total`。前两类详细 pending reason 受 `UnadmittedWorkloadsObservability` gate 控制；显式初始化 `QuotaReserved=False`/`Admitted=False` 还需要 `UnadmittedWorkloadsExplicitStatus`，不能在 gate 关闭时期待指标和 condition 自动出现。v0.19.2 还修复大 quantity metric 溢出并把 unlimited quota 报为 `+Inf`；PromQL、recording rule 和告警必须能处理 infinity，升级前后不应直接比较曾经 wrap 的旧样本。
 
 Events 必须作为排障入口，但不能作为长期时序存储。关键 pending reason 和队列状态应采集到 Prometheus 或平台数据库。
 
@@ -1220,7 +1220,7 @@ Events 必须作为排障入口，但不能作为长期时序存储。关键 pen
 
 ### 12.2 Kubernetes 原生能力正在上移
 
-Kubernetes v1.36.3 中，DRA 核心已在 v1.34 GA，并从 v1.35 起锁定为默认开启；Workload/PodGroup 与 Gang Scheduling 是 v1.35 Alpha，Topology-Aware Workload Scheduling 和 workload-aware preemption 是 v1.36 Alpha，均默认关闭。它们正在把一部分批调度与设备语义带入上游，但成熟度不能混写。
+Kubernetes v1.36.4 中，DRA 核心已在 v1.34 GA，并从 v1.35 起锁定为默认开启；Workload/PodGroup 与 Gang Scheduling 是 v1.35 Alpha，Topology-Aware Workload Scheduling 和 workload-aware preemption 是 v1.36 Alpha，均默认关闭。它们正在把一部分批调度与设备语义带入上游，但成熟度不能混写。
 
 这不会立刻淘汰五个项目，但会改变它们的边界：
 
@@ -1255,7 +1255,7 @@ Workload API / PodSets
 | 项目 | Release | 提交 |
 |------|---------|------|
 | Koordinator | `v1.8.0` | `989ca85c62abcca92b303aa12fd2ccff2ed30fed` |
-| Kueue | `v0.19.1` | `df3d3656004f7b2478004a37b34ad8efa9ffabf0` |
+| Kueue | `v0.19.2` | `8eab68778fc1b52affe165fdf5af29d1e9b4f3cb` |
 | Grove | `v0.1.0-alpha.11` | `8fa3ece93434d7c0005605b7dc4b0e23610af88b` |
 | KAI-Scheduler | `v0.17.0` | `f218c69bee5e5fc6031273ba555d09916b1ca89a` |
 | Volcano | `v1.15.1` | `0a56ed331897f5455916a44d3075671376d731d6` |
@@ -1303,7 +1303,7 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kubernetes-sigs/kueue> |
-| v0.19.1 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.1> |
+| v0.19.2 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.2> |
 | v0.19.0 minor Release（升级前置仍适用） | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.0> |
 | 官方文档 | <https://kueue.sigs.k8s.io/docs/> |
 | Overview | <https://kueue.sigs.k8s.io/docs/overview/> |
