@@ -168,7 +168,7 @@ V1 只接受静态 UTF-8 `SKILL.md`，拒绝未知字段/能力、符号链接�
 | runtime-local Skill | Runtime-local Skill sync 会跳过 binary supporting files，只同步可审计的文本/资源文件 | 过滤发生在同步边界；daemon 仍以本机用户权限运行，不因此获得文件隔离 |
 | Plugin immutable version | Plugin artifact 按 immutable version 绑定；相同 key/version 的不同内容不能覆盖已安装版本，历史 Task 保留 pinned execution manifest | 版本不可变不等于 publisher trusted；仍需 `plugins_v1`、`private_plugins_v1`、Binding 和 actor approval |
 | Custom provider | `pi` 和 `opencode` daemon 可连接 custom provider；provider endpoint 与认证由 Runtime 配置提供 | custom provider 只是连接形态，不会把第三方 endpoint 变成 Multica 托管服务或 Sandbox |
-| Execution-root fencing | daemon 在 live execution 上 fence env-root reset，并为每个 Task 独占 claimed env root | fencing 防止旧 Task 的清理覆盖新 Task；工作目录仍继承 daemon OS 权限 |
+| Execution-root fencing | daemon 在 live execution 上 fence env-root reset，并为每个 Task 独占 claimed env root（an exclusively claimed env root） | fencing 防止旧 Task 的清理覆盖新 Task；工作目录仍继承 daemon OS 权限 |
 | Workspace seats | Workspace owner/admin 可以增加 workspace seats，seat 计数与成员/Agent/Runtime 权限分别治理 | seat 扩容不自动授予 Agent Access，也不改变 Runtime owner-only 规则 |
 
 这些变化主要是正确性和治理修复，不应扩写成新的 provider 协议族或隔离能力。升级后应专门回归 manual rerun、并发 Task 的 env-root 回收、binary Skill 过滤、同 key/version 插件冲突和 workspace seat 权限。
