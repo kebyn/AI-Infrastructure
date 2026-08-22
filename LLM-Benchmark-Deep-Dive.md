@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.17`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.27.1`、EvalScope `v1.10.0`；审校日期：2026-08-17。
+> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.18`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.27.1`、EvalScope `v1.10.0`；审校日期：2026-08-22。
 
 ---
 
@@ -517,7 +517,7 @@ genai-bench benchmark \
 
 ### 9.1 定位
 
-SGLang Bench 指 SGLang 仓库内置的 online serving benchmark。v0.5.17 的 Bench Serving Guide 仍展示 `python -m sglang.bench_serving`，但该模块已是会发出 `FutureWarning` 的兼容包装，实现位于 `sglang.benchmark.serving`；新自动化脚本应优先使用：
+SGLang Bench 指 SGLang 仓库内置的 online serving benchmark。v0.5.18 的 Bench Serving Guide 仍展示 `python -m sglang.bench_serving`，但该模块已是会发出 `FutureWarning` 的兼容包装，实现位于 `sglang.benchmark.serving`；新自动化脚本应优先使用：
 
 ```bash
 python3 -m sglang.benchmark.serving
@@ -561,11 +561,11 @@ python3 -m sglang.benchmark.serving
 | `random` | 随机文本长度，适合固定 ISL/OSL 基准 | `--random-input-len`、`--random-output-len`、`--random-range-ratio` |
 | `random-ids` | 随机 token id，长度控制更直接但文本可能无意义 | 同 `random` |
 | `generated-shared-prefix` | 合成长共享 system prompt + 短问题，用于 prefix/KV cache 压测 | `--gsp-num-groups`、`--gsp-prompts-per-group`、`--gsp-system-prompt-len`、`--gsp-question-len`、`--gsp-output-len` |
-| `image` | 构造 VLM 图像请求；支持固定 preset/尺寸和 `random:min_hxmin_w-max_hxmax_w` 随机边界，v0.5.17 补充 Kimi K3 processor | `--image-count`、`--image-resolution`、`--image-format`、`--image-content` |
+| `image` | 构造 VLM 图像请求；支持固定 preset/尺寸和 `random:min_hxmin_w-max_hxmax_w` 随机边界，v0.5.18 补充 Kimi K3 processor | `--image-count`、`--image-resolution`、`--image-format`、`--image-content` |
 | `mmmu` | MMMU Math split，多模态评测式请求 | 依赖 `datasets`、`pillow`、`pybase64` |
 | `mooncake` | 用 Mooncake trace 评估大规模 KVCache 共享 | `--mooncake-workload`、`--mooncake-slowdown-factor`、`--mooncake-num-rounds`、`--use-trace-timestamps` |
 | `agentic-trace` | agentic multi-turn trace | `--dataset-offset`、`--agentic-max-turns` |
-| `custom` / `openai` / `longbench_v2` / `speed-bench` | 面向自定义、OpenAI 格式和长上下文/速度专项 | 按数据集格式和对应参数配置；`autobench` 已在 v0.5.17 移除，不应继续用于新命令 |
+| `custom` / `openai` / `longbench_v2` / `speed-bench` | 面向自定义、OpenAI 格式和长上下文/速度专项 | 按数据集格式和对应参数配置；`autobench` 已在 v0.5.18 移除，不应继续用于新命令 |
 
 SGLang Bench 的 `--request-rate` 是 open-loop 入口：默认 `inf` 表示起始时尽快发出所有请求；设成有限值时，请求间隔按 Poisson 过程采样。`--max-concurrency` 是最大在飞请求上限；当 `--request-rate` 与 `--max-concurrency` 同时使用时，如果服务端处理不过来，实际发送速率会被并发上限压低。
 
@@ -610,9 +610,9 @@ SGLang Bench 控制台会输出：
 | Accept length | SGLang speculative decoding 可用时报告接受长度 |
 | Retokenized counts | 用指定 tokenizer 重新计数生成文本，辅助发现服务端 usage 口径差异 |
 
-v0.5.17 延续 v0.5.16 引入的 `spec_accept_length`、`spec_cap_length`、`spec_block_accept_length` 和 `spec_cap_lens_histogram` 请求结果字段；OpenAI chat 非流式路径可从响应 `meta_info` 读取这些值，SGLang native 流式路径当前只回填 `spec_accept_length`。控制台和汇总 JSON 的 `accept_length` 仍来自 `/server_info` 中的 `avg_spec_accept_length`，不能把逐请求承载字段误写成已经完整聚合的新报表指标。vLLM Kimi 风格响应的 `reasoning` fallback 也继续用于避免 retokenized output 漏算 reasoning 文本。
+v0.5.18 延续 v0.5.16 引入的 `spec_accept_length`、`spec_cap_length`、`spec_block_accept_length` 和 `spec_cap_lens_histogram` 请求结果字段；OpenAI chat 非流式路径可从响应 `meta_info` 读取这些值，SGLang native 流式路径当前只回填 `spec_accept_length`。控制台和汇总 JSON 的 `accept_length` 仍来自 `/server_info` 中的 `avg_spec_accept_length`，不能把逐请求承载字段误写成已经完整聚合的新报表指标。vLLM Kimi 风格响应的 `reasoning` fallback 也继续用于避免 retokenized output 漏算 reasoning 文本。
 
-v0.5.17 还修复了 benchmark 可复现性：随机文本只从按 token ID 排序后的 tokenizer vocabulary 采样，避免不同 tokenizer 版本的字典迭代顺序破坏相同 `--seed`；图像数据集在 processor 初始化后重新设置 Python 和 NumPy seed，避免初始化过程消耗全局随机状态。SGLang native stream 的 JSON 解析改为直接对 SSE bytes 使用 `orjson`，这是降低单 asyncio 客户端解析开销的实现优化，不代表服务端 TTFT/ITL 本身变快。
+v0.5.18 还修复了 benchmark 可复现性：随机文本只从按 token ID 排序后的 tokenizer vocabulary 采样，避免不同 tokenizer 版本的字典迭代顺序破坏相同 `--seed`；图像数据集在 processor 初始化后重新设置 Python 和 NumPy seed，避免初始化过程消耗全局随机状态。SGLang native stream 的 JSON 解析改为直接对 SSE bytes 使用 `orjson`，这是降低单 asyncio 客户端解析开销的实现优化，不代表服务端 TTFT/ITL 本身变快。
 
 如果指定 `--output-file`，每次 run 会追加一个 JSON 对象；开启 `--output-details` 后还会包含 `input_lens`、`output_lens`、`ttfts`、逐请求 `itls`、`generated_texts` 和 `errors`。它适合接入 CI 或自行汇总，但不像 GuideLLM/EvalScope 那样内置完整 HTML 报告和 SLO sweep。
 
@@ -741,7 +741,7 @@ python3 -m sglang.benchmark.serving \
 | 不适合 | 多团队标准报告、Kubernetes 原生容量平台、自动 SLO/goodput 搜索、复杂 dashboard 交付 |
 | 横评风险 | 必须统一 endpoint、chat template、tokenizer、输出长度、streaming、warmup、cache 状态，否则容易把工具默认差异误判为 serving 性能差异 |
 | 客户端瓶颈 | 高并发时压测机 CPU、文件描述符、端口、网络和 Python event loop 可能先到瓶颈；大规模压测要用更强客户端或分布式压测工具 |
-| 兼容性 | v0.5.17 的指南路径已从上一版 `docs_new/docs/developer_guide/bench_serving.mdx` 调整为 `docs/docs/developer_guide/bench_serving.mdx`；指南仍展示 `sglang.bench_serving`，但源码已将其标为 deprecated，CI 应迁到 `sglang.benchmark.serving` |
+| 兼容性 | v0.5.18 的指南路径已从上一版 `docs_new/docs/developer_guide/bench_serving.mdx` 调整为 `docs/docs/developer_guide/bench_serving.mdx`；指南仍展示 `sglang.bench_serving`，但源码已将其标为 deprecated，CI 应迁到 `sglang.benchmark.serving` |
 | 一批请求探测 | `one_batch_server` 直连 worker 时可按 internal states 跳过超过 max-running 或 token-capacity 的组合；若目标是 PD router，拿不到 worker internal states，脚本会告警并关闭这层 skip guard，不能把它当成 router 后端的容量保护 |
 
 ---
@@ -1284,7 +1284,7 @@ python3 -m sglang.benchmark.serving \
 | GuideLLM | `v0.7.3` | `39383552962841086d05e25c37b58a83ef06c758` |
 | inference-perf | `v0.6.1` | `a40897e6500e4524adf563a91f7c880eb5296e12` |
 | genai-bench | `v0.0.5` | `4f873e03719c947a101647c6646954d5ebc3d35b` |
-| SGLang Bench | `v0.5.17` | `29481685462732237d80d86076d6563e1f658102` |
+| SGLang Bench | `v0.5.18` | `71de97b264b04dcd514cf904003028aefe9775c8` |
 | LLMPerf | `v2.0` | `1eac866f91773bff401f96e74c1cf20c38778329` |
 | ollama-benchmark | `v0.5.2` | `f9a5edb6554be2d425d6b16f7b740c1524d062a0` |
 | vLLM Bench | `v0.27.1` | `6e448d0ea9bf3d88d898b65449ca6dc2aec170ac` |
@@ -1316,10 +1316,10 @@ python3 -m sglang.benchmark.serving \
 | genai-bench Tasks | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/task-definition.md> |
 | genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/metrics-definition.md> |
 | genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/user-guide/scenario-definition.md> |
-| SGLang v0.5.17 Release | <https://github.com/sgl-project/sglang/releases/tag/v0.5.17> |
-| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/29481685462732237d80d86076d6563e1f658102/docs/docs/developer_guide/bench_serving.mdx> |
-| SGLang deprecated entry wrapper | <https://github.com/sgl-project/sglang/blob/29481685462732237d80d86076d6563e1f658102/python/sglang/bench_serving.py> |
-| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/29481685462732237d80d86076d6563e1f658102/python/sglang/benchmark/serving.py> |
+| SGLang v0.5.18 Release | <https://github.com/sgl-project/sglang/releases/tag/v0.5.18> |
+| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/71de97b264b04dcd514cf904003028aefe9775c8/docs/docs/developer_guide/bench_serving.mdx> |
+| SGLang deprecated entry wrapper | <https://github.com/sgl-project/sglang/blob/71de97b264b04dcd514cf904003028aefe9775c8/python/sglang/bench_serving.py> |
+| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/71de97b264b04dcd514cf904003028aefe9775c8/python/sglang/benchmark/serving.py> |
 | LLMPerf README | <https://github.com/ray-project/llmperf/blob/v2.0/README.md> |
 | ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/v0.5.2/README.md> |
 | vLLM v0.27.1 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.27.1> |

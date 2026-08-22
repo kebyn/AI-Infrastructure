@@ -2,9 +2,9 @@
 
 > **Kubernetes GPU 节点软件栈、`ClusterPolicy` 调谐、设备暴露、共享隔离与生产运维解析**
 >
-> 基于 NVIDIA GPU Operator 官方仓库与 26.3 官方文档整理：<https://github.com/NVIDIA/gpu-operator>
+> 基于 NVIDIA GPU Operator 官方仓库与 26.7 官方文档整理：<https://github.com/NVIDIA/gpu-operator>
 >
-> 文档快照：GPU Operator `v26.3.3`，源码提交 `b0a49c0e7b2e061dcd83f2bb2fe4fe960c5d0338`，审校日期：2026-08-17
+> 文档快照：GPU Operator `v26.7.0`，源码提交 `10ee5b3638b89e11e949412aafa5ba99279c3721`，审校日期：2026-08-22
 
 ---
 
@@ -66,11 +66,11 @@ GPU Operator 与 HAMi 也不是简单替代关系。GPU Operator 擅长部署 NV
 
 本文固定到以下事实基线，不把 `latest` 页面未来可能新增的行为倒灌进正文：
 
-- GPU Operator Release：`v26.3.3`。
-- Git 标签解引用提交：`b0a49c0e7b2e061dcd83f2bb2fe4fe960c5d0338`。
-- 官方 Chart：`gpu-operator-v26.3.3.tgz`，`version` 与 `appVersion` 均为 `v26.3.3`。
-- 官方文档：NVIDIA GPU Operator 26.3 版本路径。
-- 组件默认版本以 `v26.3.3` Chart `values.yaml` 为准。
+- GPU Operator Release：`v26.7.0`。
+- Git 标签解引用提交：`10ee5b3638b89e11e949412aafa5ba99279c3721`。
+- 官方 Chart：`gpu-operator-v26.7.0.tgz`，`version` 与 `appVersion` 均为 `v26.7.0`。
+- 官方文档：NVIDIA GPU Operator 26.7 版本路径。
+- 组件默认版本以 `v26.7.0` Chart `values.yaml` 为准。
 
 文中的“默认启用”有两层含义：Helm Values 中的布尔值，以及满足父级功能门控和节点选择器后真正创建/运行的 Operand。两者不总是相同，例如 `ccManager.enabled=true`，但默认 `sandboxWorkloads.enabled=false`，所以默认容器工作负载安装不会实际运行 CC Manager。
 
@@ -383,7 +383,7 @@ spec:
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --set driver.nvidiaDriverCRD.enabled=true
 ```
 
@@ -410,7 +410,7 @@ spec:
     driver.config: ubuntu22
 ```
 
-两条路径不能同时管理同一节点。官方 26.3 文档明确不支持把已有集群从 `ClusterPolicy` Driver 原地迁移到 `NVIDIADriver` 而不中断；切换会立即终止旧 Driver Pod 并重新部署，应当作为新集群设计或维护窗口变更。
+两条路径不能同时管理同一节点。官方 26.7 文档明确不支持把已有集群从 `ClusterPolicy` Driver 原地迁移到 `NVIDIADriver` 而不中断；切换会立即终止旧 Driver Pod 并重新部署，应当作为新集群设计或维护窗口变更。
 
 ### 4.5 直接编辑与 GitOps
 
@@ -432,9 +432,9 @@ spec:
 安装前至少确认：
 
 - `kubectl`、Helm 3 与集群管理员权限可用。
-- GPU 节点和 GPU 型号在 26.3 [Platform Support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/platform-support.html) 范围内。
+- GPU 节点和 GPU 型号在 26.7 [Platform Support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/platform-support.html) 范围内。
 - 一般 Kubernetes 验证范围为 1.32 到 1.36；平台发行版、OS 和内核仍须逐项查矩阵。
-- 节点使用受支持的 containerd 或 CRI-O；26.3 表中 containerd 范围为 1.7 到 2.2。
+- 节点使用受支持的 containerd 或 CRI-O；26.7 表中 containerd 范围为 1.7 到 2.2。
 - 默认 `ClusterPolicy` Driver 路径要求所有 GPU 节点使用相同 OS 版本；混合 OS 应使用预装驱动或 `NVIDIADriver` CRD。
 - Driver 容器能获得匹配运行内核的 headers/devel 包和构建依赖，或选用受支持的预编译 Driver。
 - `nouveau` 不占用设备；Secure Boot、代理、离线仓库、vGPU、Kata 等场景先满足专门文档的前置条件。
@@ -461,7 +461,7 @@ kubectl get nodes -o json \
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --set nfd.enabled=false
 ```
 
@@ -476,7 +476,7 @@ helm repo update nvidia
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --wait
 ```
 
@@ -490,7 +490,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --set driver.enabled=false \
   --wait
 ```
@@ -501,7 +501,7 @@ Driver 与 Container Toolkit 都已预装：
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --set driver.enabled=false \
   --set toolkit.enabled=false \
   --wait
@@ -515,7 +515,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
 
 ### 5.5 containerd、CRI-O、CDI 与 NRI
 
-`v26.3.3` 默认 `cdi.enabled=true`。标准 Device Plugin 工作负载仍然请求 `nvidia.com/gpu`，设备注入由支持 CDI 的 containerd/CRI-O 处理，对应用通常透明。
+`v26.7.0` 默认 `cdi.enabled=true`。标准 Device Plugin 工作负载仍然请求 `nvidia.com/gpu`，设备注入由支持 CDI 的 containerd/CRI-O 处理，对应用通常透明。
 
 默认 NRI 关闭。开启 NRI 需要 CDI，并要求 containerd `v1.7.30+`、`v2.1.x`、`v2.2.x`，或 CRI-O `v1.34+`：
 
@@ -523,7 +523,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --set cdi.nriPluginEnabled=true \
   --wait
 ```
@@ -536,7 +536,7 @@ NRI 模式下，Toolkit 不再修改运行时配置，不创建 `nvidia` Runtime
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --set toolkit.env[0].name=CONTAINERD_CONFIG \
   --set toolkit.env[0].value=/etc/containerd/config.toml \
   --set toolkit.env[1].name=CONTAINERD_SOCKET \
@@ -791,7 +791,7 @@ flowchart LR
 
 ### 7.3 CDI、RuntimeClass 与 legacy 路径
 
-从 GPU Operator 25.10 起，CDI 默认为普通 workload 的设备注入机制。`v26.3.3` 中：
+从 GPU Operator 25.10 起，CDI 默认为普通 workload 的设备注入机制。`v26.7.0` 中：
 
 - `cdi.enabled=true`：Device Plugin 分配结果交给支持 CDI 的运行时。
 - 未启用 NRI 时，仍创建 `nvidia` RuntimeClass，供 GPU 管理容器通过 `NVIDIA_VISIBLE_DEVICES` 访问设备；标准 Device Plugin Pod 不必显式写 RuntimeClass。
@@ -920,7 +920,7 @@ MPS Control Daemon 将每个 replica 的显存与计算能力限制为大致相�
 
 ### 8.5 MIG Manager 动态重配置
 
-26.3 起，MIG Manager 会按节点硬件动态生成 `<node-name>-mig-config` ConfigMap，包含 `all-disabled`、`all-enabled`、`all-balanced` 与硬件支持的 profile。老 Driver 无法在 MIG disabled 时查询 profile 时，会回退到静态配置。
+26.7 起，MIG Manager 会按节点硬件动态生成 `<node-name>-mig-config` ConfigMap，包含 `all-disabled`、`all-enabled`、`all-balanced` 与硬件支持的 profile。老 Driver 无法在 MIG disabled 时查询 profile 时，会回退到静态配置。
 
 启用 mixed 策略：
 
@@ -928,7 +928,7 @@ MPS Control Daemon 将每个 replica 的显存与计算能力限制为大致相�
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --set mig.strategy=mixed \
   --wait
 ```
@@ -1025,7 +1025,7 @@ gdrcopy:
   enabled: false
 ```
 
-GDS 使存储到 GPU memory 的 DMA 路径避免 CPU bounce buffer；26.3 Chart 的 GDS 版本要求 NVIDIA Open GPU Kernel Modules。GDRCopy 面向 CPU/GPU 小数据低延迟复制。这两项都会给 Driver Pod 增加内核相关 sidecar，必须先验证支持矩阵和 Driver 路径，再在小范围节点池启用。
+GDS 使存储到 GPU memory 的 DMA 路径避免 CPU bounce buffer；26.7 Chart 的 GDS 版本要求 NVIDIA Open GPU Kernel Modules。GDRCopy 面向 CPU/GPU 小数据低延迟复制。这两项都会给 Driver Pod 增加内核相关 sidecar，必须先验证支持矩阵和 Driver 路径，再在小范围节点池启用。
 
 ### 9.4 KubeVirt、vGPU 与 Kata
 
@@ -1050,7 +1050,7 @@ Kata 使用 `mode: kata`，并部署 Kata-specific device plugin；它不是把�
 
 ### 9.5 DRA 的位置
 
-Dynamic Resource Allocation（DRA）通过 `DeviceClass`、`ResourceClaim` 等 API 表达更灵活的设备请求和动态配置。26.3 中 DRA Driver for NVIDIA GPUs 是独立安装的项目，不是 `ClusterPolicy.spec` 的一个内嵌 `dra.enabled` 字段。
+Dynamic Resource Allocation（DRA）通过 `DeviceClass`、`ResourceClaim` 等 API 表达更灵活的设备请求和动态配置。26.7 中 DRA Driver for NVIDIA GPUs 是独立安装的项目，不是 `ClusterPolicy.spec` 的一个内嵌 `dra.enabled` 字段。
 
 典型集成边界：
 
@@ -1060,7 +1060,7 @@ Dynamic Resource Allocation（DRA）通过 `DeviceClass`、`ResourceClaim` 等 A
 4. 用 DRA Node label 和 Driver Manager eviction 环境变量解决驱动升级时 kubelet plugin 驱逐问题。
 5. 用 ResourceClaim 申请 GPU；需要兼容传统 `nvidia.com/gpu` 时确认 Kubernetes `DRAExtendedResource` feature gate。
 
-26.3 文档要求 DRA 集成使用 Kubernetes `v1.34.2+` 和 Driver `580+`。A100 的 MIG 变化不会自动驱逐 DRA kubelet plugin，重配置后需按文档重启插件。DRA 改变的是设备分配 API，不自动提供 Kueue/Volcano 的队列治理。
+26.7 文档要求 DRA 集成使用 Kubernetes `v1.34.2+` 和 Driver `580+`。A100 的 MIG 变化不会自动驱逐 DRA kubelet plugin，重配置后需按文档重启插件。DRA 改变的是设备分配 API，不自动提供 Kueue/Volcano 的队列治理。
 
 ---
 
@@ -1133,11 +1133,11 @@ Time-Slicing 下，DCGM Exporter 不能可靠把指标关联到具体容器。�
 
 ### 10.6 镜像和版本不是单一数字
 
-GPU Operator Release 不是 Driver Release 的别名。`v26.3.3` Chart 默认组合包括：
+GPU Operator Release 不是 Driver Release 的别名。`v26.7.0` Chart 默认组合包括：
 
 | 组件 | 该 Chart 默认版本 |
 |------|------------------|
-| GPU Operator/Validator | `v26.3.3`（未覆写时使用 Chart AppVersion） |
+| GPU Operator/Validator | `v26.7.0`（未覆写时使用 Chart AppVersion） |
 | NVIDIA Driver | `580.126.20` |
 | Container Toolkit | `v1.19.1` |
 | Device Plugin/GFD | `v0.19.3` |
@@ -1176,14 +1176,14 @@ GPU Operator Release 不是 Driver Release 的别名。`v26.3.3` Chart 默认组
 
 ### 11.3 CRD 升级
 
-Helm 对 `crds/` 下已有 CRD 不会自动升级。GPU Operator 从 24.9 起默认启用 pre-upgrade Hook（`operator.upgradeCRD=true`）。使用 Hook 升级 26.3.3 时，官方要求加入 `--disable-openapi-validation`：
+Helm 对 `crds/` 下已有 CRD 不会自动升级。GPU Operator 从 24.9 起默认启用 pre-upgrade Hook（`operator.upgradeCRD=true`）。使用 Hook 升级 26.7.3 时，官方要求加入 `--disable-openapi-validation`：
 
 ```bash
 helm repo update nvidia
 
 helm upgrade gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
-  --version=v26.3.3 \
+  --version=v26.7.0 \
   --disable-openapi-validation \
   --reuse-values
 ```
@@ -1192,7 +1192,7 @@ helm upgrade gpu-operator nvidia/gpu-operator \
 
 ```bash
 helm show values nvidia/gpu-operator \
-  --version=v26.3.3 > gpu-operator-v26.3.3-values.yaml
+  --version=v26.7.0 > gpu-operator-v26.7.0-values.yaml
 ```
 
 若组织不允许 Hook，先从固定 tag 手工 `kubectl apply` 两个 NVIDIA CRD 和 NFD CRD，再执行 Helm upgrade。不要从 `main` 或 `latest` 拉 CRD 配固定 Release。
@@ -1348,7 +1348,7 @@ kubectl get node -o custom-columns=NAME:.metadata.name,GPU:.status.allocatable.n
 - node affinity 不匹配：GFD product/MIG/shared label 与清单冲突。
 - taint 不容忍：业务 Pod 缺 toleration。
 - Kueue 未准入或 Volcano PodGroup 未满足：上层队列/调度器，不是 Operator。
-- mixed MIG + full GPU 且使用已知受影响 R570 Driver：26.3 Troubleshooting 记录了 `570.124.06`、`570.133.20`、`570.148.08`、`570.158.01` 的 NVML regression，应按官方建议选择修复版本/规避版本。
+- mixed MIG + full GPU 且使用已知受影响 R570 Driver：26.7 Troubleshooting 记录了 `570.124.06`、`570.133.20`、`570.148.08`、`570.158.01` 的 NVML regression，应按官方建议选择修复版本/规避版本。
 
 ### 12.7 MIG 卡在 pending/failed
 
@@ -1444,7 +1444,7 @@ operator:
 
 ### 13.2 安装基线
 
-- [ ] 固定 `--version=v26.3.3`，保存 Chart digest 和所有镜像 digest。
+- [ ] 固定 `--version=v26.7.0`，保存 Chart digest 和所有镜像 digest。
 - [ ] 核对硬件、OS、kernel、Kubernetes、containerd/CRI-O 支持矩阵。
 - [ ] 选择 `ClusterPolicy` Driver 或 `NVIDIADriver`，不重叠管理。
 - [ ] 确认 NFD 只有一套且覆盖 GPU 节点。
@@ -1550,8 +1550,8 @@ GPU Operator 管 GPU 侧 Driver 与可选 `nvidia-peermem`/GDS；Network Operato
 ### A.1 查看固定版本 Chart
 
 ```bash
-helm show chart nvidia/gpu-operator --version=v26.3.3
-helm show values nvidia/gpu-operator --version=v26.3.3
+helm show chart nvidia/gpu-operator --version=v26.7.0
+helm show values nvidia/gpu-operator --version=v26.7.0
 ```
 
 ### A.2 查看策略与组件
@@ -1592,23 +1592,23 @@ kubectl logs -n gpu-operator -l app=nvidia-mig-manager \
 
 本文以以下官方资料交叉验证：
 
-- [GPU Operator 26.3 Overview](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/overview.html)
-- [Getting Started](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/getting-started.html)
-- [Platform Support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/platform-support.html)
-- [GPU Sharing](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/gpu-sharing.html)
-- [Multi-Instance GPU](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/gpu-operator-mig.html)
-- [GPU Driver CRD](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/gpu-driver-configuration.html)
-- [GPU Driver Upgrades](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/gpu-driver-upgrades.html)
-- [CDI and NRI Support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/cdi.html)
-- [DRA Driver for NVIDIA GPUs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/dra-intro-install.html)
-- [GPUDirect RDMA and Storage](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/gpu-operator-rdma.html)
-- [Security Considerations](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/security.html)
-- [Upgrade](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/upgrade.html)
-- [Uninstall](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/uninstall.html)
-- [Troubleshooting](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/troubleshooting.html)
-- [GPU Operator `v26.3.3` source snapshot](https://github.com/NVIDIA/gpu-operator/tree/b0a49c0e7b2e061dcd83f2bb2fe4fe960c5d0338)
-- [`ClusterPolicy` Go type](https://github.com/NVIDIA/gpu-operator/blob/b0a49c0e7b2e061dcd83f2bb2fe4fe960c5d0338/api/nvidia/v1/clusterpolicy_types.go)
-- [`v26.3.3` Helm Values](https://github.com/NVIDIA/gpu-operator/blob/b0a49c0e7b2e061dcd83f2bb2fe4fe960c5d0338/deployments/gpu-operator/values.yaml)
+- [GPU Operator 26.7 Overview](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/overview.html)
+- [Getting Started](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/getting-started.html)
+- [Platform Support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/platform-support.html)
+- [GPU Sharing](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/gpu-sharing.html)
+- [Multi-Instance GPU](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/gpu-operator-mig.html)
+- [GPU Driver CRD](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/gpu-driver-configuration.html)
+- [GPU Driver Upgrades](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/gpu-driver-upgrades.html)
+- [CDI and NRI Support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/cdi.html)
+- [DRA Driver for NVIDIA GPUs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/dra-intro-install.html)
+- [GPUDirect RDMA and Storage](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/gpu-operator-rdma.html)
+- [Security Considerations](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/security.html)
+- [Upgrade](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/upgrade.html)
+- [Uninstall](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/uninstall.html)
+- [Troubleshooting](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/troubleshooting.html)
+- [GPU Operator `v26.7.0` source snapshot](https://github.com/NVIDIA/gpu-operator/tree/10ee5b3638b89e11e949412aafa5ba99279c3721)
+- [`ClusterPolicy` Go type](https://github.com/NVIDIA/gpu-operator/blob/10ee5b3638b89e11e949412aafa5ba99279c3721/api/nvidia/v1/clusterpolicy_types.go)
+- [`v26.7.0` Helm Values](https://github.com/NVIDIA/gpu-operator/blob/10ee5b3638b89e11e949412aafa5ba99279c3721/deployments/gpu-operator/values.yaml)
 - [NVIDIA Device Plugin `v0.19.3`](https://github.com/NVIDIA/k8s-device-plugin/tree/v0.19.3)
 
 版本和平台支持会变化。落地时应同时检查目标 GPU 型号、Driver 分支、Linux kernel、Kubernetes 发行版、容器运行时与云平台的当前兼容矩阵；不要把本文的固定快照当作未来版本的兼容承诺。

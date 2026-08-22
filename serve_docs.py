@@ -15,7 +15,7 @@ DOCS = [
         "title": "Mooncake 深度技术文档",
         "hero": "🌙 Mooncake 深度技术文档",
         "subtitle": "以 KVCache 为中心的分离式 LLM 推理架构全面解析",
-        "meta": "Mooncake v0.3.12.post1 · source@6041a60 · 2026-08-17",
+        "meta": "Mooncake v0.3.12.post1 · source@6041a60 · 2026-08-22",
         "summary": "覆盖 Transfer Engine、Mooncake Store、Conductor、HiCache、SSD/DFS 持久化、租户/多模型隔离与结构化对象接口。",
         "footer": (
             '基于 <a href="https://kvcache-ai.github.io/Mooncake">Mooncake 官方文档</a> 与 '
@@ -30,7 +30,7 @@ DOCS = [
         "title": "Dynamo 深度技术文档",
         "hero": "Dynamo 深度技术文档",
         "subtitle": "数据中心级 LLM 推理编排、KV 路由、KVBM 与 Planner 架构解析",
-        "meta": "Dynamo v1.4.0 · source@0301494 · ModelExpress v0.5.0@0406ac1 · 2026-08-17",
+        "meta": "Dynamo v1.4.0 · source@0301494 · ModelExpress v0.5.0@0406ac1 · 2026-08-22",
         "summary": "覆盖 Request/Control/Storage 三平面、跨数据中心 KV-Aware Router、Frontend token 协议、Planner/Spica、Operator、多模态与 KVBM deprecated 迁移边界。",
         "footer": (
             '基于 <a href="https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac">ai-dynamo/dynamo v1.4.0 源码</a> 与 '
@@ -44,12 +44,12 @@ DOCS = [
         "title": "E2B 深度技术文档",
         "hero": "E2B 深度技术文档",
         "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
-        "meta": "E2B Infra 2026.29 · source@557445f · SDK main@f5d702a · Agent Sandbox@5f26995 · 2026-08-17",
+        "meta": "E2B Infra 2026.29 · source@557445f · SDK main@b802997a · Agent Sandbox@2fd412d · 2026-08-22",
         "summary": "覆盖控制面/数据面、Sandbox fork 与生命周期、模板构建、网络隔离、状态存储、团队配额、可靠计量、预算、内部成本分摊、SDK IAM 主线和 Agent Sandbox 对照快照的未发布边界。",
         "footer": (
             '基于 <a href="https://github.com/e2b-dev/infra/tree/557445ffddda8d9a27f6f529a3f4d7732cf81a13">'
             'e2b-dev/infra 2026.29</a> 与 '
-            '<a href="https://github.com/e2b-dev/e2b/tree/f5d702a520de52ac0e5d4dda3ca0d5fca01d7993">'
+            '<a href="https://github.com/e2b-dev/e2b/tree/b8029973aa7da5f741f7bb01a9f833b38a0885438">'
             'E2B SDK 主线快照</a> 官方资料整理'
         ),
     },
@@ -60,11 +60,11 @@ DOCS = [
         "title": "Multica 深度技术文档",
         "hero": "Multica 深度技术文档",
         "subtitle": "AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析",
-        "meta": "Multica v0.4.26 · source@19155e4 · 2026-08-17",
+        "meta": "Multica v0.4.32 · source@d60775a · 2026-08-22",
         "summary": "覆盖 Issue/Task、21 种 provider（含 DeepSeek Harness）、Agent/Runtime、in_place/worktree 本地执行、Private Skill Plugin、Squad、Autopilot、自托管架构，以及默认没有 Sandbox 的安全边界。",
         "footer": (
-            '基于 <a href="https://github.com/multica-ai/multica/tree/19155e41f96cb3aec2355ae1d40da80c00030cdf">'
-            'multica-ai/multica v0.4.26 源码</a> 与 '
+            '基于 <a href="https://github.com/multica-ai/multica/tree/d60775aa9394b911b18701a326f655465604e7d1">'
+            'multica-ai/multica v0.4.32 源码</a> 与 '
             '<a href="https://multica.ai/docs">Multica 官方文档</a> 整理'
         ),
     },
@@ -75,15 +75,15 @@ DOCS = [
         "title": "LLM 压测工具深度对比",
         "hero": "LLM 压测工具深度对比",
         "subtitle": "AIPerf、GuideLLM、inference-perf、genai-bench、SGLang Bench、LLMPerf、vLLM Bench、EvalScope 与 Ollama Benchmark 选型解析",
-        "meta": "AIPerf v0.12.0 · GuideLLM v0.7.3 · SGLang v0.5.17 · vLLM v0.27.1 · EvalScope v1.10.0 · 2026-08-17",
+        "meta": "AIPerf v0.12.0 · GuideLLM v0.7.3 · SGLang v0.5.18 · vLLM v0.27.1 · EvalScope v1.10.0 · 2026-08-22",
         "summary": "覆盖指标口径、AgentX/DAG replay、自适应压测、长上下文前缀、工具选型、SLO/goodput 与生产落地建议。",
         "footer": (
             '<a href="https://github.com/ai-dynamo/aiperf/tree/be53bf2953d30e46c500e6a80fc1f8b6f84bc718">AIPerf v0.12.0 源码</a>、'
             '<a href="https://github.com/vllm-project/guidellm/tree/39383552962841086d05e25c37b58a83ef06c758">GuideLLM v0.7.3 源码</a>、'
             '<a href="https://github.com/kubernetes-sigs/inference-perf/tree/a40897e6500e4524adf563a91f7c880eb5296e12">inference-perf v0.6.1 源码</a>、'
             '<a href="https://github.com/sgl-project/genai-bench/tree/v0.0.5">genai-bench v0.0.5</a>、'
-            '<a href="https://github.com/sgl-project/sglang/tree/29481685462732237d80d86076d6563e1f658102">'
-            'SGLang Bench v0.5.17 源码</a>、'
+            '<a href="https://github.com/sgl-project/sglang/tree/71de97b264b04dcd514cf904003028aefe9775c8">'
+            'SGLang Bench v0.5.18 源码</a>、'
             '<a href="https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/benchmarks">'
             'vLLM Bench v0.27.1 源码</a> 与 '
             '<a href="https://github.com/modelscope/evalscope/tree/9d052ca0240ebf8b603c053fa44727b863ff3933">EvalScope v1.10.0 源码</a> 等官方资料整理'
@@ -96,7 +96,7 @@ DOCS = [
         "title": "Lustre 与 3FS 深度技术文档",
         "hero": "Lustre 与 3FS 深度技术文档",
         "subtitle": "HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析",
-        "meta": "Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-08-17",
+        "meta": "Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-08-22",
         "summary": "覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV cache 与生产选型。",
         "footer": (
             '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、'
@@ -111,13 +111,13 @@ DOCS = [
         "title": "NVIDIA GPU Operator 深度技术文档",
         "hero": "NVIDIA GPU Operator 深度技术文档",
         "subtitle": "Kubernetes GPU 节点软件栈、ClusterPolicy 调谐、设备暴露、共享隔离与生产运维解析",
-        "meta": "GPU Operator v26.3.3 · source@b0a49c0 · 2026-08-17",
+        "meta": "GPU Operator v26.7.0 · source@10ee5b3 · 2026-08-22",
         "summary": "覆盖 Controller 调谐、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级、安全与故障排查。",
         "footer": (
-            '基于 <a href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/overview.html">'
-            'NVIDIA GPU Operator 26.3 官方文档</a> 与 '
-            '<a href="https://github.com/NVIDIA/gpu-operator/tree/b0a49c0e7b2e061dcd83f2bb2fe4fe960c5d0338">'
-            'NVIDIA/gpu-operator v26.3.3 源码</a> 整理'
+            '基于 <a href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/overview.html">'
+            'NVIDIA GPU Operator 26.7 官方文档</a> 与 '
+            '<a href="https://github.com/NVIDIA/gpu-operator/tree/10ee5b3638b89e11e949412aafa5ba99279c3721">'
+            'NVIDIA/gpu-operator v26.7.0 源码</a> 整理'
         ),
     },
     {
@@ -127,10 +127,10 @@ DOCS = [
         "title": "HAMi 深度技术文档",
         "hero": "HAMi 深度技术文档",
         "subtitle": "Kubernetes 异构 AI 设备虚拟化、共享、隔离与调度架构解析",
-        "meta": "HAMi v2.9.0 · source@3a006c6 · 2026-08-17",
+        "meta": "HAMi v2.10.0 · source@4707fb0 · 2026-08-22",
         "summary": "覆盖 MutatingWebhook、Scheduler Extender、Device Plugin、HAMi-Core、Annotation 协议、多厂商设备与生产实践。",
         "footer": (
-            '基于 <a href="https://github.com/Project-HAMi/HAMi/tree/v2.9.0">Project-HAMi/HAMi v2.9.0</a> 与 '
+            '基于 <a href="https://github.com/Project-HAMi/HAMi/tree/v2.10.0">Project-HAMi/HAMi v2.10.0</a> 与 '
             '<a href="https://project-hami.io/docs">HAMi 官方文档</a> 整理'
         ),
     },
@@ -141,13 +141,13 @@ DOCS = [
         "title": "Kubernetes 原生调度器深度技术文档",
         "hero": "Kubernetes 原生调度器深度技术文档",
         "subtitle": "kube-scheduler 架构、Scheduling Framework、工作负载级调度与 AI 调度器对比",
-        "meta": "Kubernetes v1.36.3 · source@0f29094 · 2026-08-17",
+        "meta": "Kubernetes v1.36.4 · source@bb826b1 · 2026-08-22",
         "summary": "覆盖调度队列、Filter/Score/Bind、DRA 对象与生命周期、DynamicResources 调用链、PodGroup/Gang/TAS、工作负载级抢占及 AI 调度器选型。",
         "footer": (
             '基于 <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/">'
             'Kubernetes Scheduling, Preemption and Eviction 官方文档</a> 与 '
-            '<a href="https://github.com/kubernetes/kubernetes/tree/v1.36.3">'
-            'kubernetes/kubernetes v1.36.3 源码</a> 整理'
+            '<a href="https://github.com/kubernetes/kubernetes/tree/v1.36.4">'
+            'kubernetes/kubernetes v1.36.4 源码</a> 整理'
         ),
     },
     {
@@ -157,11 +157,11 @@ DOCS = [
         "title": "Kubernetes AI 调度器深度对比",
         "hero": "Kubernetes AI 调度器深度对比",
         "subtitle": "Koordinator、Kueue、Grove、KAI-Scheduler 与 Volcano 架构、能力边界和生产选型解析",
-        "meta": "Kueue v0.19.1 · KAI-Scheduler v0.17.0 · Volcano v1.15.1 · 2026-08-17",
+        "meta": "Kueue v0.19.2 · KAI-Scheduler v0.17.0 · Volcano v1.15.1 · 2026-08-22",
         "summary": "覆盖队列准入、Gang Scheduling、GPU/拓扑、配额公平、KAI preemption delay、v0.16.9 旧维护分支边界、Grove 调度后端、Volcano 补丁边界与场景化选型。",
         "footer": (
             '基于 <a href="https://github.com/koordinator-sh/koordinator">Koordinator</a>、'
-            '<a href="https://github.com/kubernetes-sigs/kueue/tree/df3d3656004f7b2478004a37b34ad8efa9ffabf0">Kueue v0.19.1</a>、'
+            '<a href="https://github.com/kubernetes-sigs/kueue/tree/8eab68778fc1b52affe165fdf5af29d1e9b4f3cb">Kueue v0.19.2</a>、'
             '<a href="https://github.com/ai-dynamo/grove">Grove</a>、'
             '<a href="https://github.com/kai-scheduler/KAI-Scheduler/tree/f218c69bee5e5fc6031273ba555d09916b1ca89a">'
             'KAI-Scheduler v0.17.0</a> 与 '
@@ -178,7 +178,7 @@ DOCS = [
         "title": "Volcano 升级与 Feature 兼容性",
         "hero": "Volcano 升级与 Feature 兼容性",
         "subtitle": "v1.8.2 到 v1.15.1 的 Helm、Webhook、Queue 语义与 Cloud Native Colocation 兼容边界",
-        "meta": "Volcano v1.8.2 → v1.15.1 · source@0a56ed3 · website@c814883 · 2026-08-17",
+        "meta": "Volcano v1.8.2 → v1.15.1 · source@0a56ed3 · website@c814883 · 2026-08-22",
         "summary": "覆盖六层升级判定、逐版本矩阵、proportion/capacity 迁移、v1.15.1 安全与调度修复、Agent 节点边界、DRA quota 与 gang-aware eviction。",
         "footer": (
             '基于 <a href="https://github.com/volcano-sh/volcano/tree/0a56ed331897f5455916a44d3075671376d731d6">'
@@ -196,14 +196,14 @@ DOCS = [
         "title": "KServe 深度技术文档",
         "hero": "KServe 深度技术文档",
         "subtitle": "Kubernetes 生成式 AI 与预测式 AI 推理服务平台架构解析",
-        "meta": "KServe v0.20.0 · source@1fb7810 · master@b4997f1 · website@efcc877 · 2026-08-17",
+        "meta": "KServe v0.20.0 · source@1fb7810 · master@aaac4e2 · website@05b83a6 · 2026-08-22",
         "summary": "覆盖 InferenceService、LLMInferenceService、ServingRuntime、Gateway API、LocalModelCache、KV cache offloading、ModelScope ms://、加权 InferencePool 测试与未发布主线边界。",
         "footer": (
             '基于 <a href="https://github.com/kserve/kserve/tree/1fb781055dd1567164358233e1125142ca6ef1fe">'
             'kserve/kserve v0.20.0 源码</a>、'
-            '<a href="https://github.com/kserve/kserve/tree/b4997f1ddbf021fbb524ede187b4a9bd0c488d88">'
+            '<a href="https://github.com/kserve/kserve/tree/aaac4e294dae2c7b1aa1886447793f3aa1c30912">'
             '未发布 master 快照</a> 与 '
-            '<a href="https://github.com/kserve/website/tree/efcc8770573cb7a979ec397656f5321b524d62b9">'
+            '<a href="https://github.com/kserve/website/tree/05b83a6cf9d6c4045a83d79eb8d0029605d655e7">'
             'KServe 官网快照</a> 整理'
         ),
     },
@@ -214,7 +214,7 @@ DOCS = [
         "title": "Kubeflow 深度技术文档",
         "hero": "Kubeflow 深度技术文档",
         "subtitle": "Kubeflow Community Distribution、端到端 MLOps 平台与 KServe 节点集成解析",
-        "meta": "Kubeflow Community Distribution 26.03.1 · source@f09f3ee · 2026-08-17",
+        "meta": "Kubeflow Community Distribution 26.03.1 · source@f09f3ee · 2026-08-22",
         "summary": "覆盖 Community Distribution 架构、Dashboard、Profiles、Pipelines、Notebooks、Katib、Trainer、KServe 节点、Istio/OAuth2/Dex 与生产实践。",
         "footer": (
             '基于 <a href="https://github.com/kubeflow/community-distribution/tree/26.03.1">'
