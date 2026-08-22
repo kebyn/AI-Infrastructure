@@ -61,7 +61,7 @@ DOCS = [
         "hero": "Multica 深度技术文档",
         "subtitle": "AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析",
         "meta": "Multica v0.4.32 · source@d60775a · 2026-08-22",
-        "summary": "覆盖 Issue/Task、21 种 provider（含 DeepSeek Harness）、manual rerun、custom provider、execution-root fencing、workspace seats、in_place/worktree 本地执行、Private Skill Plugin、Squad、Autopilot、自托管架构，以及默认没有 Sandbox 的安全边界。",
+        "summary": "覆盖 Issue/Task、Agent/Runtime、21 种 provider（含 DeepSeek Harness）、manual rerun、custom provider、execution-root fencing、workspace seats、in_place/worktree 本地执行、Private Skill Plugin、Squad、Autopilot、自托管架构，以及默认没有 Sandbox 的安全边界。",
         "footer": (
             '基于 <a href="https://github.com/multica-ai/multica/tree/d60775aa9394b911b18701a326f655465604e7d1">'
             'multica-ai/multica v0.4.32 源码</a> 与 '
