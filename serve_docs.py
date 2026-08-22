@@ -130,7 +130,7 @@ DOCS = [
         "meta": "HAMi v2.10.0 · source@4707fb0 · 2026-08-22",
         "summary": "覆盖 MutatingWebhook、Scheduler Extender、Device Plugin、HAMi-Core、Annotation 协议、多厂商设备与生产实践。",
         "footer": (
-            '基于 <a href="https://github.com/Project-HAMi/HAMi/tree/v2.10.0">Project-HAMi/HAMi v2.10.0</a> 与 '
+            '基于 <a href="https://github.com/Project-HAMi/HAMi/tree/4707fb02c91c545bc7343ce26dba4c32919f9a3e">Project-HAMi/HAMi v2.10.0</a> 与 '
             '<a href="https://project-hami.io/docs">HAMi 官方文档</a> 整理'
         ),
     },
@@ -146,7 +146,7 @@ DOCS = [
         "footer": (
             '基于 <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/">'
             'Kubernetes Scheduling, Preemption and Eviction 官方文档</a> 与 '
-            '<a href="https://github.com/kubernetes/kubernetes/tree/v1.36.4">'
+            '<a href="https://github.com/kubernetes/kubernetes/tree/bb826b1d48562f110659e64e8ec444327433db95">'
             'kubernetes/kubernetes v1.36.4 源码</a> 整理'
         ),
     },
