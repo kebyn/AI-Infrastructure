@@ -16,11 +16,11 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-08-17", doc["meta"])
+                self.assertIn("2026-08-22", doc["meta"])
                 self.assertNotIn("2026-08-07", doc["meta"])
                 self.assertNotIn("2026-07-24", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-08-17", markdown_text)
+                self.assertIn("审校日期：2026-08-22", markdown_text)
                 self.assertNotIn("审校日期：2026-08-07", markdown_text)
                 self.assertNotIn("2026-07-24", markdown_text)
 
@@ -30,18 +30,23 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         for required_text in (
-            "2026-08-17",
-            "2 个正文稳定基线发生变化",
+            "2026-08-22",
+            "6 个正文稳定基线发生变化",
             "v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac",
-            "v0.4.26@19155e41f96cb3aec2355ae1d40da80c00030cdf",
-            "v0.19.1@df3d3656004f7b2478004a37b34ad8efa9ffabf0",
-            "v0.5.17@29481685462732237d80d86076d6563e1f658102",
+            "v0.4.32@d60775aa9394b911b18701a326f655465604e7d1",
+            "v0.19.2@8eab68778fc1b52affe165fdf5af29d1e9b4f3cb",
+            "v0.5.18@71de97b264b04dcd514cf904003028aefe9775c8",
+            "v26.7.0@10ee5b3638b89e11e949412aafa5ba99279c3721",
+            "v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e",
+            "v1.36.4@bb826b1d48562f110659e64e8ec444327433db95",
             "v0.27.1@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
             "v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
-            "main@f5d702a520de52ac0e5d4dda3ca0d5fca01d7993",
-            "main@5f2699524aa3a9c23f9c1d8e4d62e50be3ebfa94",
-            "master@b4997f1ddbf021fbb524ede187b4a9bd0c488d88",
-            "main@efcc8770573cb7a979ec397656f5321b524d62b9",
+            "main@b8029973aa7da5f741f7bb01a9f833b38a0885438",
+            "main@2fd412d55ecae90861a101a5424a75473de97c36",
+            "master@aaac4e294dae2c7b1aa1886447793f3aa1c30912",
+            "main@05b83a6cf9d6c4045a83d79eb8d0029605d655e7",
+            "main@a48991792bcf9d1f8559f4cff7792bb0de6497c8",
+            "main@fcc3b3bbbc5e6a2a797cd080bdbc6983b1ccec24",
             "master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8",
             "main@c2050e3debe58dbcdf9bb75b667799eec9409513",
             "spec.kvCacheOffloading",
@@ -84,13 +89,13 @@ class RenderDocLayoutTest(unittest.TestCase):
         for release in (
             "AIPerf v0.12.0",
             "GuideLLM v0.7.3",
-            "SGLang v0.5.17",
+            "SGLang v0.5.18",
             "vLLM v0.27.1",
             "EvalScope v1.10.0",
         ):
             self.assertIn(release, doc["meta"])
         self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
-        self.assertIn("29481685462732237d80d86076d6563e1f658102", doc["footer"])
+        self.assertIn("71de97b264b04dcd514cf904003028aefe9775c8", doc["footer"])
         self.assertIn("6e448d0ea9bf3d88d898b65449ca6dc2aec170ac", doc["footer"])
         for exact_commit in (
             "be53bf2953d30e46c500e6a80fc1f8b6f84bc718",
@@ -98,7 +103,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "a40897e6500e4524adf563a91f7c880eb5296e12",
             "9d052ca0240ebf8b603c053fa44727b863ff3933",
             "4f873e03719c947a101647c6646954d5ebc3d35b",
-            "29481685462732237d80d86076d6563e1f658102",
+            "71de97b264b04dcd514cf904003028aefe9775c8",
             "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
         ):
             self.assertIn(exact_commit, markdown_text)
@@ -114,7 +119,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertNotIn(
             "github.com/sgl-project/sglang/blob/"
-            "29481685462732237d80d86076d6563e1f658102/docs_new/",
+            "71de97b264b04dcd514cf904003028aefe9775c8/docs_new/",
             markdown_text,
         )
         for required_text in (
@@ -129,7 +134,11 @@ class RenderDocLayoutTest(unittest.TestCase):
             "混合流式/非流式 run",
             "纯非流式 run 仍保留兼容 fallback",
             "vllm-embedding",
-            "autobench` 已在 v0.5.17 移除",
+            "autobench` 已在 v0.5.18 移除",
+            "SGLANG_CACHE_DIR",
+            "torch 2.13.0",
+            "triton 3.7.1",
+            "22 个未维护 benchmark 被移除",
             "VLLM_SERVER_DEV_MODE=1",
             "按 token ID 排序后的 tokenizer vocabulary",
             "processor 初始化后重新设置 Python 和 NumPy seed",
@@ -169,12 +178,21 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn('<div class="mermaid">', html)
         self.assertNotIn('class="language-mermaid"', html)
-        self.assertIn("29481685462732237d80d86076d6563e1f658102", html)
+        self.assertIn("71de97b264b04dcd514cf904003028aefe9775c8", html)
         self.assertIn("6e448d0ea9bf3d88d898b65449ca6dc2aec170ac", html)
 
     def test_refreshed_stable_release_commits_are_pinned(self):
         docs_dir = Path(__file__).resolve().parent
         expected_commits = {
+            "Multica-Deep-Dive.md": (
+                "d60775aa9394b911b18701a326f655465604e7d1",
+            ),
+            "NVIDIA-GPU-Operator-Deep-Dive.md": (
+                "10ee5b3638b89e11e949412aafa5ba99279c3721",
+            ),
+            "HAMi-Deep-Dive.md": (
+                "4707fb02c91c545bc7343ce26dba4c32919f9a3e",
+            ),
             "Dynamo-Deep-Dive.md": (
                 "03014943323e78feb5bd672ef08b72caea0918ac",
                 "0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
@@ -183,10 +201,10 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "6041a609a8c3af35e778f70db344f145c2914980",
             ),
             "Kubernetes-Native-Scheduler-Deep-Dive.md": (
-                "0f29094e5b73085e3802ecc1298ecae13866bfe6",
+                "bb826b1d48562f110659e64e8ec444327433db95",
             ),
             "Kubernetes-AI-Schedulers-Deep-Dive.md": (
-                "df3d3656004f7b2478004a37b34ad8efa9ffabf0",
+                "8eab68778fc1b52affe165fdf5af29d1e9b4f3cb",
                 "f218c69bee5e5fc6031273ba555d09916b1ca89a",
                 "0a56ed331897f5455916a44d3075671376d731d6",
             ),
@@ -195,7 +213,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "39383552962841086d05e25c37b58a83ef06c758",
                 "a40897e6500e4524adf563a91f7c880eb5296e12",
                 "9d052ca0240ebf8b603c053fa44727b863ff3933",
-                "29481685462732237d80d86076d6563e1f658102",
+                "71de97b264b04dcd514cf904003028aefe9775c8",
                 "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
             ),
         }
@@ -323,7 +341,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("KAI-Scheduler v0.17.0", ai_doc["meta"])
         self.assertIn("v0.16.9 旧维护分支边界", ai_doc["summary"])
-        self.assertIn("Kueue v0.19.1", ai_doc["meta"])
+        self.assertIn("Kueue v0.19.2", ai_doc["meta"])
         self.assertIn("Volcano v1.15.1", ai_doc["meta"])
         self.assertIn("v1.8.2 → v1.15.1", volcano_doc["meta"])
         for revision in (
@@ -343,14 +361,19 @@ class RenderDocLayoutTest(unittest.TestCase):
             self.assertIn(required_text, volcano_text)
 
         self.assertIn("KAI-Scheduler v0.17.0", native_text)
-        self.assertIn("Kueue v0.19.1", native_text)
+        self.assertIn("Kueue v0.19.2", native_text)
         self.assertIn("Volcano v1.15.1", native_text)
         self.assertIn("preemption delay", native_text)
         self.assertIn("PVC informer race", native_text)
         self.assertIn("724da8388358b7673495a935948ea0a67a86140b", ai_text)
 
         for required_text in (
-            "df3d3656004f7b2478004a37b34ad8efa9ffabf0",
+            "8eab68778fc1b52affe165fdf5af29d1e9b4f3cb",
+            "TASCacheTopologyTree",
+            "SchedulerLibraryIntegration",
+            "PrioritizePreemptorWorkloads",
+            "ValidateRayAndSparkJobUpdates",
+            "is-group-workload",
             "`LWSImmutableGroupSize` 默认开启",
             "关闭会同时恢复已知配额绕过",
             "`TASValidateWorkloadSliceSize`",
@@ -401,7 +424,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "f5d702a520de52ac0e5d4dda3ca0d5fca01d7993/"
+            "b8029973aa7da5f741f7bb01a9f833b38a0885438/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -438,7 +461,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
             "Agent Sandbox Go Router（对照，不是 E2B 能力）",
-            "5f2699524aa3a9c23f9c1d8e4d62e50be3ebfa94",
+            "2fd412d55ecae90861a101a5424a75473de97c36",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -494,7 +517,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "f5d702a520de52ac0e5d4dda3ca0d5fca01d7993/"
+            "b8029973aa7da5f741f7bb01a9f833b38a0885438/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -509,7 +532,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "5f2699524aa3a9c23f9c1d8e4d62e50be3ebfa94/"
+            "2fd412d55ecae90861a101a5424a75473de97c36/"
         )
         for source_path in (
             "clients/python/agentic-sandbox-client/sandbox-router/README.md",
@@ -683,12 +706,12 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         self.assertIn("KServe v0.20.0", doc["meta"])
-        self.assertIn("master@b4997f1", doc["meta"])
-        self.assertIn("website@efcc877", doc["meta"])
+        self.assertIn("master@aaac4e2", doc["meta"])
+        self.assertIn("website@05b83a6", doc["meta"])
         for revision in (
             "1fb781055dd1567164358233e1125142ca6ef1fe",
-            "b4997f1ddbf021fbb524ede187b4a9bd0c488d88",
-            "efcc8770573cb7a979ec397656f5321b524d62b9",
+            "aaac4e294dae2c7b1aa1886447793f3aa1c30912",
+            "05b83a6cf9d6c4045a83d79eb8d0029605d655e7",
         ):
             self.assertIn(revision, markdown_text)
 
@@ -744,7 +767,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Multica 深度技术文档")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.4.26 · source@19155e4 · 2026-08-17",
+            "Multica v0.4.32 · source@d60775a · 2026-08-22",
         )
         for summary_term in (
             "Issue/Task",
@@ -762,7 +785,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 self.assertIn(summary_term, doc["summary"])
         self.assertIn(
             "https://github.com/multica-ai/multica/tree/"
-            "19155e41f96cb3aec2355ae1d40da80c00030cdf",
+            "d60775aa9394b911b18701a326f655465604e7d1",
             doc["footer"],
         )
         self.assertIn("https://multica.ai/docs", doc["footer"])
@@ -778,7 +801,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Multica 深度技术文档", html)
         self.assertIn('/Multica-Deep-Dive.html', html)
-        self.assertIn("Multica v0.4.26", html)
+        self.assertIn("Multica v0.4.32", html)
         self.assertIn("没有 Sandbox", html)
 
     def test_multica_execution_and_security_contract_is_documented(self):
@@ -790,9 +813,9 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         for required_text in (
-            "v0.4.26",
-            "19155e41f96cb3aec2355ae1d40da80c00030cdf",
-            "审校日期：2026-08-17",
+            "v0.4.32",
+            "d60775aa9394b911b18701a326f655465604e7d1",
+            "审校日期：2026-08-22",
             "没有强制的 Issue 状态机",
             "Task 完成不等于 Issue 完成",
             "Task 与目标 Runtime 固定绑定且不会自动迁移",
@@ -841,6 +864,16 @@ class RenderDocLayoutTest(unittest.TestCase):
             "不可运行的 CLI",
             "Hermes",
             "Windows",
+            "manual rerun",
+            "in-flight agent run",
+            "recently created Issue",
+            "runtime-local Skill",
+            "binary supporting files",
+            "immutable version",
+            "custom provider",
+            "Execution-root fencing",
+            "exclusively claimed env root",
+            "Workspace seats",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -877,8 +910,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path("/data/Multica-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
-        stable_commit = "19155e41f96cb3aec2355ae1d40da80c00030cdf"
-        post_release_commit = "2832f003aed5eaac2d8f0813fc88bf77571e76d5"
+        stable_commit = "d60775aa9394b911b18701a326f655465604e7d1"
+        post_release_commit = "b8029973aa7da5f741f7bb01a9f833b38a0885438"
         product_image = (
             "https://raw.githubusercontent.com/multica-ai/multica/"
             f"{stable_commit}/docs/assets/hero-board.png"
@@ -929,11 +962,82 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("stateDiagram-v2", html)
         self.assertIn(
             "https://raw.githubusercontent.com/multica-ai/multica/"
-            "19155e41f96cb3aec2355ae1d40da80c00030cdf/"
+            "d60775aa9394b911b18701a326f655465604e7d1/"
             "docs/assets/hero-board.png",
             html,
         )
         self.assertNotIn('class="language-mermaid"', html)
+
+    def test_new_release_behavior_boundaries_are_documented(self):
+        docs_dir = Path(__file__).resolve().parent
+        gpu_text = (docs_dir / "NVIDIA-GPU-Operator-Deep-Dive.md").read_text(
+            encoding="utf-8"
+        )
+        hami_text = (docs_dir / "HAMi-Deep-Dive.md").read_text(encoding="utf-8")
+        native_text = (
+            docs_dir / "Kubernetes-Native-Scheduler-Deep-Dive.md"
+        ).read_text(encoding="utf-8")
+        kueue_text = (
+            docs_dir / "Kubernetes-AI-Schedulers-Deep-Dive.md"
+        ).read_text(encoding="utf-8")
+
+        for required_text in (
+            "GPUCluster",
+            "ResourceClaim",
+            "nvidia.com/gpu.deploy.client",
+            "upgradePolicy",
+            "hostPaths.kubeletRootDir",
+            "NRI_MANAGEMENT_CDI_DEVICE_NAMESPACES",
+            "595.91.07",
+            "v0.12.0",
+            "v1.20.0",
+            "v0.20.0",
+            "v0.15.0",
+            "4.6.0-1",
+        ):
+            with self.subTest(document="GPU Operator", required_text=required_text):
+                self.assertIn(required_text, gpu_text)
+
+        for required_text in (
+            "Remove DRA components from HAMi main chart",
+            "ascend-dra-driver",
+            "init-container",
+            "NodeLock",
+            "gangScheduling",
+            "dynamic allocation/deallocation",
+            "mutex",
+            "comma-separated",
+            "NUMA",
+            "Biren",
+            "Mi300x",
+            "vir05_1c_16g",
+            "DRA components",
+        ):
+            with self.subTest(document="HAMi", required_text=required_text):
+                self.assertIn(required_text, hami_text)
+
+        for required_text in (
+            "DRADeviceTaintRules",
+            "Go `1.26.5`",
+            "server-side apply",
+            "`422 required`",
+            "kubelet Pod sync context",
+        ):
+            with self.subTest(document="Kubernetes", required_text=required_text):
+                self.assertIn(required_text, native_text)
+
+        for required_text in (
+            "TASCacheTopologyTree",
+            "SchedulerLibraryIntegration",
+            "PrioritizePreemptorWorkloads",
+            "ValidateRayAndSparkJobUpdates",
+            "is-group-workload",
+            "AFS",
+            "+Inf",
+            "stale `status.nominatedClusterNames`",
+        ):
+            with self.subTest(document="Kueue", required_text=required_text):
+                self.assertIn(required_text, kueue_text)
 
     def test_nvidia_gpu_operator_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
@@ -947,15 +1051,15 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertEqual(doc["href"], "/NVIDIA-GPU-Operator-Deep-Dive.html")
         self.assertEqual(doc["title"], "NVIDIA GPU Operator 深度技术文档")
-        self.assertIn("v26.3.3", doc["meta"])
-        self.assertIn("b0a49c0", doc["meta"])
+        self.assertIn("v26.7.0", doc["meta"])
+        self.assertIn("10ee5b3", doc["meta"])
         self.assertIn(
-            "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.3/overview.html",
+            "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/overview.html",
             doc["footer"],
         )
         self.assertIn(
             "https://github.com/NVIDIA/gpu-operator/tree/"
-            "b0a49c0e7b2e061dcd83f2bb2fe4fe960c5d0338",
+            "10ee5b3638b89e11e949412aafa5ba99279c3721",
             doc["footer"],
         )
 
@@ -971,7 +1075,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("NVIDIA GPU Operator 深度技术文档", html)
         self.assertIn('/NVIDIA-GPU-Operator-Deep-Dive.html', html)
-        self.assertIn("GPU Operator v26.3.3", html)
+        self.assertIn("GPU Operator v26.7.0", html)
 
     def test_render_nvidia_gpu_operator_doc_includes_toc_and_mermaid(self):
         doc = next(
@@ -1027,14 +1131,14 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertEqual(doc["href"], "/Kubernetes-Native-Scheduler-Deep-Dive.html")
         self.assertEqual(doc["title"], "Kubernetes 原生调度器深度技术文档")
-        self.assertIn("v1.36.3", doc["meta"])
-        self.assertIn("0f29094", doc["meta"])
+        self.assertIn("v1.36.4", doc["meta"])
+        self.assertIn("bb826b1", doc["meta"])
         self.assertIn(
             "https://kubernetes.io/docs/concepts/scheduling-eviction/",
             doc["footer"],
         )
         self.assertIn(
-            "https://github.com/kubernetes/kubernetes/tree/v1.36.3",
+            "https://github.com/kubernetes/kubernetes/tree/v1.36.4",
             doc["footer"],
         )
 
@@ -1050,7 +1154,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Kubernetes 原生调度器深度技术文档", html)
         self.assertIn('/Kubernetes-Native-Scheduler-Deep-Dive.html', html)
-        self.assertIn("Kubernetes v1.36.3", html)
+        self.assertIn("Kubernetes v1.36.4", html)
         self.assertIn("DRA 对象与生命周期", html)
         self.assertIn("DynamicResources 调用链", html)
 
@@ -1090,8 +1194,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             html,
         )
         self.assertIn(
-            '<a href="#8-8-v1-36-3-feature-maturity-矩阵">'
-            "8.8 v1.36.3 feature maturity 矩阵</a>",
+            '<a href="#8-8-v1-36-4-feature-maturity-矩阵">'
+            "8.8 v1.36.4 feature maturity 矩阵</a>",
             html,
         )
         self.assertIn(
