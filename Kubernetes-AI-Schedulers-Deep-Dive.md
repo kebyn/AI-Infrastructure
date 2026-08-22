@@ -455,11 +455,11 @@ spec:
 
 v0.19.0 还提高默认 client QPS/burst 与 Workload/LQ/CQ reconcile concurrency。大型集群可能受益，但 API Server 较小或 webhook 较慢的环境应监控 throttling、workqueue depth 和 reconciliation latency，而不是无条件沿用新并发值。
 
-### 4.11 v0.19.2 补丁升级前必读
+### 4.11 v0.19.1 补丁升级前必读
 
-`v0.19.2` 是 `v0.19.0` 上的补丁 release，**不会替代上一节的 minor API、feature gate、Ray 配额和 Helm 清理要求**。从更早版本升级时必须先完成 `v0.19.0` 前置，再处理下面三项新增约束：
+`v0.19.1` 是 `v0.19.0` 上的补丁 release，**不会替代上一节的 minor API、feature gate、Ray 配额和 Helm 清理要求**。从更早版本升级时必须先完成 `v0.19.0` 前置，再处理下面三项新增约束；v0.19.2 仍继承这些前置。
 
-| 项目 | v0.19.2 行为 | 升级动作 |
+| 项目 | v0.19.1 行为 | 升级动作 |
 |------|---------------|----------|
 | LeaderWorkerSet group size | Beta `LWSImmutableGroupSize` 默认开启；受 Kueue 管理时 `spec.leaderWorkerTemplate.size` 不可变，`spec.replicas` 仍可变 | 要改变每组 Pod 数量就重建 LWS；不要为了保留原地更新而关闭 gate，因为关闭会同时恢复已知配额绕过 |
 | TAS slice size | `podSetSliceRequiredTopology` 必须与大于 0 的 `podSetSliceSize` 同时出现；未指定 required topology 时不能单独设置 size；每个 constraint size 也必须大于 0 | 升级前扫描直接创建或自研 controller 生成的 Workload；分阶段只能临时关闭 `TASValidateWorkloadSliceSize`，清理后重新开启 |
@@ -467,7 +467,7 @@ v0.19.0 还提高默认 client QPS/burst 与 Workload/LQ/CQ reconcile concurrenc
 
 LWS 限制修复的是明确的 quota bypass：旧行为允许已 admitted 的 LWS 增大每组 size，让实际启动 Pod 超过已预留配额。关闭默认 gate 不是无害兼容开关，而是重新接受这个资源超发风险。
 
-### 4.12 v0.19.2 资源正确性与调度修复
+### 4.12 v0.19.1 资源正确性与调度修复
 
 本补丁集中修复了会改变准入、公平、计费或可观测结论的问题：
 
@@ -1149,7 +1149,7 @@ Volcano 的官方兼容矩阵和目标 release 说明是唯一可泛化依据。
 | 设备 | GPU allocation、显存/算力用量、fragmentation、MIG/DRA claim 状态 |
 | 控制面 | leader changes、reconcile errors、webhook latency、workqueue depth、API throttling |
 
-Kueue v0.19.2 延续 v0.19.0 新增的 `kueue_unadmitted_workloads`、`kueue_local_queue_unadmitted_workloads`、`kueue_pod_scheduling_gate_removal_seconds`、`multikueue_workloads_dispatched_total` 与 `multikueue_workloads_admitted_total`。前两类详细 pending reason 受 `UnadmittedWorkloadsObservability` gate 控制；显式初始化 `QuotaReserved=False`/`Admitted=False` 还需要 `UnadmittedWorkloadsExplicitStatus`，不能在 gate 关闭时期待指标和 condition 自动出现。v0.19.2 还修复大 quantity metric 溢出并把 unlimited quota 报为 `+Inf`；PromQL、recording rule 和告警必须能处理 infinity，升级前后不应直接比较曾经 wrap 的旧样本。
+Kueue v0.19.1 延续 v0.19.0 新增的 `kueue_unadmitted_workloads`、`kueue_local_queue_unadmitted_workloads`、`kueue_pod_scheduling_gate_removal_seconds`、`multikueue_workloads_dispatched_total` 与 `multikueue_workloads_admitted_total`。前两类详细 pending reason 受 `UnadmittedWorkloadsObservability` gate 控制；显式初始化 `QuotaReserved=False`/`Admitted=False` 还需要 `UnadmittedWorkloadsExplicitStatus`，不能在 gate 关闭时期待指标和 condition 自动出现。v0.19.1 还修复大 quantity metric 溢出并把 unlimited quota 报为 `+Inf`；PromQL、recording rule 和告警必须能处理 infinity，升级前后不应直接比较曾经 wrap 的旧样本。
 
 Events 必须作为排障入口，但不能作为长期时序存储。关键 pending reason 和队列状态应采集到 Prometheus 或平台数据库。
 
