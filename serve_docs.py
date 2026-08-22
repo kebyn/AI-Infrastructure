@@ -61,7 +61,7 @@ DOCS = [
         "hero": "Multica 深度技术文档",
         "subtitle": "AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析",
         "meta": "Multica v0.4.32 · source@d60775a · 2026-08-22",
-        "summary": "覆盖 Issue/Task、21 种 provider（含 DeepSeek Harness）、Agent/Runtime、in_place/worktree 本地执行、Private Skill Plugin、Squad、Autopilot、自托管架构，以及默认没有 Sandbox 的安全边界。",
+        "summary": "覆盖 Issue/Task、21 种 provider（含 DeepSeek Harness）、manual rerun、custom provider、execution-root fencing、workspace seats、in_place/worktree 本地执行、Private Skill Plugin、Squad、Autopilot、自托管架构，以及默认没有 Sandbox 的安全边界。",
         "footer": (
             '基于 <a href="https://github.com/multica-ai/multica/tree/d60775aa9394b911b18701a326f655465604e7d1">'
             'multica-ai/multica v0.4.32 源码</a> 与 '
@@ -76,7 +76,7 @@ DOCS = [
         "hero": "LLM 压测工具深度对比",
         "subtitle": "AIPerf、GuideLLM、inference-perf、genai-bench、SGLang Bench、LLMPerf、vLLM Bench、EvalScope 与 Ollama Benchmark 选型解析",
         "meta": "AIPerf v0.12.0 · GuideLLM v0.7.3 · SGLang v0.5.18 · vLLM v0.27.1 · EvalScope v1.10.0 · 2026-08-22",
-        "summary": "覆盖指标口径、AgentX/DAG replay、自适应压测、长上下文前缀、工具选型、SLO/goodput 与生产落地建议。",
+        "summary": "覆盖指标口径、AgentX/DAG replay、自适应压测、长上下文前缀、SGLang v0.5.18 缓存目录与依赖迁移、工具选型、SLO/goodput 与生产落地建议。",
         "footer": (
             '<a href="https://github.com/ai-dynamo/aiperf/tree/be53bf2953d30e46c500e6a80fc1f8b6f84bc718">AIPerf v0.12.0 源码</a>、'
             '<a href="https://github.com/vllm-project/guidellm/tree/39383552962841086d05e25c37b58a83ef06c758">GuideLLM v0.7.3 源码</a>、'
@@ -112,7 +112,7 @@ DOCS = [
         "hero": "NVIDIA GPU Operator 深度技术文档",
         "subtitle": "Kubernetes GPU 节点软件栈、ClusterPolicy 调谐、设备暴露、共享隔离与生产运维解析",
         "meta": "GPU Operator v26.7.0 · source@10ee5b3 · 2026-08-22",
-        "summary": "覆盖 Controller 调谐、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级、安全与故障排查。",
+        "summary": "覆盖 Controller 调谐、Driver/Toolkit/Device Plugin、GPUCluster/DRA、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级、安全与故障排查。",
         "footer": (
             '基于 <a href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/overview.html">'
             'NVIDIA GPU Operator 26.7 官方文档</a> 与 '
@@ -128,7 +128,7 @@ DOCS = [
         "hero": "HAMi 深度技术文档",
         "subtitle": "Kubernetes 异构 AI 设备虚拟化、共享、隔离与调度架构解析",
         "meta": "HAMi v2.10.0 · source@4707fb0 · 2026-08-22",
-        "summary": "覆盖 MutatingWebhook、Scheduler Extender、Device Plugin、HAMi-Core、Annotation 协议、多厂商设备与生产实践。",
+        "summary": "覆盖 MutatingWebhook、Scheduler Extender、Device Plugin、HAMi-Core、DRA 独立 driver、init-container 记账、PodGroup/MIG/mutex/NUMA、多厂商设备与生产实践。",
         "footer": (
             '基于 <a href="https://github.com/Project-HAMi/HAMi/tree/4707fb02c91c545bc7343ce26dba4c32919f9a3e">Project-HAMi/HAMi v2.10.0</a> 与 '
             '<a href="https://project-hami.io/docs">HAMi 官方文档</a> 整理'
@@ -142,7 +142,7 @@ DOCS = [
         "hero": "Kubernetes 原生调度器深度技术文档",
         "subtitle": "kube-scheduler 架构、Scheduling Framework、工作负载级调度与 AI 调度器对比",
         "meta": "Kubernetes v1.36.4 · source@bb826b1 · 2026-08-22",
-        "summary": "覆盖调度队列、Filter/Score/Bind、DRA 对象与生命周期、DynamicResources 调用链、PodGroup/Gang/TAS、工作负载级抢占及 AI 调度器选型。",
+        "summary": "覆盖调度队列、Filter/Score/Bind、v1.36.4 DRA allocator 与安全修复、DRA 对象与生命周期、DynamicResources 调用链、PodGroup/Gang/TAS、工作负载级抢占及 AI 调度器选型。",
         "footer": (
             '基于 <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/">'
             'Kubernetes Scheduling, Preemption and Eviction 官方文档</a> 与 '
@@ -158,7 +158,7 @@ DOCS = [
         "hero": "Kubernetes AI 调度器深度对比",
         "subtitle": "Koordinator、Kueue、Grove、KAI-Scheduler 与 Volcano 架构、能力边界和生产选型解析",
         "meta": "Kueue v0.19.2 · KAI-Scheduler v0.17.0 · Volcano v1.15.1 · 2026-08-22",
-        "summary": "覆盖队列准入、Gang Scheduling、GPU/拓扑、配额公平、KAI preemption delay、v0.16.9 旧维护分支边界、Grove 调度后端、Volcano 补丁边界与场景化选型。",
+        "summary": "覆盖 Kueue v0.19.2 TAS cache、DRA quota、FairSharing、MultiKueue、Gang Scheduling、GPU/拓扑、配额公平、KAI preemption delay、v0.16.9 旧维护分支边界、Grove 调度后端、Volcano 补丁边界与场景化选型。",
         "footer": (
             '基于 <a href="https://github.com/koordinator-sh/koordinator">Koordinator</a>、'
             '<a href="https://github.com/kubernetes-sigs/kueue/tree/8eab68778fc1b52affe165fdf5af29d1e9b4f3cb">Kueue v0.19.2</a>、'
