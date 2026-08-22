@@ -1523,7 +1523,7 @@ kubectl describe podgroup -n <namespace> <podgroup>
 
 `v1.36.4` 是 annotated tag：tag object 为 `b16731bd963a0f0b4ca934ffbd7e56cef33df20e`，解引用后的源码 commit 为 `bb826b1d48562f110659e64e8ec444327433db95`。本文页头和站点元数据使用后者；保留 tag object 仅用于复核 Git ref，不把它当作 source commit。
 
-本次 patch release 与本文直接相关的变更是 DRA structured allocator 共享 counter 回滚修复，以及 `DRADeviceTaintRules` 打开时 ResourceSlice 变化可能触发 scheduler panic/忽略规则更新的修复。核心 API maturity 与 v1.36.2 相同，不把补丁修复描述成新的 GA/Beta 能力。
+本次 patch release 与本文直接相关的变更是 DRA structured allocator 共享 counter 回滚修复，以及 `DRADeviceTaintRules` 打开时 ResourceSlice 变化可能触发 scheduler panic/忽略规则更新的修复。v1.36.4 同时把构建工具链更新到 Go `1.26.5`，修复 kubelet Pod sync context 泄漏、server-side apply 对 container type 变更的 `422 required` 回归，以及 kubeadm etcd learner promotion 的瞬时客户端错误处理。它们都是 patch-level 正确性/安全修复，不新增 DRA、Gang、TAS 或 workload-aware preemption 的 feature gate，也不改变本文对 v1.36 Alpha maturity 的结论。
 
 ### A.2 Kubernetes 调度官方参考
 

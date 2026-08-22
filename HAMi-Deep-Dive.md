@@ -718,16 +718,31 @@ NVIDIA 后端代码中定义了 `mps` 模式。MPS 的核心价值是提升多 C
 
 ### 8.5 DRA 方向
 
-Kubernetes Dynamic Resource Allocation 在 v1.34 进入 GA。DRA 提供 `ResourceClaim`、`DeviceClass`、`ResourceSlice` 等 API，让调度器能直接读取设备属性。HAMi v2.10.0 的默认路径仍是 Device Plugin + annotations，但 chart 已包含默认关闭的 `dra.enabled` 和 `hami-dra` subchart；启用后不会部署原 scheduler extender/device plugin 路径。
+Kubernetes Dynamic Resource Allocation 在 v1.34 进入 GA。DRA 提供 `ResourceClaim`、`DeviceClass`、`ResourceSlice` 等 API，让调度器能直接读取设备属性。HAMi `v2.10.0` 已将 DRA components 从 HAMi 主 Chart 移除；不能再用 `dra.enabled=true` 期待主 Chart 同时安装 DRA driver。需要 DRA 的集群必须独立部署对应 driver（例如 Ascend 的 `ascend-dra-driver`），并单独管理其 `DeviceClass`、RBAC、ResourceSlice 和升级节奏。
 
 这说明 HAMi 正在向 Kubernetes 原生细粒度设备 API 演进：
 
-| v2.10.0 默认路径 | DRA 路径 |
+| v2.10.0 默认路径 | 独立 DRA 路径 |
 |----------|----------|
 | Node annotations 承载设备规格 | ResourceSlice 承载设备属性 |
 | Pod annotations 传递分配结果 | ResourceClaim 表达资源声明 |
 | Scheduler extender 读取自定义协议 | Scheduler 读取 DRA API |
-| 对旧 Kubernetes 友好 | 需要 Kubernetes 1.34+ |
+| 对旧 Kubernetes 友好 | 需要 Kubernetes 1.34+、独立 driver 与 CRD/RBAC |
+
+### 8.6 v2.10.0 调度与设备增量
+
+`v2.10.0` 的稳定 release 还把以下能力纳入主线实现：
+
+| 能力 | 稳定行为 | 生产边界 |
+| --- | --- | --- |
+| Init-container 资源记账 | scheduler 按 Kubernetes init/app 资源语义计算设备需求，并把 init-container 资源纳入调度与 ResourceQuota 交互 | 升级后需重放多容器、init + app 资源不同的 Pod；不能只看主容器 limits 判断配额 |
+| PodGroup/Gang | Bind 阶段对 PodGroup 成员重试 `NodeLock`，并适配 Kubernetes v1.36+ `gangScheduling` feature gates | 仍依赖外部 PodGroup controller/调度器的启用方式；HAMi 不单独提供完整 gang admission |
+| Dynamic MIG | 支持 MIG instance dynamic allocation/deallocation，允许在满足节点/驱动约束时回收并重建实例 | 动态重配会影响已有 workload；应在维护窗口验证 CDI、device-plugin 和 MIG Manager 状态 |
+| mutex policy | 新增 `mutex` GPU scheduling policy，防止多个调度策略同时修改同一共享设备状态 | mutex 是 HAMi scheduler 内部互斥，不是跨 scheduler 的分布式锁 |
+| policy 组合 | `gpu-scheduler-policy` 支持逗号分隔的组合策略，按配置顺序执行 | 组合顺序会改变 score/filter 结果；必须固定配置并回放冲突场景 |
+| NUMA 对齐 | vGPU replica 可选择启用 CPU/GPU NUMA topology 对齐 | 这是 opt-in；需要 kubelet Topology Manager、节点拓扑标签和设备插件协同 |
+
+v2.10.0 同时补充 Biren GPU、AMD Mi300x vGPU、Ascend 910C `vir05_1c_16g`/`vir10_3c_32g` 模板、Vastai 等设备支持，并改进 vNPU compatibility mode。设备支持是厂商后端能力，不等于所有型号共享相同的显存/算力隔离或 DRA 语义；落地必须以对应 device plugin、driver 和 release matrix 为准。
 
 ---
 
@@ -868,7 +883,7 @@ kubectl get pods -n kube-system
 | `devicePlugin.migStrategy` | `none` | MIG 策略 |
 | `devicePlugin.disablecorelimit` | `false` | 是否禁用 core limit |
 | `devicePlugin.deviceListStrategy` | `envvar` | 设备列表传递策略 |
-| `dra.enabled` | `false` | 是否启用 DRA 路径 |
+| DRA components | 不由主 Chart 安装 | 需独立 DRA driver、DeviceClass、RBAC 和生命周期治理 |
 
 ### 10.4 Webhook 选择器
 
@@ -1159,17 +1174,17 @@ curl http://<scheduler-ip>:31993/metrics
 | 主题 | 链接 |
 |------|------|
 | GitHub 仓库 | <https://github.com/Project-HAMi/HAMi> |
-| v2.10.0 源码快照 | <https://github.com/Project-HAMi/HAMi/tree/v2.10.0> |
+| v2.10.0 源码快照 | <https://github.com/Project-HAMi/HAMi/tree/4707fb02c91c545bc7343ce26dba4c32919f9a3e> |
 | 官网文档 | <https://project-hami.io/docs> |
 | HAMi 是什么 | <https://project-hami.io/docs/> |
 | 架构 | <https://project-hami.io/docs/core-concepts/architecture> |
 | GPU Virtualization Principles | <https://project-hami.io/docs/core-concepts/gpu-virtualization> |
 | Helm 安装 | <https://project-hami.io/docs/get-started/deploy-with-helm> |
 | 支持设备矩阵 | <https://project-hami.io/docs/userguide/device-supported> |
-| README | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/README.md> |
-| 中文 README | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/README_cn.md> |
-| Design | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/docs/develop/design.md> |
-| Protocol | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/docs/develop/protocol.md> |
-| Scheduler Policy | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/docs/develop/scheduler-policy.md> |
-| Dynamic MIG | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/docs/develop/dynamic-mig.md> |
-| Helm Chart Values | <https://github.com/Project-HAMi/HAMi/blob/v2.10.0/charts/hami/README.md> |
+| README | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/README.md> |
+| 中文 README | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/README_cn.md> |
+| Design | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/docs/develop/design.md> |
+| Protocol | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/docs/develop/protocol.md> |
+| Scheduler Policy | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/docs/develop/scheduler-policy.md> |
+| Dynamic MIG | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/docs/develop/dynamic-mig.md> |
+| Helm Chart Values | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/charts/hami/README.md> |

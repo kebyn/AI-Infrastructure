@@ -157,6 +157,22 @@ V1 只接受静态 UTF-8 `SKILL.md`，拒绝未知字段/能力、符号链接�
 - MCP/Skill 传递继续由 provider capability 决定：ACP provider 在 session/new 和 resume 时传递 MCP，远端 transport 缺少 capability 时丢弃并告警；Skill 仍只是内容，不改变无 Sandbox 的宿主机边界。
 - Issue 重新指派或改状态可以选择跳过新 run；修复了同一 Issue 的重复 self-assignment，不能把一次 UI 更新误解为隐式取消已有 Task。
 
+### 1.7 v0.4.27 到 v0.4.32 的执行与治理增量
+
+`v0.4.32` 的 release notes 还包含一组直接影响重试、Skill、插件、执行根和 Workspace 管理的收紧项。它们属于稳定 tag 的发布内容，但不应被解释成 Multica 提供了通用 Sandbox：
+
+| 变化 | v0.4.32 行为 | 落地边界 |
+| --- | --- | --- |
+| Manual rerun | manual rerun 不再先取消仍在运行的 in-flight agent run；操作会保留原 run 的状态并创建新的执行请求 | 这是重试编排语义，不是同一目录可安全并发；`in_place` 仍由目录 mutex 串行化 |
+| Issue 创建窗口 | 服务端对 recently created Issue 的时间窗口做强制校验，过期或超出窗口的创建请求会被拒绝 | 窗口校验是反滥用/一致性约束，不改变 Issue 七状态，也不能替代业务审批 |
+| runtime-local Skill | Runtime-local Skill sync 会跳过 binary supporting files，只同步可审计的文本/资源文件 | 过滤发生在同步边界；daemon 仍以本机用户权限运行，不因此获得文件隔离 |
+| Plugin immutable version | Plugin artifact 按 immutable version 绑定；相同 key/version 的不同内容不能覆盖已安装版本，历史 Task 保留 pinned execution manifest | 版本不可变不等于 publisher trusted；仍需 `plugins_v1`、`private_plugins_v1`、Binding 和 actor approval |
+| Custom provider | `pi` 和 `opencode` daemon 可连接 custom provider；provider endpoint 与认证由 Runtime 配置提供 | custom provider 只是连接形态，不会把第三方 endpoint 变成 Multica 托管服务或 Sandbox |
+| Execution-root fencing | daemon 在 live execution 上 fence env-root reset，并为每个 Task 独占 claimed env root | fencing 防止旧 Task 的清理覆盖新 Task；工作目录仍继承 daemon OS 权限 |
+| Workspace seats | Workspace owner/admin 可以增加 workspace seats，seat 计数与成员/Agent/Runtime 权限分别治理 | seat 扩容不自动授予 Agent Access，也不改变 Runtime owner-only 规则 |
+
+这些变化主要是正确性和治理修复，不应扩写成新的 provider 协议族或隔离能力。升级后应专门回归 manual rerun、并发 Task 的 env-root 回收、binary Skill 过滤、同 key/version 插件冲突和 workspace seat 权限。
+
 ---
 
 ## 第二章：核心对象模型
@@ -1124,7 +1140,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 | 对象 | 固定值 | 本文用途 | 兼容承诺 |
 | --- | --- | --- | --- |
 | Stable tag | `v0.4.32` | 官方最新稳定基线 | 是 |
-| Annotated tag object | `4cd3b23f1e9deda32ab68cfa939a3652adf97e7a` | 证明 tag 是 annotated tag | 元数据，不是源码 commit |
+| Annotated tag object | `ad64e0f80011b1968c7aa188bd58ab465154959b` | 证明 tag 是 annotated tag | 元数据，不是源码 commit |
 | Peeled source commit | `d60775aa9394b911b18701a326f655465604e7d1` | 正文所有稳定实现与文档证据 | 是 |
 | 审校日期 | `2026-08-22` | 本文证据截止日 | 不代表未来版本 |
 | 发布后 main 快照 | [`main@b8029973aa7da5f741f7bb01a9f833b38a0885438`](https://github.com/multica-ai/multica/tree/b8029973aa7da5f741f7bb01a9f833b38a0885438) | 只记录审校时分支已越过 release | 否，不纳入 v0.4.32 稳定兼容承诺 |
