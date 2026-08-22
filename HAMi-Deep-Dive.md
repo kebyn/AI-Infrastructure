@@ -718,7 +718,7 @@ NVIDIA 后端代码中定义了 `mps` 模式。MPS 的核心价值是提升多 C
 
 ### 8.5 DRA 方向
 
-Kubernetes Dynamic Resource Allocation 在 v1.34 进入 GA。DRA 提供 `ResourceClaim`、`DeviceClass`、`ResourceSlice` 等 API，让调度器能直接读取设备属性。HAMi `v2.10.0` 已将 DRA components 从 HAMi 主 Chart 移除；不能再用 `dra.enabled=true` 期待主 Chart 同时安装 DRA driver。需要 DRA 的集群必须独立部署对应 driver（例如 Ascend 的 `ascend-dra-driver`），并单独管理其 `DeviceClass`、RBAC、ResourceSlice 和升级节奏。
+Kubernetes Dynamic Resource Allocation 在 v1.34 进入 GA。DRA 提供 `ResourceClaim`、`DeviceClass`、`ResourceSlice` 等 API，让调度器能直接读取设备属性。HAMi `v2.10.0` 已将 DRA components 从 HAMi 主 Chart 移除（release note: **Remove DRA components from HAMi main chart**）；不能再用 `dra.enabled=true` 期待主 Chart 同时安装 DRA driver。需要 DRA 的集群必须独立部署对应 driver（例如 Ascend 的 `ascend-dra-driver`），并单独管理其 `DeviceClass`、RBAC、ResourceSlice 和升级节奏。
 
 这说明 HAMi 正在向 Kubernetes 原生细粒度设备 API 演进：
 
@@ -739,7 +739,7 @@ Kubernetes Dynamic Resource Allocation 在 v1.34 进入 GA。DRA 提供 `Resourc
 | PodGroup/Gang | Bind 阶段对 PodGroup 成员重试 `NodeLock`，并适配 Kubernetes v1.36+ `gangScheduling` feature gates | 仍依赖外部 PodGroup controller/调度器的启用方式；HAMi 不单独提供完整 gang admission |
 | Dynamic MIG | 支持 MIG instance dynamic allocation/deallocation，允许在满足节点/驱动约束时回收并重建实例 | 动态重配会影响已有 workload；应在维护窗口验证 CDI、device-plugin 和 MIG Manager 状态 |
 | mutex policy | 新增 `mutex` GPU scheduling policy，防止多个调度策略同时修改同一共享设备状态 | mutex 是 HAMi scheduler 内部互斥，不是跨 scheduler 的分布式锁 |
-| policy 组合 | `gpu-scheduler-policy` 支持逗号分隔的组合策略，按配置顺序执行 | 组合顺序会改变 score/filter 结果；必须固定配置并回放冲突场景 |
+| policy 组合 | `gpu-scheduler-policy` 支持逗号分隔（comma-separated）的组合策略，按配置顺序执行 | 组合顺序会改变 score/filter 结果；必须固定配置并回放冲突场景 |
 | NUMA 对齐 | vGPU replica 可选择启用 CPU/GPU NUMA topology 对齐 | 这是 opt-in；需要 kubelet Topology Manager、节点拓扑标签和设备插件协同 |
 
 v2.10.0 同时补充 Biren GPU、AMD Mi300x vGPU、Ascend 910C `vir05_1c_16g`/`vir10_3c_32g` 模板、Vastai 等设备支持，并改进 vNPU compatibility mode。设备支持是厂商后端能力，不等于所有型号共享相同的显存/算力隔离或 DRA 语义；落地必须以对应 device plugin、driver 和 release matrix 为准。
