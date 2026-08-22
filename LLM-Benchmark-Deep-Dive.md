@@ -565,7 +565,7 @@ python3 -m sglang.benchmark.serving
 | `mmmu` | MMMU Math split，多模态评测式请求 | 依赖 `datasets`、`pillow`、`pybase64` |
 | `mooncake` | 用 Mooncake trace 评估大规模 KVCache 共享 | `--mooncake-workload`、`--mooncake-slowdown-factor`、`--mooncake-num-rounds`、`--use-trace-timestamps` |
 | `agentic-trace` | agentic multi-turn trace | `--dataset-offset`、`--agentic-max-turns` |
-| `custom` / `openai` / `longbench_v2` / `speed-bench` | 面向自定义、OpenAI 格式和长上下文/速度专项 | 按数据集格式和对应参数配置；`autobench` 已在 v0.5.18 移除，不应继续用于新命令 |
+| `custom` / `openai` / `longbench_v2` / `speed-bench` | 面向自定义、OpenAI 格式和长上下文/速度专项 | 按数据集格式和对应参数配置；`autobench` 已在 v0.5.17 移除，v0.5.18 又移除 22 个未维护 benchmark，不应继续依赖旧命令 |
 
 SGLang Bench 的 `--request-rate` 是 open-loop 入口：默认 `inf` 表示起始时尽快发出所有请求；设成有限值时，请求间隔按 Poisson 过程采样。`--max-concurrency` 是最大在飞请求上限；当 `--request-rate` 与 `--max-concurrency` 同时使用时，如果服务端处理不过来，实际发送速率会被并发上限压低。
 
