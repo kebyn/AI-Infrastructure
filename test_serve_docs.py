@@ -134,7 +134,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "混合流式/非流式 run",
             "纯非流式 run 仍保留兼容 fallback",
             "vllm-embedding",
-            "autobench` 已在 v0.5.18 移除",
+            "autobench` 已在 v0.5.17 移除",
             "SGLANG_CACHE_DIR",
             "torch 2.13.0",
             "triton 3.7.1",
