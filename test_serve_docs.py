@@ -374,6 +374,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "PrioritizePreemptorWorkloads",
             "ValidateRayAndSparkJobUpdates",
             "is-group-workload",
+            "v0.19.1 补丁升级前必读",
             "`LWSImmutableGroupSize` 默认开启",
             "关闭会同时恢复已知配额绕过",
             "`TASValidateWorkloadSliceSize`",
