@@ -744,6 +744,20 @@ python3 -m sglang.benchmark.serving \
 | 兼容性 | v0.5.18 的指南路径已从上一版 `docs_new/docs/developer_guide/bench_serving.mdx` 调整为 `docs/docs/developer_guide/bench_serving.mdx`；指南仍展示 `sglang.bench_serving`，但源码已将其标为 deprecated，CI 应迁到 `sglang.benchmark.serving` |
 | 一批请求探测 | `one_batch_server` 直连 worker 时可按 internal states 跳过超过 max-running 或 token-capacity 的组合；若目标是 PD router，拿不到 worker internal states，脚本会告警并关闭这层 skip guard，不能把它当成 router 后端的容量保护 |
 
+### 9.8 v0.5.18 运行与升级边界
+
+SGLang `v0.5.18` 的 benchmark 调用形态基本延续上一版，但 serving 运行环境有几个会直接影响可复现性的变化：
+
+| 变化 | v0.5.18 行为 | 压测影响 |
+| --- | --- | --- |
+| 编译缓存目录 | Triton、FlashInfer、Inductor、DeepGEMM 和 CUDA driver cache 统一落到 `SGLANG_CACHE_DIR` | 升级后的首次启动会重新编译；预热镜像或独立 cache volume 必须迁移 `triton`、`flashinfer`、`deep_gemm`、`inductor` 和 `nv` 子目录 |
+| CUDA 依赖 | CUDA PyTorch stack 升至 `torch 2.13.0`、`triton 3.7.1`，FlashInfer 为 `0.6.17`，CuTeDSL 为 `4.6.2`，`sgl-kernel` 为 `0.4.6.post1` | 必须重新构建 benchmark 客户端/服务端环境；不能把旧 wheel 的首次编译时间混入 steady-state 吞吐比较 |
+| DeepEP 与 torchao | DeepEP 改用发布的 `sgl-deep-ep` wheel；`torchao` 集成和 `--torchao-config` 移除 | 固定依赖锁文件并移除旧启动参数，避免把 ImportError 当作服务端回归 |
+| 模型/多模态 | 新增 Muse Glimmer、Intern-S2-Mobius、SANA-Video、LingBot-Video-MoE、LTX-2.5、Cosmos3 与 LongCat-Image cookbook；Qwen VL 原生 multimodal processing 和 content-addressed preprocessing cache 进入 release | 新模型和多模态结果应单独记录 processor、图像尺寸、cache 状态与模型能力，不与纯文本 TTFT 直接横比 |
+| 旧 benchmark | 22 个未维护 benchmark 被移除 | CI 应先枚举 `python -m sglang.benchmark.serving --help` 的当前 dataset/backend，不再依赖旧脚本名 |
+
+这些变更不新增“benchmark 指标口径”：TTFT、ITL、TPOT、accept length 和 open-loop 到达率仍按本章前文定义。缓存迁移、依赖重建和模型 processor 初始化必须在压测报告中作为环境前置条件记录。
+
 ---
 
 ## 第十章：LLMPerf

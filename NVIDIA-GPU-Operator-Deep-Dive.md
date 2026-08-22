@@ -74,6 +74,16 @@ GPU Operator 与 HAMi 也不是简单替代关系。GPU Operator 擅长部署 NV
 
 文中的“默认启用”有两层含义：Helm Values 中的布尔值，以及满足父级功能门控和节点选择器后真正创建/运行的 Operand。两者不总是相同，例如 `ccManager.enabled=true`，但默认 `sandboxWorkloads.enabled=false`，所以默认容器工作负载安装不会实际运行 CC Manager。
 
+### 1.5 v26.7.0 的 DRA 与升级行为
+
+`v26.7.0` 把 NVIDIA DRA Driver 纳入 GPU Operator 的正式管理面：新增 `GPUCluster` 自定义资源，可管理 DRA driver、ComputeDomain（含 Multi-Node NVLink）、DCGM、DCGM Exporter 和 DRA validation workload。`ResourceClaim` 可以申请整卡或预配置 MIG，并按设备属性选择。`GPUCluster` 使用 Operator 管理的 `NVIDIADriver`，或引用主机预装的 driver；同一集群不能同时使用 `GPUCluster` 和 `ClusterPolicy`。
+
+这条路径有明确前置条件：Kubernetes `v1.34.2+`、NVIDIA driver `580+` 和 CDI-compatible container runtime；部分 DRA 能力仍是 Alpha、默认关闭。KubeVirt 也可以通过 DRA `ResourceClaim` 申请整卡做 VFIO passthrough，但需要单独核对 Fabric Manager、IOMMU 和虚拟机安全边界。
+
+v26.7.0 还新增 `nvidia.com/gpu.deploy.client` node label，允许 Operator 在 driver upgrade 或 MIG 变更时重启持有 GPU handle 的第三方 client DaemonSet；当 driver 配置 digest 未变化时，driver-upgrade controller 会原地重启 driver Pod，不驱逐业务 workload。`NVIDIADriver` CRD 的 `upgradePolicy` 可以逐资源覆盖 Helm 默认策略，`hostPaths.kubeletRootDir` 支持非 `/var/lib/kubelet` 根目录。
+
+NRI 开启时，`NRI_MANAGEMENT_CDI_DEVICE_NAMESPACES` 默认只允许 Operator 所在 namespace 请求 management CDI device；immutable host 上不要再挂载 NRI 不需要的 containerd 配置路径。`devicePlugin.config.create=true` 但 name/data 为空现在会被 chart 拒绝，避免产生引用不存在 ConfigMap 的 Pod。
+
 ---
 
 ## 第二章：总体架构与组件依赖
@@ -1138,14 +1148,19 @@ GPU Operator Release 不是 Driver Release 的别名。`v26.7.0` Chart 默认组
 | 组件 | 该 Chart 默认版本 |
 |------|------------------|
 | GPU Operator/Validator | `v26.7.0`（未覆写时使用 Chart AppVersion） |
-| NVIDIA Driver | `580.126.20` |
-| Container Toolkit | `v1.19.1` |
-| Device Plugin/GFD | `v0.19.3` |
-| DCGM | `4.5.2-1-ubuntu22.04`，默认不独立运行 |
-| DCGM Exporter | `4.5.3-4.8.2-distroless` |
-| MIG Manager | `v0.14.2` |
-| GDS | `2.27.3`，默认关闭 |
-| GDRCopy | `v2.5.2`，默认关闭 |
+| NVIDIA Driver | `595.91.07` |
+| Driver Manager | `v0.12.0` |
+| Container Toolkit | `v1.20.0` |
+| Device Plugin | `v0.20.0` |
+| DCGM | `4.6.0-1` |
+| DCGM Exporter | `v4.6.0-4.8.3` |
+| MIG Manager | `v0.15.0` |
+| Node Feature Discovery | `v0.19.0` |
+| GPU Feature Discovery | `v0.20.0` |
+| GDS | `v2.29.4` |
+| Confidential Computing Manager | `v0.4.3` |
+| GDRCopy | `v2.6` |
+| Kata Sandbox Device Plugin | `v0.0.5` |
 
 升级或安全响应必须分别跟踪这些组件，而不是看到 Operator 版本新就假设所有 Operand 都满足目标 CVE 修复或硬件要求。
 

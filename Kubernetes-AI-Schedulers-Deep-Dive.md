@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.2@8eab687`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-22。Volcano 官网证据固定到 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`，本轮只有 Mermaid 渲染支持变化，不改变 v1.15.1 能力结论。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.2@8eab687`、Grove `v0.1.0-alpha.11@8fa3ece`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.1@0a56ed3`；审校日期：2026-08-22。未发布辅助快照为 Koordinator `main@a48991792bcf9d1f8559f4cff7792bb0de6497c8` 与 Grove `main@fcc3b3bbbc5e6a2a797cd080bdbc6983b1ccec24`，只用于核对主线文档/实现，不扩大稳定版本兼容承诺。Volcano 官网证据固定到 `master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8`，本轮只有 Mermaid 渲染支持变化，不改变 v1.15.1 能力结论。
 
 ---
 
@@ -479,6 +479,24 @@ LWS 限制修复的是明确的 quota bypass：旧行为允许已 admitted 的 L
 - **租户与 RBAC**：Kueue 自身 webhook configuration/CRD 的 ClusterRole 权限按 `resourceNames` 收敛；MultiKueue 示例 worker RBAC 补齐 elastic RayCluster/Workload 的必要 update/patch。前者缩小 controller 权限，后者只修复示例多集群弹性更新所需权限，不能合并成宽泛 ClusterRole。
 
 可观测性也需同步复核：超大 quota/usage metric 不再整数溢出，无限 quota 显示 `+Inf`；LocalQueue 删除、ClusterQueue terminating、重复 pending bucket 和 JSON Lines 日志均有修复。升级窗口应同时观察 admission 顺序、quota reserved/used、AFS usage、TAS pending reason、preemption/ungating 和 controller restart，而不能只看“Pod 最终是否启动”。
+
+### 4.13 v0.19.2 TAS、DRA 与队列修复
+
+从 `v0.19.1` 到 `v0.19.2` 的 patch release 还包含以下稳定行为。它们不替代 `v0.19.0` 的 minor migration 和 feature-gate 前置：
+
+| 区域 | v0.19.2 行为 | Feature gate/升级边界 |
+| --- | --- | --- |
+| TAS cache | snapshot creation 复用未变化的 topology tree，减少 CPU 和内存分配 | `TASCacheTopologyTree` 为 Alpha、默认关闭；打开前应比较 snapshot latency 与 cache invalidation |
+| Scheduler library | TAS node readiness 与 `spec.unschedulable` 检查委托给 scheduler-library | `SchedulerLibraryIntegration` 为 Alpha、默认关闭；关闭时保留旧 cache 检查路径 |
+| AFS | 修复 Workload re-admit/exit 未结算时的 entry-penalty accounting leak | 升级后 LocalQueue fair-sharing usage 可能下降，这是纠正历史累计，不应按旧 usage 直接回归 |
+| DRA quota | 丢弃负 extended-resource request；修复同一 `deviceClassMappings` key 跨容器请求导致的 quota undercount | 仅在关闭 `WorkloadValidateResourcesAreNonNegative` 或历史对象中可能遇到负值；仍应保持 validation 开启 |
+| FairSharing | 合并每 candidate 的 preemption log；dominant resource share 为 `+Inf` 时跳过无意义 tournament | Prometheus/日志采集需接受 `+Inf`，不能将其解析为有限数或 0 |
+| PodGroup | 只接收带 `kueue.x-k8s.io/is-group-workload` stamp 的 framework Workload，阻断伪造 `pod-group-name` 绕过 ClusterQueue quota | 外部 PodGroup controller 必须使用 framework stamp；仅写同名 annotation 不再获得 Kueue adoption |
+| Ray/Spark | `ValidateRayAndSparkJobUpdates`（Beta、默认开启）拒绝删除仍运行作业的 queue label，避免 Pod 继续运行却脱离 quota | 升级前检查 controller 是否会清理 queue label；不要用 label 删除作为“停止管理”手段 |
+| MultiKueue | 清理 stale `status.nominatedClusterNames`，并避免延迟 watch response 让 watch 建立永久阻塞 | 仍需验证外部 dispatcher 的 SSA field manager 与 worker/manager 网络超时 |
+| Preemption/TAS | `PrioritizePreemptorWorkloads`（Alpha、默认关闭）缓解 eviction completion 不同步导致的 preemption loop；修复 TAS node replacement、cross-flavor domain 和 sibling topology prefix 误判 | 需要显式开启 gate 才有新 queue priority；默认关闭时仍应监控 preemption thrashing |
+
+因此，`v0.19.2` 的新增项主要是 cache 优化、资源正确性、安全收紧和调度循环修复；它没有把 Alpha TAS 或 preemption gate 变成稳定 API，也没有改变 Kueue 与 kube-scheduler/其他 scheduler backend 的职责边界。
 
 ---
 
@@ -1261,6 +1279,8 @@ Workload API / PodSets
 | Volcano | `v1.15.1` | `0a56ed331897f5455916a44d3075671376d731d6` |
 
 除明确标为 Alpha 的 Grove 外，正文按表中稳定 release 审校。生产仍须核对各项目的 Kubernetes compatibility、migration guide、Chart 和镜像 digest。
+
+辅助主线快照（未发布，仅用于审计时的实现/文档对照）：Koordinator `main@a48991792bcf9d1f8559f4cff7792bb0de6497c8`、Grove `main@fcc3b3bbbc5e6a2a797cd080bdbc6983b1ccec24`。它们不替代上表的稳定 release，也不把主线新增字段写入生产兼容承诺。
 
 KAI 的旧维护分支证据：[`v0.16.9@724da838`](https://github.com/kai-scheduler/KAI-Scheduler/tree/724da8388358b7673495a935948ea0a67a86140b)；该提交只用于记录 GitHub latest 的分支补丁，不替代上表的 v0.17.0。
 
