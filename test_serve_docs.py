@@ -1138,7 +1138,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             doc["footer"],
         )
         self.assertIn(
-            "https://github.com/kubernetes/kubernetes/tree/v1.36.4",
+            "https://github.com/kubernetes/kubernetes/tree/bb826b1d48562f110659e64e8ec444327433db95",
             doc["footer"],
         )
 
