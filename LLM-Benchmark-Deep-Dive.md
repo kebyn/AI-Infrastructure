@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.18`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.27.1`、EvalScope `v1.10.0`；审校日期：2026-08-22。
+> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.3`、inference-perf `v0.6.1`、genai-bench `v0.0.5`、SGLang `v0.5.18`、LLMPerf `v2.0`、ollama-benchmark `v0.5.2`、vLLM `v0.28.0`、EvalScope `v1.11.1`；审校日期：2026-09-01。
 
 ---
 
@@ -857,7 +857,7 @@ llm_benchmark run --custombenchmark=path/to/custombenchmarkmodels.yml
 
 ### 12.1 定位
 
-vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。本文固定到 `v0.27.1@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac`；默认 benchmark 仍通过 Python CLI 使用：
+vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。本文固定到 `v0.28.0@2cf0a6915ce544dc493a0990f2ea38d81601128a`；该 lightweight tag 直接指向所列 commit。默认 benchmark 仍通过 Python CLI 使用：
 
 ```bash
 vllm bench serve
@@ -948,6 +948,19 @@ v0.27.0 的 benchmark 文档进一步澄清 speculative decoding 指标：一个
 
 v0.27.1 是这些 v0.27.0 benchmark 行为之上的补丁基线；它相对 v0.27.0 的代码增量主要是 quantized DSpark Markov head 支持及发布/CI 修复，没有新增 benchmark CLI 行为。release 中其他 P/D 或 serving 能力仍属于服务端：Python benchmark 没有专用的 prefill/decode 分角色模式。压测分离部署时应把请求发给统一 router/endpoint，并分别采集 prefill、decode、传输层和 router 指标。
 
+### 12.5 v0.28.0 benchmark 增量
+
+v0.28.0 沿用上述 CLI，同时收敛在线/离线数据集口径与流式解析；这些变化会影响复现实验，不能只替换 server image 而沿用旧客户端假设：
+
+| 变化 | v0.28.0 行为 | 对结果的影响 |
+|------|---------------|--------------|
+| throughput 数据集 | `vllm bench throughput` 不再维护一套分叉的 dataset dispatcher，而是通过适配层复用 `bench serve` 的 `get_samples()`；旧 `--input-len`/`--output-len`/`--prefix-len` 会映射到共享 random/sonnet 参数，LoRA assignment 在采样后统一附加 | serve/throughput 对 dataset validation、采样和多模态门控更一致；升级仍须记录入口与 backend，`vllm-chat` 是 throughput 唯一允许通过多模态 gate 的 backend |
+| timed trace | `timed_trace` 保留扩展后的预 tokenized `list[int]`，不再先 decode 成文本再由请求端重新 tokenize；`bench serve` 明确只允许 `vllm` 或 `openai` completions backend | 修正 decode→encode 不完全可逆造成的 prompt length/内容漂移；旧结果若依赖 tokenizer round-trip，应重跑，chat backend 会直接报错而非静默改变载荷 |
+| Rust SSE | Rust `vllm-bench` 以 byte buffer 跨 chunk 累积 SSE，完整 message 后才执行 UTF-8 lossy conversion | 多字节字符被网络 chunk 切开时不再提前变成 replacement character；文本/JSON 输出与 Python 客户端更可比，非法 UTF-8 仍按 lossy 处理 |
+| profiling | `vllm bench latency` 可显示并使用最小 Triton Proton profiler backend，输出目录来自 profiler config | profiler 本身会改变时延，结果必须标记是否开启；不能把 profile run 与无 profiler 的 latency baseline 直接比较 |
+
+v0.28.0 同期包含 Kimi-K3、DeepSeek-V4 与 KV offload 的模型/服务端变化，它们只决定待测 server 的模型、内核与缓存前提，不是 benchmark 客户端的新通用能力。比较结果必须固定 server commit、模型 runner、KV offload 配置和 backend；本文不据此扩写 vLLM serving 功能清单。
+
 ### 12.5 适用场景与限制
 
 | 类型 | 说明 |
@@ -1017,7 +1030,23 @@ evalscope perf \
   --dataset-args '{"target_input_len": 131072, "prefix_file": "/path/to/long_text.txt", "prefix_role": "system"}'
 ```
 
-### 13.5 典型命令
+### 13.5 v1.11.0 与 v1.11.1 正确性增量
+
+v1.11.1 累计包含 v1.11.0 的 metric/report 语义重构以及随后对性能压测路径的集中修复。它们会直接改变百分位、吞吐、失败耗时与流式 token 统计，升级前后不应把报表数字无条件拼接为同一时间序列。
+
+| 层次 | 修复或变化 | 压测含义 |
+|------|------------|----------|
+| v1.11.0 metric/report | 引入统一 metric semantics、命名与聚合规则；保留 unavailable primary metric 和 structured metric identity，HTML/服务端报告按同一语义输出 | 指标缺失不再被伪装成 0 或换名；自动化消费者应按 metric identity 与 availability 解析，不依赖表格位置 |
+| v1.11.0 流式 usage | streaming usage 独立于 `choices` 解析，`content=None` 不再破坏 token accounting；构造请求的 fatal error 直接终止，不伪装为可重试网络失败 | OpenAI-compatible server 把 usage 放在独立尾帧时仍能计数；配置/schema 错误不会被 retry 掩盖 |
+| v1.11.0 shutdown | async loop shutdown 对超时和取消执行完整清理；中断的评测明确标为 incomplete | CI/批处理应检查退出状态与 incomplete 标记，不能把已有局部 report 当作完整 run |
+| v1.11.1 closed-loop warmup | warmup 和 measured request 共用 dispatcher/semaphore，不在两阶段间把 server drain 到零；首次 measured request 真正发送时才启动 duration deadline，`warmup_num < parallel` 会告警 | 避免测量窗口开头同时释放 `parallel` 个 prefill 导致 P99 污染；固定长度请求仍可能形成同步 cohort，需改用输出长度范围或 open-loop |
+| v1.11.1 SSE 与 timing | SSE 解析保留 U+2028/U+2029 等 Unicode line separator；metadata-only chunk 不参与首 token/ITL；stream finish/usage 与 cache 字段处理修正 | 网络分块和 usage-only 尾帧不再制造假 token interval 或丢失文本；跨版本 TTFT/ITL 需重新建基线 |
+| v1.11.1 HTTP/retry | OpenAI-compatible model client 会识别 HTTP 200 中实际承载的 gateway error payload 并进入有界重试；Anthropic streaming 与通用 model retry 语义修正 | HTTP status 200 不再自动等同成功；仍须限制重试并记录原始错误，避免把网关持续故障变成重复负载 |
+| v1.11.1 精度与结束流程 | percentile 改为 nearest-rank；失败请求记录完整 start/completed lifecycle 以修正 wall-time/QPS/throughput；拒绝非正 `parallel` 和 open-loop + multi-turn；SIGINT/SIGTERM 取消 pending work、完成 cleanup，并返回惯例信号退出码 | P99 与吞吐可能只因口径修正而变化；报告必须同时保留成功/失败数、版本和请求生命周期，信号中止不能作为成功样本 |
+
+HTML 报告还同步 console theme，并避免在未配置 visualizer 时为每个请求构造快照。这些变化改善显示与客户端开销，但不会提高被测服务本身的吞吐；横评时应把 load generator CPU 和 visualizer 配置也记录在实验元数据中。
+
+### 13.6 典型命令
 
 ```bash
 evalscope perf \
@@ -1064,7 +1093,7 @@ evalscope perf \
   --dataset-args '{"speed": 2.0, "model_mapping": {"gpt-4": "qwen-max"}}'
 ```
 
-### 13.6 vLLM Bench 对齐
+### 13.7 vLLM Bench 对齐
 
 EvalScope 官方文档提供了 `evalscope perf` 与 `vllm bench serve` 的参数映射，关键是：
 
@@ -1079,7 +1108,7 @@ EvalScope 官方文档提供了 `evalscope perf` 与 `vllm bench serve` 的参�
 
 这使 EvalScope 很适合在中文团队中做“先用 vLLM Bench 建基线，再用 EvalScope 做多并发、多轮、可视化和能力评测联动”的流程。
 
-### 13.7 限制
+### 13.8 限制
 
 | 限制 | 说明 |
 |------|------|
@@ -1301,8 +1330,8 @@ python3 -m sglang.benchmark.serving \
 | SGLang Bench | `v0.5.18` | `71de97b264b04dcd514cf904003028aefe9775c8` |
 | LLMPerf | `v2.0` | `1eac866f91773bff401f96e74c1cf20c38778329` |
 | ollama-benchmark | `v0.5.2` | `f9a5edb6554be2d425d6b16f7b740c1524d062a0` |
-| vLLM Bench | `v0.27.1` | `6e448d0ea9bf3d88d898b65449ca6dc2aec170ac` |
-| EvalScope | `v1.10.0` | `9d052ca0240ebf8b603c053fa44727b863ff3933` |
+| vLLM Bench | `v0.28.0` | `2cf0a6915ce544dc493a0990f2ea38d81601128a` |
+| EvalScope | `v1.11.1` | `203cdc93137376df91814036bf99f486b5f4f3d1` |
 
 ### A.2 关键参考
 
@@ -1336,13 +1365,13 @@ python3 -m sglang.benchmark.serving \
 | SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/71de97b264b04dcd514cf904003028aefe9775c8/python/sglang/benchmark/serving.py> |
 | LLMPerf README | <https://github.com/ray-project/llmperf/blob/v2.0/README.md> |
 | ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/v0.5.2/README.md> |
-| vLLM v0.27.1 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.27.1> |
-| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/benchmarks> |
-| vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/docs/benchmarking/cli.md> |
-| vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/6e448d0ea9bf3d88d898b65449ca6dc2aec170ac/rust/src/bench/README.md> |
-| EvalScope v1.10.0 Release | <https://github.com/modelscope/evalscope/releases/tag/v1.10.0> |
-| EvalScope README | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/README_zh.md> |
-| EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/quick_start.md> |
-| EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/parameters.md> |
-| EvalScope Examples | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/examples.md> |
-| EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/9d052ca0240ebf8b603c053fa44727b863ff3933/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
+| vLLM v0.28.0 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.28.0> |
+| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/2cf0a6915ce544dc493a0990f2ea38d81601128a/benchmarks> |
+| vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/2cf0a6915ce544dc493a0990f2ea38d81601128a/docs/benchmarking/cli.md> |
+| vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/2cf0a6915ce544dc493a0990f2ea38d81601128a/rust/src/bench/README.md> |
+| EvalScope v1.11.1 Release | <https://github.com/modelscope/evalscope/releases/tag/v1.11.1> |
+| EvalScope README | <https://github.com/modelscope/evalscope/blob/203cdc93137376df91814036bf99f486b5f4f3d1/README_zh.md> |
+| EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/203cdc93137376df91814036bf99f486b5f4f3d1/docs/zh/user_guides/stress_test/quick_start.md> |
+| EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/203cdc93137376df91814036bf99f486b5f4f3d1/docs/zh/user_guides/stress_test/parameters.md> |
+| EvalScope Examples | <https://github.com/modelscope/evalscope/blob/203cdc93137376df91814036bf99f486b5f4f3d1/docs/zh/user_guides/stress_test/examples.md> |
+| EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/203cdc93137376df91814036bf99f486b5f4f3d1/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
