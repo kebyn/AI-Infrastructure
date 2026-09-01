@@ -4,7 +4,7 @@
 >
 > 基于 Kubeflow Community Distribution 官方仓库整理：<https://github.com/kubeflow/community-distribution>
 >
-> 稳定版本基线：Community Distribution `26.03.1@f09f3eeaa25cc852665f460497a42b7fc68639ac`，审校日期：2026-08-22。组件矩阵以该 release 的 manifests 为准。
+> 稳定版本基线：Community Distribution `26.03.1@f09f3eeaa25cc852665f460497a42b7fc68639ac`，审校日期：2026-09-01。组件矩阵以该 release 的 manifests 为准；本轮复核稳定 Release 未变化。
 
 ---
 

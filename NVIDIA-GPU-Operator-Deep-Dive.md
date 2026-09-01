@@ -4,7 +4,7 @@
 >
 > 基于 NVIDIA GPU Operator 官方仓库与 26.7 官方文档整理：<https://github.com/NVIDIA/gpu-operator>
 >
-> 文档快照：GPU Operator `v26.7.0`，源码提交 `10ee5b3638b89e11e949412aafa5ba99279c3721`，审校日期：2026-08-22
+> 文档快照：GPU Operator `v26.7.0`，源码提交 `10ee5b3638b89e11e949412aafa5ba99279c3721`，审校日期：2026-09-01；本轮复核稳定 Release 未变化
 
 ---
 
