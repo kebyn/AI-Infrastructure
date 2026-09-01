@@ -4,11 +4,11 @@
 >
 > 基于 Multica 官方仓库和官方文档整理：<https://github.com/multica-ai/multica>
 >
-> 稳定版本基线：annotated tag `v0.4.32` 解引用后的 `d60775aa9394b911b18701a326f655465604e7d1`；发布后快照：`main@b8029973aa7da5f741f7bb01a9f833b38a0885438`；审校日期：2026-08-22。正文的产品契约、默认参数和部署行为只以 `v0.4.32` 的 peeled source commit 为准；发布后快照只记录审校时的分支边界，不纳入稳定版兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
+> 稳定版本基线：annotated tag `v0.4.37` 解引用后的 `79559ebb92c48746d716db30a85acdc8c3cef8ec`；发布后快照：`main@61ea48fd2ef0e9818de38533553e830fd36be349`；审校日期：2026-09-01。正文的产品契约、默认参数和部署行为只以 `v0.4.37` 的 peeled source commit 为准；发布后快照只记录审校时的分支边界，不纳入稳定版兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
 
-![Multica v0.4.32 产品看板：成员与 AI Agent 在同一 Workspace 中围绕 Issue 协作，界面展示状态列、负责人、优先级和项目上下文](https://raw.githubusercontent.com/multica-ai/multica/d60775aa9394b911b18701a326f655465604e7d1/docs/assets/hero-board.png)
+![Multica v0.4.37 产品看板：成员与 AI Agent 在同一 Workspace 中围绕 Issue 协作，界面展示状态列、负责人、优先级和项目上下文](https://raw.githubusercontent.com/multica-ai/multica/79559ebb92c48746d716db30a85acdc8c3cef8ec/docs/assets/hero-board.png)
 
-> 图片来源：Multica 官方仓库 [`docs/assets/hero-board.png`](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/docs/assets/hero-board.png)，固定到 `v0.4.32` exact source commit；本仓库不复制该二进制文件。
+> 图片来源：Multica 官方仓库 [`docs/assets/hero-board.png`](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/docs/assets/hero-board.png)，固定到 `v0.4.37` exact source commit；本仓库不复制该二进制文件。
 
 ---
 
@@ -61,10 +61,10 @@ Multica 的核心产品价值不是“给模型一台隔离机器”，而是把
 
 本文使用以下优先级：
 
-1. `v0.4.32` peeled commit 中的数据库 migration、Go 服务端、daemon 和 provider adapter 源码；
+1. `v0.4.37` peeled commit 中的数据库 migration、Go 服务端、daemon 和 provider adapter 源码；
 2. 同一 commit 中的中文官方文档、`README.zh.md` 和自托管指南；
 3. annotated tag 与 GitHub Release 元数据；
-4. 发布后 `main@b8029973...` 只用于说明“审校时 main 已经前进”，不证明任何稳定行为。
+4. 发布后 `main@61ea48fd...` 只用于说明“审校时 main 已经前进”，不证明任何稳定行为。
 
 本文所有 GitHub 稳定行为链接都固定到 tag 或 40 位 exact commit，不使用浮动 `main`/`master` URL。官网路由适合日常阅读，但未来可能随发布更新；需要审计时应回到附录 E 的固定源码链接。
 
@@ -75,7 +75,7 @@ Multica 的核心产品价值不是“给模型一台隔离机器”，而是把
 | 累计变化 | v0.4.32 固定实现 | 落地边界 |
 | --- | --- | --- |
 | Saved Issue Views | 服务端保存命名 filter，支持 private/workspace visibility、scope、revision 与每用户 display preference | 这是看板查询与显示偏好，不改变 Issue 七状态或 Task 调度语义 |
-| Oh-My-Pi Runtime | daemon 独立探测 `omp`，以 `provider=omp` 注册并复用 `pi` protocol family backend | 新增 Runtime identity，不是第 21 种自定义 Runtime protocol family |
+| Oh-My-Pi Runtime | daemon 独立探测 `omp`，以 `provider=omp` 注册并复用 `pi` protocol family backend | 新增 Runtime identity，不额外增加自定义 Runtime protocol family |
 | Task 内 daemon 诊断 | daemon-managed Task 可读取宿主 daemon `status`，`disk-usage` 被限制在该 Task 的工作区根与可见范围 | 诊断能力不是 Sandbox；Task 仍继承 daemon OS 用户权限 |
 | Chat history | `multica chat history` 可回读 Web、飞书、企业微信和钉钉等非 Slack session 的服务端 transcript | 用于 resume 丢失后的上下文恢复；Chat 仍是用户私有会话 |
 | Agent env 批量编辑 | UI 可粘贴或编辑 dotenv 风格多行内容，并对非法行、重复 key 和不可逆序列化值 fail closed | 保存目标仍是明文 `custom_env` JSONB，不因此成为 secret manager |
@@ -83,17 +83,17 @@ Multica 的核心产品价值不是“给模型一台隔离机器”，而是把
 | Workspace teardown | 删除过程改为单事务、有界 keyset page、owner/task fence 和 10 秒 lock wait 上限 | 避免无限等待或提交半清理租户；失败会回滚并要求重试，不代表跨存储自动删除 Runtime 本地数据 |
 | provider/权限修复 | 修复跨 Workspace project 更新、PR close intent 歧义、Reasonix per-task deny、Cursor MCP shape 与 resumed auth recovery | 这些修复收紧租户、工具与恢复边界，不放宽 Agent Access 或主机权限 |
 
-发布后 `main@b8029973...` 只记录 2026-08-22 审计时主线已经越过 `v0.4.32`；其中后续提交仍按未发布快照处理，不反推为本表的稳定能力。
+发布后 `main@61ea48fd...` 只记录 2026-09-01 审计时主线已经越过 `v0.4.37`；其中后续提交仍按未发布快照处理，不反推为本表的稳定能力。此前误把 E2B SDK 的 `b8029973...` 写成 Multica 主线提交，本轮已按 Multica 仓库真实分支头纠正。
 
 ### 1.6 v0.4.25/v0.4.32 执行与治理增量
 
-以下变化来自 `v0.4.25` 与 `v0.4.32` 的 release commit，并合并进当前 `v0.4.32` 稳定基线。它们改变了本地执行、Runtime 治理和插件生命周期，不能只把本轮升级理解成 UI 或 provider 数量变化。
+以下变化来自 `v0.4.25` 与 `v0.4.32` 的 release commit，并作为当前 `v0.4.37` 基线继承的基础。它们改变了本地执行、Runtime 治理和插件生命周期，不能只把本轮升级理解成 UI 或 provider 数量变化。
 
 #### DeepSeek Harness Runtime（`dsh`）
 
 v0.4.32 新增 DeepSeek Harness provider，CLI/Runtime key 为 `dsh`，协议为其 ACP/stdio profile。安装前置条件是 Node.js 20+、`npm install -g @deepseek-ai/dsh`，以及安装 Multica profile（`dsh plugin --profile multica add <bundle>`）。daemon 只有在 `dsh --profile multica --probe` 成功时才注册 Runtime；仅 PATH 中存在裸 `dsh` 不足以通过 capability probe。
 
-模型目录由 `dsh --profile multica --list-models` 提供，模型值使用完整的 `provider/model`（例如 `deepseek-official/deepseek-chat`）。执行前需要 `DEEPSEEK_API_KEY` 或 dsh 自己保存的认证；`MULTICA_DSH_PATH`、`MULTICA_DSH_MODEL` 可覆盖命令和默认模型。Skill 从 `.dsh/skills`（以及运行时允许的 `AGENTS.md`）发现。它把 provider 表从 20 个 protocol family 扩展为 **21 个**；Oh-My-Pi `omp` 仍是复用 Pi family 的独立 Runtime identity，不另造协议族。
+模型目录由 `dsh --profile multica --list-models` 提供，模型值使用完整的 `provider/model`（例如 `deepseek-official/deepseek-chat`）。执行前需要 `DEEPSEEK_API_KEY` 或 dsh 自己保存的认证；`MULTICA_DSH_PATH`、`MULTICA_DSH_MODEL` 可覆盖命令和默认模型。Skill 从 `.dsh/skills`（以及运行时允许的 `AGENTS.md`）发现。DeepSeek Harness 是当轮新增 family；重新按 `v0.4.32` 的 `SupportedTypes` 复核后，该 tag 实际已有 **23 个** protocol family（旧文档漏列 MCode 与 DIM），不是 21 个。Oh-My-Pi `omp` 仍是复用 Pi family 的独立 Runtime identity，不另造协议族。
 
 #### 本地目录的 `in_place` 与 `worktree`
 
@@ -173,6 +173,23 @@ V1 只接受静态 UTF-8 `SKILL.md`，拒绝未知字段/能力、符号链接�
 
 这些变化主要是正确性和治理修复，不应扩写成新的 provider 协议族或隔离能力。升级后应专门回归 manual rerun、并发 Task 的 env-root 回收、binary Skill 过滤、同 key/version 插件冲突和 workspace seat 权限。
 
+### 1.8 v0.4.33 到 v0.4.37 连续增量
+
+本轮必须按五个连续 release 分层阅读；`v0.4.37` 包含前四版变化，但后续修复可能改变前一版刚引入的超时或生命周期语义。
+
+| 领域 | v0.4.33–v0.4.37 稳定行为 | 运维与权限边界 |
+| --- | --- | --- |
+| Plugin Public API v1 | v0.4.33 建立全局版本化 Public API v1、隔离 hosted plugin surface，并提供 durable scheduled hooks；示例包含 schedule/action/panel 类集成 | Public API、私有 Skill Plugin 与 hosted surface 是不同信任面；schedule hook 必须经过服务端授权、幂等与审计，不能因插件已安装就获得任意 daemon/宿主权限 |
+| provider | v0.4.33 新增 ZeroClaw ACP；v0.4.37 新增华为云 CodeArts `codearts run`，支持模型发现、session resume、MCP 和 local Skill。连同此前已进入源码但旧文档漏列的 MCode、DIM，`SupportedTypes` 现为 **25 个 protocol family**；Oh-My-Pi 仍是复用 Pi 的独立 identity | CodeArts 自定义 provider 即便在 TUI 可用，`run`/`models`/`serve` 仍需 `CODEARTS_CLI_AK`/`CODEARTS_CLI_SK`；ZeroClaw/CodeArts 的引入不改变“daemon 本机执行、没有通用 Sandbox”的边界 |
+| local dev environment | v0.4.33 把本地开发环境登记为带 manifest 的命名对象，以 `make up/status/list/down/destroy/gc/env-exec` 分解生命周期，并按占用情况分配端口、数据库、profile | 这是 Multica 仓库贡献者的开发环境编排，不是用户 Task 的 Sandbox。`down` 保留数据，`destroy` 才消费数据库、profile、workspaces、Desktop userData 与 slot；失败保留 manifest 供重试 |
+| Runtime / Task claim | claim 时再次按 workspace 与 runtime ownership/access 校验，非 owner 看不到 private Runtime；Squad 活动按 Task provenance 授权；runtime process tree 的 ownership 扩展到所有 backend | 服务端角色仍不能绕过 private Runtime owner；CLI token 被拒绝时应停止 Task，而不是把 task-bound token 当成登录 token 反复认证 |
+| 排队与长任务 | v0.4.33 先提供默认 `2h` 的 `MULTICA_TASK_QUEUED_TTL`；到 v0.4.37，queued Task 只有在 Runtime 心跳缺席超过 `MULTICA_RUNTIME_RECONNECT_GRACE` 且自身也排队至少这么久时才失败，单纯因 Runtime 忙而排队不会过期。agent idle/tool watchdog 扩展到可容纳最长两小时的长步骤 | 不应再把“入队满 2h 必失败”当作 v0.4.37 契约；离线宽限默认 `3h`，低于 `150s` 会被 clamp。绝对 `agent_timeout=0` 仍表示不设墙钟上限，活性由独立 watchdog 与 heartbeat 管理 |
+| daemon / session | daemon 为全部 backend 管理进程树，OpenClaw timeout 会完整终止；Desktop 可恢复意外停止的 daemon；Pi/Oh-My-Pi 在 workdir 变化后保留 session，Codex thread setup 使用更宽的 handshake budget | 自动恢复不能保证外部 CLI 或其子进程可重入；升级后要用真实取消、崩溃和 resume 场景验证进程树与 session continuity |
+| Channel / 客户端 | `/new`、`/clear` 建立 durable conversation boundary；多副本自托管时 WeCom reply 路由到持有 bot socket 的 replica，并记录未投递原因；移动端补齐 iPad 与紧凑 Issue 状态显示 | Channel session 与 Web Chat transcript 的恢复边界仍不同；WeCom relay 解决副本归属与可观测性，不替代外部平台的 delivery guarantee |
+| Skill 与性能 | local Skill 可从 folder、`.skill`、`.zip` 导入并先预览/检查冲突；Skill listing 改为 metadata-only、下载按 stall timeout，并批量加载所需文件 | ZIP/目录输入仍要按既有内容校验；启动更快不扩大 Skill 的工具、网络或文件权限 |
+
+v0.4.37 的 server 还为主 HTTP listener 设置 read-header/idle timeout，并减少 database-sampled metrics 和大 Workspace 的逐行 status/Skill 查询。它们改善阻塞连接与查询成本，不改变 API 的认证、Workspace 租户边界或任务完成语义。
+
 ---
 
 ## 第二章：核心对象模型
@@ -251,7 +268,7 @@ Project 是组织层而不是执行器：
 
 ### 2.4 Issue 的七种状态
 
-`v0.4.32` 固定七种 Issue 状态：
+`v0.4.37` 继续固定七种 Issue 状态：
 
 | 状态 | 产品语义 |
 | --- | --- |
@@ -379,7 +396,7 @@ daemon 运行在用户连接的电脑上，负责：
 
 ### 4.1 Task 的八种状态
 
-`v0.4.32` 的 Task 状态全集是：
+`v0.4.37` 的 Task 状态全集仍是：
 
 | 状态 | 含义 | 是否可由 daemon 领取 |
 | --- | --- | --- |
@@ -424,12 +441,12 @@ stateDiagram-v2
 
 默认规则如下：
 
-- `queued` 超过 **2 小时**仍未领取，会变为 `failed`，原因为 `queued_expired`，且 queue expiry 本身不自动重试；
+- `queued` 不再仅按固定年龄淘汰：只有目标 Runtime 的心跳缺席超过 `MULTICA_RUNTIME_RECONNECT_GRACE`，且 Task 自身也至少排队这么久，才会变为 `failed/queued_expired`；Runtime 只是满并发而仍在线时，积压会继续保留；
 - `dispatched` 停留超过 **5 分钟**会按失败处理；
 - `waiting_local_directory` 没有独立时长上限，目录锁释放后回到启动流程；
 - `running` 没有固定服务端执行上限，只要 Runtime 心跳正常，长任务不会仅因运行时间长被杀死；
 - daemon 默认每 **15 秒**发送心跳；服务端 stale threshold 为 150 秒，加上 sweeper 周期后，异常退出通常最迟约 **3 分钟**显示离线；
-- daemon 自身的绝对 `agent_timeout` 默认是 0，即不设硬上限，但无消息 idle watchdog 默认 30 分钟、单个工具调用 watchdog 默认 2 小时。
+- daemon 自身的绝对 `agent_timeout` 默认是 0，即不设硬上限；无消息 idle watchdog 默认已提高到 2 小时，tool watchdog 默认跟随该值，仍可分别覆盖。
 
 `running` 的“没有固定上限”不等于永不失败。daemon 会按 provider 事件和 watchdog 判断停滞；Runtime 离线时，关联运行中 Task 会失败并进入统一重试判定。
 
@@ -644,7 +661,7 @@ adapter **不提供模型、不代替用户购买额度、不自动完成 CLI �
 
 自定义 Runtime Profile 允许团队把内部 wrapper 或固定命令映射到已有协议族。它包含 display name、protocol family、command name、fixed args、visibility 和 enabled 状态。
 
-它不会创造第 22 种通信协议。自定义命令必须兼容所选的 21 种 protocol family 之一；配置字段不是 shell script，pipe、重定向、`&&`、`;`、反引号和环境变量展开应放进受审计的 wrapper script。
+它不会为 `omp` 创造额外的通信协议。v0.4.37 的自定义命令必须兼容所选的 25 种 protocol family 之一；配置字段不是 shell script，pipe、重定向、`&&`、`;`、反引号和环境变量展开应放进受审计的 wrapper script。
 
 ---
 
@@ -854,7 +871,7 @@ flowchart TB
 | Mobile | Expo / React Native（iOS） |
 | Backend | Go、Chi router、sqlc、gorilla/websocket |
 | Database | PostgreSQL 17 + pgvector |
-| Local execution | Go daemon + 21 种 provider adapter（另有 `omp` identity） |
+| Local execution | Go daemon + 25 种 protocol family adapter（另有 `omp` identity） |
 | Packaging | Docker Compose、OCI Helm Chart |
 
 服务端和 Runtime 不在同一个安全域：Backend 可以部署在数据中心或 Kubernetes，daemon 则运行在靠近代码与 CLI 凭据的工作站、构建机、容器或 VM。
@@ -901,7 +918,7 @@ flowchart TB
 固定生产版本时不要使用 Compose 默认的 mutable `latest`。应在 `.env` 中显式设置：
 
 ```dotenv
-MULTICA_IMAGE_TAG=v0.4.32
+MULTICA_IMAGE_TAG=v0.4.37
 ```
 
 Backend entrypoint 先运行 `./migrate up`，成功后再启动 server。Compose 默认只把 frontend/backend 绑定到 `127.0.0.1`；对外访问应由 TLS reverse proxy 转发，不能为了省事直接把原始端口改成 `0.0.0.0`。
@@ -920,9 +937,9 @@ Backend entrypoint 先运行 `./migrate up`，成功后再启动 server。Compos
 ```yaml
 images:
   backend:
-    tag: v0.4.32
+    tag: v0.4.37
   frontend:
-    tag: v0.4.32
+    tag: v0.4.37
 ```
 
 Secret 由 `existingSecret` 引用，真实值不应进入 values 文件和 Git。默认 uploads PVC 是 `ReadWriteOnce`；需要多个 backend replica 时，应使用 S3-compatible storage、支持 `ReadWriteMany` 的存储，或明确设计附件共享。
@@ -949,10 +966,10 @@ Secret 由 `existingSecret` 引用，真实值不应进入 values 文件和 Git�
 
 Compose、Chart 和源码示例中的 `latest` 适合快速体验，不适合作为生产变更控制。生产基线应同时固定：
 
-- backend image `v0.4.32`；
-- frontend image `v0.4.32`；
+- backend image `v0.4.37`；
+- frontend image `v0.4.37`；
 - matching Helm Chart version 或固定 Chart digest；
-- daemon/CLI `v0.4.32`；
+- daemon/CLI `v0.4.37`；
 - provider CLI 版本与登录方式；
 - PostgreSQL 17/pgvector、附件存储和 reverse proxy 配置。
 
@@ -1049,7 +1066,7 @@ multica daemon restart
 | 信号 | 告警条件示例 | 可能问题 |
 | --- | --- | --- |
 | `/readyz` 503 | 连续 2 到 5 分钟 | PostgreSQL、migration 或连接池故障 |
-| `queued` age | 接近 2 小时 | Runtime 离线、并发不足或目标绑定错误 |
+| `queued` age + Runtime heartbeat | 接近离线重连宽限（默认 3 小时）且 Runtime 持续离线 | Runtime 故障或目标绑定错误；Runtime 在线但满并发时不能只按队列年龄告警为“即将过期” |
 | `queued_expired` | 短时间突增 | daemon 群体离线或版本/网络事故 |
 | Runtime offline | 超过维护窗口 | daemon 退出、凭据或网络问题 |
 | `provider_network` | 多 Agent 同时上升 | provider 或出口网络故障 |
@@ -1084,9 +1101,9 @@ Multica 不是简单的 Apache-2.0 项目。准确表述是：
 
 ### 11.3 固定官方文本
 
-- [`LICENSE`](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/LICENSE)
-- [`NOTICE`](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/NOTICE)
-- [`README.zh.md`](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/README.zh.md)
+- [`LICENSE`](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/LICENSE)
+- [`NOTICE`](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/NOTICE)
+- [`README.zh.md`](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/README.zh.md)
 
 本文只说明固定版本文本中的工程边界，不提供法律意见。对外托管、产品嵌入、品牌修改、再分发或商业使用前，应让有资质的法律顾问审查你的具体使用方式和当时有效许可证。
 
@@ -1139,20 +1156,20 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 | 对象 | 固定值 | 本文用途 | 兼容承诺 |
 | --- | --- | --- | --- |
-| Stable tag | `v0.4.32` | 官方最新稳定基线 | 是 |
-| Annotated tag object | `ad64e0f80011b1968c7aa188bd58ab465154959b` | 证明 tag 是 annotated tag | 元数据，不是源码 commit |
-| Peeled source commit | `d60775aa9394b911b18701a326f655465604e7d1` | 正文所有稳定实现与文档证据 | 是 |
-| 审校日期 | `2026-08-22` | 本文证据截止日 | 不代表未来版本 |
-| 发布后 main 快照 | [`main@b8029973aa7da5f741f7bb01a9f833b38a0885438`](https://github.com/multica-ai/multica/tree/b8029973aa7da5f741f7bb01a9f833b38a0885438) | 只记录审校时分支已越过 release | 否，不纳入 v0.4.32 稳定兼容承诺 |
-| Release | [`v0.4.32`](https://github.com/multica-ai/multica/releases/tag/v0.4.32) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
+| Stable tag | `v0.4.37` | 官方最新稳定基线 | 是 |
+| Annotated tag object | `904911efdfb92c6a54b3eec734084f4f190fb5ae` | 证明 tag 是 annotated tag | 元数据，不是源码 commit |
+| Peeled source commit | `79559ebb92c48746d716db30a85acdc8c3cef8ec` | 正文所有稳定实现与文档证据 | 是 |
+| 审校日期 | `2026-09-01` | 本文证据截止日 | 不代表未来版本 |
+| 发布后 main 快照 | [`main@61ea48fd2ef0e9818de38533553e830fd36be349`](https://github.com/multica-ai/multica/tree/61ea48fd2ef0e9818de38533553e830fd36be349) | 只记录审校时分支已越过 release | 否，不纳入 v0.4.37 稳定兼容承诺 |
+| Release | [`v0.4.37`](https://github.com/multica-ai/multica/releases/tag/v0.4.37) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
 
 版本升级时应重新解引用 tag，并分别记录 tag object、source commit、Chart、backend/frontend image digest 和 daemon/CLI 版本。
 
 ---
 
-## 附录 B：21 种 protocol family 与 Oh-My-Pi Runtime
+## 附录 B：25 种 protocol family 与 Oh-My-Pi Runtime
 
-以下是 `v0.4.32` 的 21 种 protocol family，以及复用 Pi family 的 Oh-My-Pi Runtime identity。命令名、会话恢复和 MCP 能力来自固定 README、provider 文档与 adapter 源码；“Multica 管理 MCP”是指 Agent 配置中的 MCP server 会在执行前传给该工具，不代表该工具自身不能通过其他方式配置 MCP。实际支持模型、版本、Skill 和 usage 解析能力仍应以目标 CLI 的当前兼容性检查为准。
+以下是 `v0.4.37` 的 25 种 protocol family，以及复用 Pi family 的 Oh-My-Pi Runtime identity。命令名、会话恢复和 MCP 能力来自固定 README、provider 文档与 adapter 源码；“Multica 管理 MCP”是指 Agent 配置中的 MCP server 会在执行前传给该工具，不代表该工具自身不能通过其他方式配置 MCP。实际支持模型、版本、Skill 和 usage 解析能力仍应以目标 CLI 的当前兼容性检查为准。
 
 | # | 产品/CLI | provider key | 默认命令 | 会话恢复 | Multica 管理 MCP |
 | ---: | --- | --- | --- | :---: | :---: |
@@ -1177,26 +1194,30 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 | 19 | QwenPaw | `qwenpaw` | `qwenpaw` | 是 | 是 |
 | 20 | Reasonix | `reasonix` | `reasonix` | 是 | 是 |
 | 21 | Trae CLI | `traecli` | `traecli` | 是 | 是 |
+| 22 | MiniMax Code | `mcode` | `mcode` | 是 | 是 |
+| 23 | Dim | `dim` | `dim` | 是 | 是 |
+| 24 | ZeroClaw | `zeroclaw` | `zeroclaw` | 是 | 是 |
+| 25 | Huawei Cloud CodeArts | `codearts` | `codearts` | 是 | 是 |
 | runtime identity | Oh-My-Pi | `omp`（protocol family: `pi`） | `omp` | 是 | 否 |
 
-自定义 Runtime 只能选择上述 21 种 protocol family 作为兼容协议；`omp` 是内置 identity，不是额外可选 family。wrapper 可以改变命令位置和固定参数，但不能让不兼容输出自动变成受支持协议。
+自定义 Runtime 只能选择上述 25 种 protocol family 作为兼容协议；`omp` 是内置 identity，不是额外可选 family。wrapper 可以改变命令位置和固定参数，但不能让不兼容输出自动变成受支持协议。
 
 ---
 
 ## 附录 C：默认超时与并发参数
 
-| 参数/行为 | v0.4.32 默认值 | 作用与边界 |
+| 参数/行为 | v0.4.37 默认值 | 作用与边界 |
 | --- | ---: | --- |
 | daemon heartbeat | 15 秒 | Runtime 存活信号 |
 | runtime stale threshold | 150 秒 | 加 30 秒 sweeper 周期，最迟约 3 分钟判离线 |
 | daemon poll interval | 30 秒 | WebSocket 通知之外的领取补偿 |
-| queued expiry | 2 小时 | 未领取后 `failed/queued_expired`，不自动重试 |
+| offline queued expiry | `MULTICA_RUNTIME_RECONNECT_GRACE=3h` | 仅当 Runtime 心跳缺席和 Task 排队时间都超过该宽限才 `failed/queued_expired`；在线但繁忙的队列不按年龄淘汰 |
 | dispatched timeout | 5 分钟 | CLI 长时间未启动则失败 |
 | running server backstop | 9000 秒，但要求 Runtime 心跳也 stale | 健康心跳的长任务不会按此墙钟被杀 |
 | absolute `agent_timeout` | 0，不限制 | 可用 `MULTICA_AGENT_TIMEOUT` 设置硬上限 |
-| idle watchdog | 30 分钟 | 无 daemon-visible message 且队列为空时判停滞 |
-| tool watchdog | 2 小时 | tool_use 后长期没有 tool_result 的后备限制 |
-| Codex semantic inactivity | 10 分钟 | 无有效语义进展时失败并使用新 session 重试；`MULTICA_CODEX_FIRST_TURN_TIMEOUT` 必须严格小于该值 |
+| idle watchdog | 2 小时 | 无 daemon-visible message 且队列为空时判停滞；OpenCode 默认收窄为 10 分钟 |
+| tool watchdog | 默认跟随 idle watchdog（2 小时） | tool_use 后长期没有 tool_result 的后备限制，可用独立变量覆盖或设 0 禁用 |
+| Codex semantic inactivity | 默认取 idle/tool watchdog 较大值（通常 2 小时） | 无有效语义进展时失败；`MULTICA_CODEX_FIRST_TURN_TIMEOUT` 必须严格小于该值 |
 | daemon max concurrency | 20 | `MULTICA_DAEMON_MAX_CONCURRENT_TASKS` |
 | Agent max concurrency | 默认 6，范围 1 到 50 | 与 daemon slot 共同限制 |
 | generic auto attempts | 2 | 首次执行 + 一次自动重试 |
@@ -1212,8 +1233,8 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 ### D.1 版本与供应链
 
-- [ ] Backend、frontend、daemon/CLI 全部固定 `v0.4.32` 或 image digest，不使用 `latest`。
-- [ ] 记录 annotated tag peeled commit `d60775aa9394b911b18701a326f655465604e7d1`。
+- [ ] Backend、frontend、daemon/CLI 全部固定 `v0.4.37` 或 image digest，不使用 `latest`。
+- [ ] 记录 annotated tag object `904911efdfb92c6a54b3eec734084f4f190fb5ae` 与 peeled source commit `79559ebb92c48746d716db30a85acdc8c3cef8ec`，不要混用。
 - [ ] 固定 Helm Chart version/digest、PostgreSQL/pgvector 和 provider CLI 版本。
 - [ ] 检查镜像来源、SBOM/CVE、TLS reverse proxy 和依赖 registry。
 
@@ -1256,11 +1277,20 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 ## 附录 E：官方文档与源码证据
 
-以下链接均固定到 `v0.4.32` peeled commit `d60775aa9394b911b18701a326f655465604e7d1`，用于复核本文各章结论。
+以下原有链接固定到 `v0.4.32` peeled commit `d60775aa9394b911b18701a326f655465604e7d1`，用于复核 1.5–1.7 节及既有章节的历史基础；v0.4.33–v0.4.37 的新增或已变化行为另固定到当前 peeled commit `79559ebb92c48746d716db30a85acdc8c3cef8ec`：
+
+- [v0.4.37 exact source](https://github.com/multica-ai/multica/tree/79559ebb92c48746d716db30a85acdc8c3cef8ec)
+- [25 个 protocol family 与统一 Backend 接口](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/server/pkg/agent/agent.go)
+- [CodeArts 与其他 Runtime 安装前置](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/apps/docs/content/docs/install-agent-runtime.zh.mdx)
+- [v0.4.37 Task 排队、Runtime 恢复与并发语义](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/apps/docs/content/docs/tasks.zh.mdx)
+- [v0.4.37 daemon 默认超时与进程管理](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/server/internal/daemon/config.go)
+- [Plugin Public API / hook handler](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/server/internal/handler/plugin_hook.go)
+- [多副本 WeCom reply relay](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/server/internal/integrations/wecom/relay_outbound.go)
+- [命名开发环境生命周期脚本](https://github.com/multica-ai/multica/blob/79559ebb92c48746d716db30a85acdc8c3cef8ec/scripts/dev-env.sh)
 
 ### E.1 产品定位与对象模型
 
-- [中文 README 与 21 种 Runtime、技术栈](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/README.zh.md)
+- [v0.4.32 中文 README 与 Runtime/技术栈基础](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/README.zh.md)
 - [核心概念](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/apps/docs/content/docs/concepts.zh.mdx)
 - [Workspace](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/apps/docs/content/docs/workspaces.zh.mdx)
 - [Project](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/apps/docs/content/docs/projects.zh.mdx)
@@ -1289,8 +1319,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 - [Agent invocation permission 实现](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/server/internal/handler/agent_permission.go)
 - [Agent Access migration](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/server/migrations/130_agent_invocation_permission.up.sql)
 - [Skill 模型](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/apps/docs/content/docs/skills.zh.mdx)
-- [21 种 provider 与统一 Backend 接口](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/server/pkg/agent/agent.go)
-- [21 种 provider、`dsh` backend 与 capability](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/server/pkg/agent/agent.go)
+- [v0.4.32 provider 与统一 Backend 接口](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/server/pkg/agent/agent.go)
 - [DeepSeek Harness 探测与 probe](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/server/internal/daemon/agents_probe.go)
 - [DeepSeek Harness 安装与 `DEEPSEEK_API_KEY`](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/apps/docs/content/docs/install-agent-runtime.zh.mdx)
 - [本地目录 `in_place`/`worktree`、回放与失败保留](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/apps/docs/content/docs/project-resources.zh.mdx)
@@ -1337,4 +1366,4 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 - [Multica License](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/LICENSE)
 - [NOTICE](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/NOTICE)
 
-本文固定的是 2026-08-22 的 `v0.4.32`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
+本文固定的是 2026-09-01 的 `v0.4.37`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
