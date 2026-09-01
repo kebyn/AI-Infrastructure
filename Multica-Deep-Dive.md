@@ -1032,11 +1032,11 @@ SELECT job_name, plan_time, status, started_at, finished_at, error
 
 同时检查 `task_usage_hourly` 最新 bucket 是否持续推进。新部署不需要额外安装 `pg_cron`；历史外部 scheduler 可作为兼容路径，但确认内置 scheduler 稳定后应避免不必要的双重运维。
 
-### 10.6 企业微信单副本限制
+### 10.6 企业微信多副本回复路由
 
-启用 `MULTICA_WECOM_SECRET_KEY` 时，**企业微信后端必须只部署单个副本**。固定版本的企业微信回复只有某个进程持有的 WebSocket 长连接出站路径；在其他 replica 产生的回复无法路由到持 lease 的连接，会被静默丢弃。
+v0.4.32 及更早实现要求启用 `MULTICA_WECOM_SECRET_KEY` 的企业微信后端只部署单个副本，因为只有持有 WebSocket 长连接的进程能出站回复。v0.4.37 增加跨 replica relay：产生回复的实例把消息路由给持有 bot socket 的实例，并为未投递结果记录可统计原因。因此多副本不再天然丢失“由其他 replica 产生”的回复。
 
-Slack 和飞书/Lark 的无状态 HTTP 出站不受这个特定限制，usage rollup scheduler 也支持多 replica。不要把“其他组件可多副本”推导成“企业微信连接可多副本”。
+这不是外部平台 delivery guarantee。生产仍要监控 socket owner、relay ordering、去重与 undelivered reason，并验证持连接实例重启时的交接。Slack 和飞书/Lark 的 HTTP 出站路径与该 WeCom socket relay 不同，不能把一个 Channel 的可用性结论直接套到另一个。
 
 ### 10.7 Runtime 运维
 
@@ -1270,7 +1270,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 - [ ] 监控 queued age、`queued_expired`、Runtime offline 和 failure reason。
 - [ ] 检查 `task_usage_hourly` 新鲜度与 `sys_cron_executions`。
 - [ ] 容量规划同时覆盖 daemon 20、Agent 6、provider 配额、磁盘和目录锁。
-- [ ] 启用企业微信时固定 backend 单副本。
+- [ ] 企业微信多副本部署验证 socket-owner relay、去重、顺序、未投递原因与持连接实例故障转移。
 - [ ] migration、升级、daemon 分批发布和回滚都先在 staging 验证。
 
 ---
