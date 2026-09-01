@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac`；ModelExpress 章节固定到其独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`；审校日期：2026-08-22。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
+> 稳定版本基线：`v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a`；ModelExpress 章节固定到其独立稳定版 `v0.5.1@eb5011575dcf56327578634f93a2ec2f7b5416fd`；审校日期：2026-09-01。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 
@@ -153,6 +153,21 @@ Frontend image 继续包含 Gateway API Inference Extension 的 EPP；v1.4.0 同
 | KVBM | v1.4.0 **deprecated** | 新生产部署优先使用后端原生 KV offload、LMCache、FlexKV 或 HiCache；不要新增 KVBM 依赖 |
 
 官方 `agg_kvbm.yaml` 在 v1.4.0 仍有已知不可部署问题（资源/字段与当前 Operator schema 不一致）。它只能作为架构示例，必须先做 dry-run 和 schema 校验，不能直接作为生产清单。
+
+### 1.7 v1.4.1 与 v1.4.2 补丁分层
+
+`v1.4.2` 是构建在 `v1.4.1` 之上的补丁基线，不能把两层 release notes 合并后误判功能在哪一版首次出现。v1.4.0 的架构、弃用项和已知问题继续适用；下面只列两个补丁层已经发布的增量。
+
+| 层次 | 已发布变化 | 边界与升级动作 |
+|------|------------|----------------|
+| v1.4.1 API | Frontend 与 vLLM worker 新增 OpenAI-compatible `/v1/classify` 和 `/v1/pooling`；pooling 支持 `float`、`base64`、`bytes`、`bytes_only` 输出，预 tokenized 输入可使用 vLLM 语义的 `truncate_prompt_tokens` | classify/pooling 是独立 endpoint 和 model capability；不能把所有生成模型都当作 pooling model，也不能用生成接口的 streaming 假设解释其单响应聚合 |
+| v1.4.1 Router | 修复 request-path `ResourceExhausted` 标记 worker overload 后，在 monitor 缓存集合为空时无法恢复的问题；下一次健康 load observation 会重新发布权威 overload set | 升级后仍应对 overload→healthy 做状态恢复测试；修复避免永久滞留，不代表取消 backpressure 或忽略 worker 容量 |
+| v1.4.1 Frontend / Omni | `logprob_token_ids` 不再被 Frontend 当作不支持参数拒绝；vLLM-Omni 将序列化 bytes 放入可写 buffer 后再交给 `torch.frombuffer` | vLLM 仍要求 `top_logprobs` 与 pinned token ID 数量匹配；Omni 修复只覆盖序列化 NIXL object，raw tensor path 未改变 |
+| v1.4.2 NIXL 镜像 | Frontend 从 PyPI 安装目标版本 NIXL，并用 `ldconfig` 注册 wheel 私有 library 目录；SGLang image 在 UCX layout scan 中执行同类处理 | 修复的是 Rust binding 裸 `dlopen("libnixl_capi.so")` 静默落入 stub 的 loader-path 缺口；应在镜像内验证实际 `.so` 解析，不能只以 Python import 成功为验收 |
+| v1.4.2 EFA / 依赖 | EFA image variants 升至 EFA Installer `1.50`；Frontend/Planner 把 Pillow 固定在声明的 `12.3.0` floor，Planner 固定 `plotext<6`；移除未使用的 Nsight EFA metrics plugin | backend runtime 版本仍与 v1.4.1 相同；容器内不再支持 `nsys profile --enable=efa_metrics`，需要该观测能力时必须另建合规工具镜像 |
+| v1.4.2 Enterprise | NGC 新增带 `-enterprise` 后缀的精选 artifact，可在有效 NVIDIA AI Enterprise 订阅下获得支持 | 官方说明其与开源对应 artifact 没有功能或二进制差异；support entitlement、发布位置和命名不能被写成社区 artifact 的功能差异 |
+
+v1.4.2 的 runtime 矩阵仍固定 SGLang `v0.5.16`、TensorRT-LLM `v1.3.0rc22`、vLLM `v0.26.0` 与 UCX `v1.21.0`；NIXL 则按镜像/后端分别为 vLLM/Frontend `v1.3.2`、TensorRT-LLM `v1.3.1`、SGLang `v1.3.0`。EFA Installer `1.50` 也只属于 EFA image variants，不能扩写为所有 runtime 的统一依赖。
 
 ---
 
@@ -1438,7 +1453,15 @@ python -m dynamo.frontend \
 
 ModelExpress 是 Dynamo 生态里的**模型权重生命周期与冷启动加速组件**。它关注的是模型文件、权重、JIT 编译产物如何更快到达新 worker；KVBM、LMCache、FlexKV、HiCache 关注的是请求运行期间产生的 KV block 如何复用、迁移和分层存储。两者都能降低延迟或扩容成本，但服务的对象完全不同。
 
-本节固定到 ModelExpress 独立稳定版 `v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a`。该版本把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；它不是 Dynamo v1.4.0 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
+本节固定到 ModelExpress 独立稳定版 `v0.5.1@eb5011575dcf56327578634f93a2ec2f7b5416fd`。v0.5.0 把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；v0.5.1 在此基础上回补 TensorRT-LLM 一等集成并兼容 protobuf 6 runtime。它不是 Dynamo v1.4.2 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
+
+#### v0.5.1 补丁边界
+
+| 变化 | v0.5.1 行为 | 不变项 / 操作建议 |
+|------|-------------|-------------------|
+| TensorRT-LLM | Python client 提供 `modelexpress.engines.trtllm` adapter/loader，使用原生 `checkpoint_format="MX"` 为 Llama-family 模型执行 P2P weight transfer；旧的 `LoadFormat.PRESHARDED`/patch 注入路径被替换 | 功能仍标为 beta；按固定示例核对 TRT-LLM 版本、TP rank、NIXL fabric 和 checkpoint layout，不能把 vLLM/SGLang 参数直接复制过来 |
+| protobuf 6 | client 的生成消息/类型检查兼容 protobuf 6 runtime，同时保留既有版本下限 | 这是客户端兼容修复，不改变 server wire contract；混合环境仍应锁定 Python client 与 protobuf 组合做回归 |
+| transfer plane | release notes 明确 loader、registry 和 P2P transfer plane 除上述集成外没有变化 | 既有 source discovery、rendezvous hashing、stale-source 与 health-gated publication 结论沿用 v0.5.0；不得虚构新的 registry 或传输一致性语义 |
 
 | 维度 | ModelExpress | KV cache/offloading 系统 |
 |------|--------------|--------------------------|
@@ -1685,7 +1708,7 @@ ModelExpress 与 KV cache 系统可以叠加：
 | 开启 KVBM 就能无限上下文 | 容量扩大不等于零成本，onboard/offload 会影响延迟 |
 | 用 QPS 扩缩即可 | LLM 需要考虑 ISL、OSL、KV hit、TTFT、ITL |
 | JetStream 可只在 Frontend 开启 | durable KV events 需要 Frontend 和所有 workers 一致配置 |
-| KVBM 仍是新部署推荐路径 | v1.4.0 已 deprecated KVBM；保留本文章节只为解释既有架构和迁移 |
+| KVBM 仍是新部署推荐路径 | v1.4.0 已 deprecated KVBM，v1.4.2 未撤销该状态；保留本文章节只为解释既有架构和迁移 |
 
 ### 12.3 从 v1.2.x 升级到 v1.3.0
 
@@ -1701,15 +1724,15 @@ ModelExpress 与 KV cache 系统可以叠加：
 | DGD restart | 创建时的 `spec.restart.id` 视为已观察，不触发 restart | 创建后再更新 `spec.restart.id` |
 | vLLM runner | 不再强制默认 `generate` | 依赖旧行为时显式传 `--runner generate` |
 
-v1.4.0 又把 `--router-queue-threshold` 从 `16.0` 改为 unset (`None`)：不显式设置数值时 queueing 关闭。升级不能只继承 v1.3.0 的容量结论，应根据 aggregate ISL、`max_num_batched_tokens` 和真实 TTFT/ITL 重新选择阈值。
+v1.4.0 又把 `--router-queue-threshold` 从 `16.0` 改为 unset (`None`)：不显式设置数值时 queueing 关闭。v1.4.1 修复 overload mark 的恢复，但没有恢复旧阈值。升级到 v1.4.2 不能只继承 v1.3.0 的容量结论，应根据 aggregate ISL、`max_num_batched_tokens` 和真实 TTFT/ITL 重新选择阈值，并覆盖 overload→healthy 状态转换。
 
-#### v1.4.0 EFA 与 breaking-change 升级检查
+#### v1.4.2 EFA、NIXL 与 breaking-change 升级检查
 
-| 检查项 | v1.4.0 要求 |
+| 检查项 | v1.4.2 要求 |
 |--------|-------------|
-| 镜像 | 固定 `v1.4.0` runtime image digest；不要只替换 Dynamo wheel 而保留旧 EFA 镜像 |
-| SGLang | 确认镜像内 `nixl` 与 `nixl-cu13` 为 `1.3.2`，LIBFABRIC plugin 从同一安装前缀加载 |
-| EFA 栈 | 确认 EFA Installer `1.49.0` 与 stock libfabric `2.4.0amzn5.0`，同时验证 host driver/设备插件兼容 |
+| 镜像 | 固定 `v1.4.2` runtime image digest；不要只替换 Dynamo wheel 而保留旧 EFA/Frontend/SGLang 镜像 |
+| Frontend / SGLang | 在实际启动用户下用 dynamic loader 验证 `libnixl_capi.so` 可解析；Python `import nixl` 成功不足以证明 Rust binding 未落入 stub。各后端 NIXL 版本按 release matrix 核对，不要求统一为同一版本 |
+| EFA 栈 | 确认 EFA image 使用 Installer `1.50`，同时验证 host driver/设备插件兼容；非 EFA image 不继承该版本承诺 |
 | GB200 回归 | 覆盖新 decode worker、worker restart、连续 P/D KV transfer，并把空 HTTP 200/零 token 视为失败 |
 | PCIe 拓扑 | 申请部分 EFA device 时验证 GPU/NIC locality；无法保证时申请整节点 EFA 或使用协同 DRA |
 | 观测 | 同时检查 completion token、约 10--20 秒与约 300 秒超时特征、`Lost connection with prefill instance` 和 EFA counters |
@@ -1717,6 +1740,8 @@ v1.4.0 又把 `--router-queue-threshold` 从 `16.0` 改为 unset (`None`)：不�
 | Metadata | `DYN_SELF_HOST_METADATA` 从默认关闭变为默认开启；显式记录是否允许 self-host metadata |
 | Helm | 内置 NATS subchart 默认关闭，预先验证外部 NATS/JetStream 地址和凭据 |
 | Trace | 从 `DYN_AUDIT_*` 迁到 `DYN_REQUEST_TRACE_*`，并只配置必要的 header allowlist |
+| 新 endpoint | 对 `/v1/classify`、`/v1/pooling` 分别验证模型 capability、binary encoding、截断与错误响应；不要沿用生成 endpoint 的 streaming 判据 |
+| Profiling | 若流程依赖 `nsys --enable=efa_metrics`，先迁移到单独工具镜像；v1.4.2 shipped images 已移除该 plugin |
 
 ### 12.4 生产落地检查清单
 
@@ -1781,9 +1806,11 @@ helm install dynamo-platform \
 |------|------|
 | GitHub 仓库 | <https://github.com/ai-dynamo/dynamo> |
 | 官方文档 | <https://docs.nvidia.com/dynamo/> |
-| v1.4.0 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.0> |
-| v1.4.0 exact source | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac> |
-| README | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/README.md> |
+| v1.4.2 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.2> |
+| v1.4.2 exact source | <https://github.com/ai-dynamo/dynamo/tree/2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a> |
+| v1.4.1 Release（classify/pooling 与修复层） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.1> |
+| v1.4.0 Release（架构增量与继承边界） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.0> |
+| README | <https://github.com/ai-dynamo/dynamo/blob/2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a/README.md> |
 | Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/architecture-flow.md> |
 | Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/disaggregated-serving.md> |
 | Router Design | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/router/router-design.md> |
@@ -1797,14 +1824,16 @@ helm install dynamo-platform \
 | SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/sglang/hicache.md> |
 | SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
 | ModelExpress GitHub | <https://github.com/ai-dynamo/modelexpress> |
-| ModelExpress v0.5.0 源码快照 | <https://github.com/ai-dynamo/modelexpress/tree/0406ac16d5daeef985de1bf4d09c9f0a5e188c1a> |
-| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/ARCHITECTURE.md> |
-| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/DEPLOYMENT.md> |
-| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/metadata.md> |
-| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/K8S_SERVICE_BACKEND.md> |
-| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/docs/SGLANG.md> |
-| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/examples/dynamo_model_cache_k8s/README.md> |
-| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/v0.5.0/examples/dynamo_p2p_transfer_k8s/README.md> |
+| ModelExpress v0.5.1 Release | <https://github.com/ai-dynamo/modelexpress/releases/tag/v0.5.1> |
+| ModelExpress v0.5.1 源码快照 | <https://github.com/ai-dynamo/modelexpress/tree/eb5011575dcf56327578634f93a2ec2f7b5416fd> |
+| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/ARCHITECTURE.md> |
+| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/DEPLOYMENT.md> |
+| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/metadata.md> |
+| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/K8S_SERVICE_BACKEND.md> |
+| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/SGLANG.md> |
+| ModelExpress TensorRT-LLM client | <https://github.com/ai-dynamo/modelexpress/tree/eb5011575dcf56327578634f93a2ec2f7b5416fd/modelexpress_client/python/modelexpress/engines/trtllm> |
+| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/examples/dynamo_model_cache_k8s/README.md> |
+| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/examples/dynamo_p2p_transfer_k8s/README.md> |
 | Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/kubernetes/kubernetes-operator/dynamo-operator.md> |
 | Kubernetes Installation | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/kubernetes/installation> |
 | Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac#quick-start> |

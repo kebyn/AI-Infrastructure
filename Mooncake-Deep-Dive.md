@@ -4,7 +4,7 @@
 >
 > 基于 Mooncake 官方文档 (https://kvcache-ai.github.io/Mooncake) 整理编写
 >
-> 稳定版本基线：`v0.3.12.post1@6041a609a8c3af35e778f70db344f145c2914980`，审校日期：2026-08-22。论文结论与软件实现会明确区分。
+> 稳定版本基线：`v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a`，审校日期：2026-09-01。论文结论与软件实现会明确区分；`v0.3.13.post1` 为 lightweight tag，所列 commit 即 tag 直接指向的源码提交。
 >
 > FAST 2025 最佳论文 | Moonshot AI 的 Kimi 服务平台
 
@@ -79,6 +79,21 @@ Mooncake 提出了三个关键洞察，从根本上重塑了 LLM 推理架构：
 | 控制面与生态 | Master snapshot、local/S3 object store、Redis/embedded catalog、KV event publisher，以及重新分层的 Deployment/Design/API Reference | snapshot/restore 仍标为实验性；旧官方文档深链已经移动，应固定到本 tag 的新路径 |
 
 因此后文涉及 TENT、SSD 驱逐与恢复、租户隔离、结构化对象、快照、Conductor KV event 和 Kubernetes 部署的能力，兼容边界均以 `v0.3.12.post1` 为准。
+
+### 1.5 v0.3.13 与 v0.3.13.post1 稳定增量
+
+`v0.3.13.post1` 是 `v0.3.13` 的打包补丁：相对 `v0.3.13` 只回补了非 CUDA wheel 不携带 CUDA 依赖的约束和 TestPyPI prerelease gate；真正的运行时增量位于 `v0.3.12.post1...v0.3.13`。由于 post release notes 只覆盖这两个打包提交，下面的能力边界同时以固定 compare、tag 内源码、文档与默认配置复核，不能从后续 `main` 反推。
+
+| 领域 | v0.3.13 稳定线中的变化 | 部署与兼容边界 |
+|------|-------------------------|----------------|
+| Transfer Engine / TENT | 新增 NCCL host/device、MUSA IPC、MPComm、FlagCX、`rdma_twosided` 控制面通知；TCP connection pool 默认开启并增加 session progress deadline；RDMA/EFA 的 MR 边界、device locality、重连和 pacing 路径得到修复 | transport 是否可用仍取决于构建选项、硬件与依赖；不能仅因代码进入 tag 就假定 wheel 含全部后端。TCP 默认池化会改变连接复用和故障恢复画像，升级后须重测超时、重连和有序完成 |
+| Store / SSD / HA | 引入 NVMe KV 与 POSIX DFS replica 路径、VRAM segment/NVLink 同节点传输、ranged multi-buffer session API、动态 hot-replica fanout，以及 batch-record OpLog、producer-view fencing、bounded/chunked standby snapshot；同时修复 io_uring 读损坏、SSD carryover 去重、recovery/eviction 与 promotion retry | NVMe KV、DFS replica、HA OpLog 和 standby snapshot 是不同数据路径，不能混写成同一种持久化保证；恢复副本在可读性确认前不可参与驱逐或提供数据 |
+| Python / rollout 对象 | wheel 增加 native fast-copy PUT、jagged `NestedTensor`、typed-ragged 与 fragmented-rollout DataProto catalog 生命周期；grouped write 语义在结构化对象路径中保留 | 结构化对象仍由 manifest/catalog 和多个 payload 组成；catalog 生命周期修复不把任意 Python 对象变成原子事务或无条件零拷贝 |
+| PG / Reshard | PG 引入控制面、支持 in-place rejoin 并修复 P2P recovery；Reshard 增加资源/模型权重 manifest 与 N-D logical weight transfer planner | planner 输出是传输计划，不验证模型语义或自动提供训练检查点一致性；rejoin 仍需相同通信与模型布局契约 |
+| 可移植性与构建 | 增加 ROCm/HIP release wheel、ARM64 non-CUDA wheel、CUDA 13/EFA wheel，并建立 `scikit-build-core` Python 项目基础；`mooncake_master` 不再强制 CUDA | 每类 wheel 的 transport/accelerator 集合不同；`v0.3.13.post1` 只修正 wheel 依赖封装，不能把非 CUDA wheel 当作 GPU 功能包 |
+| 运维与多租户 | 新增 multi-tenant deployment guide，Master admin/metrics bind address 与 RPC/TENT worker 数可配置；配置项逐步结构化并补充严格解析与测试 | bind 到通配地址会扩大暴露面；租户 key 隔离仍不替代认证、授权、网络隔离和加密 |
+
+从旧基线升级时，至少应复测四条链路：TCP 池化后的 peer 重连、RDMA/EFA 跨 MR 边界传输、io_uring/SSD 恢复的一致性，以及 HA batch OpLog/standby promotion。已有 `v0.3.12.post1` 的 TENT QoS、租户配额和结构化对象结论仍成立，但本文的稳定兼容上限统一提升到 `v0.3.13.post1`。
 
 ---
 
@@ -2844,12 +2859,12 @@ Mooncake 已适配以下硬件平台：
 
 ---
 
-> **文档版本**：基于 Mooncake `v0.3.12.post1@6041a609a8c3af35e778f70db344f145c2914980` 与该版本官方文档审校，2026-08-22
+> **文档版本**：基于 Mooncake `v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a` 与该版本官方文档审校，2026-09-01
 >
-> **项目源码**：https://github.com/kvcache-ai/Mooncake/tree/6041a609a8c3af35e778f70db344f145c2914980
+> **项目源码**：https://github.com/kvcache-ai/Mooncake/tree/719735896c86b56fabec6cf3e825fb2ea640597a
 >
-> **Release Notes**：https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.12.post1
+> **Release Notes**：https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.13.post1 | [v0.3.13 完整运行时增量](https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.13) | [固定 compare](https://github.com/kvcache-ai/Mooncake/compare/v0.3.12.post1...v0.3.13.post1)
 >
-> **固定文档证据**：[Store Deployment](https://github.com/kvcache-ai/Mooncake/blob/6041a609a8c3af35e778f70db344f145c2914980/docs/source/deployment/mooncake-store-deployment-guide.md) | [SSD Offload](https://github.com/kvcache-ai/Mooncake/blob/6041a609a8c3af35e778f70db344f145c2914980/docs/source/deployment/ssd/ssd-offload.md) | [SSD Design](https://github.com/kvcache-ai/Mooncake/blob/6041a609a8c3af35e778f70db344f145c2914980/docs/source/design/ssd-offload.md) | [KV Cache Sharing and Isolation](https://github.com/kvcache-ai/Mooncake/blob/6041a609a8c3af35e778f70db344f145c2914980/docs/source/deployment/kv-cache-sharing-and-isolation.md) | [DataProto Structured Object](https://github.com/kvcache-ai/Mooncake/blob/6041a609a8c3af35e778f70db344f145c2914980/docs/source/api-reference/python/dataproto-structured-object-transfer.md)
+> **固定文档证据**：[Store Deployment](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/mooncake-store-deployment-guide.md) | [SSD Offload](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/ssd/ssd-offload.md) | [NVMe KV](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/ssd/nvme-kv.md) | [Multi-tenancy](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/multi-tenancy.md) | [DataProto Structured Object](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/api-reference/python/dataproto-structured-object-transfer.md)
 >
 > **滚动官方文档**：https://kvcache-ai.github.io/Mooncake/
