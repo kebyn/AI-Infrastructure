@@ -16,13 +16,11 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-08-22", doc["meta"])
-                self.assertNotIn("2026-08-07", doc["meta"])
-                self.assertNotIn("2026-07-24", doc["meta"])
+                self.assertIn("2026-09-01", doc["meta"])
+                self.assertNotIn("2026-08-22", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-08-22", markdown_text)
-                self.assertNotIn("审校日期：2026-08-07", markdown_text)
-                self.assertNotIn("2026-07-24", markdown_text)
+                self.assertIn("审校日期：2026-09-01", markdown_text)
+                self.assertNotIn("审校日期：2026-08-22", markdown_text)
 
     def test_readme_tracks_current_audit_summary(self):
         readme_text = (Path(__file__).resolve().parent / "README.md").read_text(
@@ -30,42 +28,48 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         for required_text in (
-            "2026-08-22",
-            "6 个正文稳定基线发生变化",
-            "v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac",
-            "v0.4.32@d60775aa9394b911b18701a326f655465604e7d1",
+            "2026-09-01",
+            "新稳定基线",
+            "上轮遗漏纠正",
+            "稳定版未变化",
+            "稳定对照与未发布快照",
+            "v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
+            "v0.5.1@eb5011575dcf56327578634f93a2ec2f7b5416fd",
+            "v0.4.37@79559ebb92c48746d716db30a85acdc8c3cef8ec",
             "v0.19.2@8eab68778fc1b52affe165fdf5af29d1e9b4f3cb",
             "v0.5.18@71de97b264b04dcd514cf904003028aefe9775c8",
             "v26.7.0@10ee5b3638b89e11e949412aafa5ba99279c3721",
             "v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e",
-            "v1.36.4@bb826b1d48562f110659e64e8ec444327433db95",
-            "v0.27.1@6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
-            "v0.5.0@0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
-            "main@b8029973aa7da5f741f7bb01a9f833b38a0885438",
-            "main@2fd412d55ecae90861a101a5424a75473de97c36",
-            "master@aaac4e294dae2c7b1aa1886447793f3aa1c30912",
-            "main@05b83a6cf9d6c4045a83d79eb8d0029605d655e7",
-            "main@a48991792bcf9d1f8559f4cff7792bb0de6497c8",
-            "main@fcc3b3bbbc5e6a2a797cd080bdbc6983b1ccec24",
-            "master@c8148836e8718e84387f88e8ef3f73b6b78cf5a8",
-            "main@c2050e3debe58dbcdf9bb75b667799eec9409513",
+            "v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc",
+            "v0.28.0@2cf0a6915ce544dc493a0990f2ea38d81601128a",
+            "v1.11.1@203cdc93137376df91814036bf99f486b5f4f3d1",
+            "v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a",
+            "v0.1.0-alpha.12@015b6d29056f833c144207300cc0da35c76b53b1",
+            "v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb",
+            "v1.0.0@bb72f49d79f009a960eed2ae6c32e1cc082399c5",
+            "main@5a56c87e9db0e221b138662805af7743e75f1082",
+            "main@61ea48fd2ef0e9818de38533553e830fd36be349",
+            "master@003f717c0bb8bb896df499cbe143172928f1665c",
+            "main@71c8b22a05d6be72560b2cc326865930063cd0e8",
+            "main@025aa5923342eb43bb10f29e7ae0cc64988cb540",
+            "master@aee652b985d25e33f59f6112e857627784b741ca",
+            "volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513",
             "spec.kvCacheOffloading",
             "rollout strategy",
             "KEDA true scale-to-zero",
             "`oci+fetch://`",
-            "其余已登记稳定 Release 经复核未变化",
-            "v0.1.0-alpha.12-rc1` 是 prerelease",
             "main@22fca04564c7cc230fd8b9523b8b92864e1dad47",
-            "v1.8.2 → v1.15.1",
-            "v0.16.9@724da8388358b7673495a935948ea0a67a86140b",
-            "IAM workload identity",
-            "`ms://` ModelScope storage provider",
+            "v1.8.2 → v1.15.2",
+            "v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc",
+            "IAM",
+            "`ms://`",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, readme_text)
 
         for superseded_text in (
             "审校截止日为 **2026-08-13**",
+            "审校截止日为 **2026-08-22**",
             "v0.4.24@ad23d1da3e94093924e06e9adf2745e9c312c7ce",
             "8 个正文主稳定基线发生变化",
             "v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
@@ -74,6 +78,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "master@b15ac29c6443340e2f4389a8e376f65fbcf8c6ec",
             "main@b561e05b36abcae07508a83eaf0244f153531c97",
             "master@0ef50ca74346b4ef89576f9d864089b5b6b341df",
+            "main@2fd412d55ecae90861a101a5424a75473de97c36",
+            "master@aaac4e294dae2c7b1aa1886447793f3aa1c30912",
         ):
             with self.subTest(superseded_text=superseded_text):
                 self.assertNotIn(superseded_text, readme_text)
@@ -90,21 +96,21 @@ class RenderDocLayoutTest(unittest.TestCase):
             "AIPerf v0.12.0",
             "GuideLLM v0.7.3",
             "SGLang v0.5.18",
-            "vLLM v0.27.1",
-            "EvalScope v1.10.0",
+            "vLLM v0.28.0",
+            "EvalScope v1.11.1",
         ):
             self.assertIn(release, doc["meta"])
         self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
         self.assertIn("71de97b264b04dcd514cf904003028aefe9775c8", doc["footer"])
-        self.assertIn("6e448d0ea9bf3d88d898b65449ca6dc2aec170ac", doc["footer"])
+        self.assertIn("2cf0a6915ce544dc493a0990f2ea38d81601128a", doc["footer"])
         for exact_commit in (
             "be53bf2953d30e46c500e6a80fc1f8b6f84bc718",
             "39383552962841086d05e25c37b58a83ef06c758",
             "a40897e6500e4524adf563a91f7c880eb5296e12",
-            "9d052ca0240ebf8b603c053fa44727b863ff3933",
+            "203cdc93137376df91814036bf99f486b5f4f3d1",
             "4f873e03719c947a101647c6646954d5ebc3d35b",
             "71de97b264b04dcd514cf904003028aefe9775c8",
-            "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+            "2cf0a6915ce544dc493a0990f2ea38d81601128a",
         ):
             self.assertIn(exact_commit, markdown_text)
         self.assertIn("text-to-speech", markdown_text)
@@ -153,6 +159,15 @@ class RenderDocLayoutTest(unittest.TestCase):
             "不为同一 chunk 内的 token 人工补零",
             "quantized DSpark Markov head",
             "没有专用的 prefill/decode 分角色模式",
+            "timed_trace",
+            "预 tokenized `list[int]`",
+            "Rust `vllm-bench` 以 byte buffer",
+            "Triton Proton profiler",
+            "closed-loop warmup",
+            "nearest-rank",
+            "HTTP 200 中实际承载的 gateway error payload",
+            "metadata-only chunk",
+            "U+2028/U+2029",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -179,13 +194,17 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn('<div class="mermaid">', html)
         self.assertNotIn('class="language-mermaid"', html)
         self.assertIn("71de97b264b04dcd514cf904003028aefe9775c8", html)
-        self.assertIn("6e448d0ea9bf3d88d898b65449ca6dc2aec170ac", html)
+        self.assertIn("2cf0a6915ce544dc493a0990f2ea38d81601128a", html)
 
     def test_refreshed_stable_release_commits_are_pinned(self):
         docs_dir = Path(__file__).resolve().parent
         expected_commits = {
+            "E2B-Deep-Dive.md": (
+                "557445ffddda8d9a27f6f529a3f4d7732cf81a13",
+                "bb72f49d79f009a960eed2ae6c32e1cc082399c5",
+            ),
             "Multica-Deep-Dive.md": (
-                "d60775aa9394b911b18701a326f655465604e7d1",
+                "79559ebb92c48746d716db30a85acdc8c3cef8ec",
             ),
             "NVIDIA-GPU-Operator-Deep-Dive.md": (
                 "10ee5b3638b89e11e949412aafa5ba99279c3721",
@@ -194,27 +213,34 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "4707fb02c91c545bc7343ce26dba4c32919f9a3e",
             ),
             "Dynamo-Deep-Dive.md": (
-                "03014943323e78feb5bd672ef08b72caea0918ac",
-                "0406ac16d5daeef985de1bf4d09c9f0a5e188c1a",
+                "2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
+                "eb5011575dcf56327578634f93a2ec2f7b5416fd",
             ),
             "Mooncake-Deep-Dive.md": (
-                "6041a609a8c3af35e778f70db344f145c2914980",
+                "719735896c86b56fabec6cf3e825fb2ea640597a",
             ),
             "Kubernetes-Native-Scheduler-Deep-Dive.md": (
-                "bb826b1d48562f110659e64e8ec444327433db95",
+                "f54c212e3a2f75d674b717a9b29052b20b60aefc",
             ),
             "Kubernetes-AI-Schedulers-Deep-Dive.md": (
                 "8eab68778fc1b52affe165fdf5af29d1e9b4f3cb",
+                "015b6d29056f833c144207300cc0da35c76b53b1",
                 "f218c69bee5e5fc6031273ba555d09916b1ca89a",
-                "0a56ed331897f5455916a44d3075671376d731d6",
+                "1462fb7b4835970708717456e3aed85e697ec2eb",
             ),
             "LLM-Benchmark-Deep-Dive.md": (
                 "be53bf2953d30e46c500e6a80fc1f8b6f84bc718",
                 "39383552962841086d05e25c37b58a83ef06c758",
                 "a40897e6500e4524adf563a91f7c880eb5296e12",
-                "9d052ca0240ebf8b603c053fa44727b863ff3933",
+                "203cdc93137376df91814036bf99f486b5f4f3d1",
                 "71de97b264b04dcd514cf904003028aefe9775c8",
-                "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+                "2cf0a6915ce544dc493a0990f2ea38d81601128a",
+            ),
+            "KServe-Deep-Dive.md": (
+                "1fb781055dd1567164358233e1125142ca6ef1fe",
+            ),
+            "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
+                "1462fb7b4835970708717456e3aed85e697ec2eb",
             ),
         }
         for filename, commits in expected_commits.items():
@@ -222,6 +248,58 @@ class RenderDocLayoutTest(unittest.TestCase):
             for commit in commits:
                 with self.subTest(document=filename, commit=commit):
                     self.assertIn(commit, markdown_text)
+
+    def test_annotated_tags_distinguish_tag_objects_from_source_commits(self):
+        docs_dir = Path(__file__).resolve().parent
+        cases = {
+            "Multica-Deep-Dive.md": (
+                "904911efdfb92c6a54b3eec734084f4f190fb5ae",
+                "79559ebb92c48746d716db30a85acdc8c3cef8ec",
+            ),
+            "Kubernetes-Native-Scheduler-Deep-Dive.md": (
+                "157e582fcc3ebba3c22b16721f49d6890f784c1f",
+                "f54c212e3a2f75d674b717a9b29052b20b60aefc",
+            ),
+            "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
+                "f0917e48403c4ffa2d8a022f05f1f5097fbe9c10",
+                "1462fb7b4835970708717456e3aed85e697ec2eb",
+            ),
+            "E2B-Deep-Dive.md": (
+                "317ccfdc84eec781eca3fcc45e699c54b8607d5e",
+                "bb72f49d79f009a960eed2ae6c32e1cc082399c5",
+            ),
+        }
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+
+        for filename, (tag_object, source_commit) in cases.items():
+            markdown_text = (docs_dir / filename).read_text(encoding="utf-8")
+            with self.subTest(document=filename):
+                self.assertIn(tag_object, markdown_text)
+                self.assertIn(source_commit, markdown_text)
+                self.assertNotIn(tag_object[:7], docs_by_src[filename]["footer"])
+                if filename != "E2B-Deep-Dive.md":
+                    self.assertIn(source_commit, docs_by_src[filename]["footer"])
+
+    def test_current_cards_exclude_superseded_primary_baselines(self):
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+        expected = {
+            "Mooncake-Deep-Dive.md": ("v0.3.13.post1", "v0.3.12.post1"),
+            "Dynamo-Deep-Dive.md": ("Dynamo v1.4.2", "Dynamo v1.4.0"),
+            "Multica-Deep-Dive.md": ("Multica v0.4.37", "Multica v0.4.32"),
+            "LLM-Benchmark-Deep-Dive.md": ("vLLM v0.28.0", "vLLM v0.27.1"),
+            "Kubernetes-Native-Scheduler-Deep-Dive.md": (
+                "Kubernetes v1.37.0",
+                "Kubernetes v1.36.4",
+            ),
+            "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
+                "v1.8.2 → v1.15.2",
+                "v1.8.2 → v1.15.1",
+            ),
+        }
+        for filename, (current, superseded) in expected.items():
+            with self.subTest(document=filename):
+                self.assertIn(current, docs_by_src[filename]["meta"])
+                self.assertNotIn(superseded, docs_by_src[filename]["meta"])
 
     def test_refreshed_release_behavior_is_documented(self):
         docs_dir = Path(__file__).resolve().parent
@@ -233,6 +311,11 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         for required_text in (
+            "v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a",
+            "TCP connection pool 默认开启",
+            "NVMe KV",
+            "batch-record OpLog",
+            "N-D logical weight transfer planner",
             "MOONCAKE_OFFSET_PERSIST_MODE",
             "PollRemoveAll",
             "cache_salt",
@@ -251,9 +334,9 @@ class RenderDocLayoutTest(unittest.TestCase):
             "kai.scheduler/last-eviction-timestamp",
             "不能通过 preempt、reclaim 或 consolidation 驱逐别人",
             "DRA-backed extended resources",
-            "v0.16.9@724da8388358b7673495a935948ea0a67a86140b",
-            "GitHub 的 “latest” 指向旧维护分支",
-            "不能因为 release 页面把它标为 latest 就降级",
+            "v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc",
+            "tag，但它没有对应的正式 GitHub Release",
+            "不能仅按 tag 排序",
             "不替代上表的 v0.17.0",
         ):
             with self.subTest(document="KAI-Scheduler", required_text=required_text):
@@ -263,13 +346,20 @@ class RenderDocLayoutTest(unittest.TestCase):
             encoding="utf-8"
         )
         for required_text in (
-            "v1.4.0@03014943323e78feb5bd672ef08b72caea0918ac",
+            "v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
             "nixl==1.3.2",
             "EFA Installer `1.49.0`",
+            "EFA Installer `1.50`",
             "libfabric `2.4.0amzn5.0`",
             "Lost connection with prefill instance",
             "空 HTTP 200/零 token",
-            "ModelExpress 独立稳定版 `v0.5.0",
+            "ModelExpress 独立稳定版 `v0.5.1",
+            "/v1/classify",
+            "/v1/pooling",
+            "logprob_token_ids",
+            "libnixl_capi.so",
+            "protobuf 6 runtime",
+            "checkpoint_format=\"MX\"",
             "reservation replay",
             "sequenced KV relay",
             "endpoint-scoped event transport",
@@ -306,10 +396,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             for doc in serve_docs.DOCS
             if Path(doc["src"]).name == "Dynamo-Deep-Dive.md"
         )
-        self.assertIn("Dynamo v1.4.0", dynamo_doc["meta"])
-        self.assertIn("source@0301494", dynamo_doc["meta"])
+        self.assertIn("Dynamo v1.4.2", dynamo_doc["meta"])
+        self.assertIn("source@2ecbdfd", dynamo_doc["meta"])
         self.assertIn(
-            "03014943323e78feb5bd672ef08b72caea0918ac", dynamo_doc["footer"]
+            "2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a", dynamo_doc["footer"]
         )
         self.assertNotIn(
             "a49702e4432e7fa43cbc88175bddb31604340f19", dynamo_text
@@ -340,13 +430,14 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         self.assertIn("KAI-Scheduler v0.17.0", ai_doc["meta"])
-        self.assertIn("v0.16.9 旧维护分支边界", ai_doc["summary"])
+        self.assertIn("tag-only 边界", ai_doc["summary"])
         self.assertIn("Kueue v0.19.2", ai_doc["meta"])
-        self.assertIn("Volcano v1.15.1", ai_doc["meta"])
-        self.assertIn("v1.8.2 → v1.15.1", volcano_doc["meta"])
+        self.assertIn("Grove alpha.12", ai_doc["meta"])
+        self.assertIn("Volcano v1.15.2", ai_doc["meta"])
+        self.assertIn("v1.8.2 → v1.15.2", volcano_doc["meta"])
         for revision in (
-            "0a56ed331897f5455916a44d3075671376d731d6",
-            "c8148836e8718e84387f88e8ef3f73b6b78cf5a8",
+            "1462fb7b4835970708717456e3aed85e697ec2eb",
+            "aee652b985d25e33f59f6112e857627784b741ca",
             "c2050e3debe58dbcdf9bb75b667799eec9409513",
         ):
             self.assertIn(revision, volcano_text)
@@ -357,15 +448,24 @@ class RenderDocLayoutTest(unittest.TestCase):
             "DRA count saturating arithmetic",
             "golang.org/x/crypto",
             "scalar resource milli-unit",
+            "GHSA-j38h-7pfq-cxmw",
+            "常数时间 quantity multiplication",
+            "reclaim / preempt",
+            "terminating PodGroup",
         ):
             self.assertIn(required_text, volcano_text)
 
         self.assertIn("KAI-Scheduler v0.17.0", native_text)
         self.assertIn("Kueue v0.19.2", native_text)
-        self.assertIn("Volcano v1.15.1", native_text)
+        self.assertIn("Volcano v1.15.2", native_text)
         self.assertIn("preemption delay", native_text)
-        self.assertIn("PVC informer race", native_text)
-        self.assertIn("724da8388358b7673495a935948ea0a67a86140b", ai_text)
+        self.assertIn("DRADeviceCompatibilityGroups", native_text)
+        self.assertIn("5922dc7d1a4661d3fc43d60943f92a775c892bdc", ai_text)
+        self.assertIn("没有对应的正式 GitHub Release", ai_text)
+        self.assertIn("v0.1.0-alpha.12", ai_text)
+        self.assertIn("PodGangMap", ai_text)
+        self.assertIn("LastScheduled", ai_text)
+        self.assertIn("保留其他 controller 已写入的 scheduling gate", ai_text)
 
         for required_text in (
             "8eab68778fc1b52affe165fdf5af29d1e9b4f3cb",
@@ -425,7 +525,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "b8029973aa7da5f741f7bb01a9f833b38a0885438/"
+            "5a56c87e9db0e221b138662805af7743e75f1082/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -461,8 +561,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "按 Sandbox lifecycle 计数",
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
-            "Agent Sandbox Go Router（对照，不是 E2B 能力）",
-            "2fd412d55ecae90861a101a5424a75473de97c36",
+            "Agent Sandbox v1.0.0 Go Router（对照，不是 E2B 能力）",
+            "bb72f49d79f009a960eed2ae6c32e1cc082399c5",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -482,6 +582,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             "两者都不要求进入 Pod 的容器镜像解析 `X-Sandbox-Port`",
             "`X-Sandbox-Port` 不是 E2B 的兼容 Header",
             "在请求进入 Client Proxy 前成对转换",
+            "`v1alpha1` 和 conversion webhook 基础设施均被移除",
+            "先 `kubectl apply -f helm/crds/`",
+            "sandboxd",
+            "Files.WriteReader",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, header_section)
@@ -518,7 +622,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "b8029973aa7da5f741f7bb01a9f833b38a0885438/"
+            "5a56c87e9db0e221b138662805af7743e75f1082/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -533,12 +637,14 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "2fd412d55ecae90861a101a5424a75473de97c36/"
+            "bb72f49d79f009a960eed2ae6c32e1cc082399c5/"
         )
         for source_path in (
-            "clients/python/agentic-sandbox-client/sandbox-router/README.md",
             "clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py",
+            "docs/api-migration-guide.md",
+            "packages/sandboxd/USER_GUIDE.md",
             "sandbox-router/README.md",
+            "sandbox-router/proxy/browsersession.go",
             "sandbox-router/proxy/headers.go",
             "sandbox-router/proxy/proxy.go",
         ):
@@ -707,12 +813,12 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         self.assertIn("KServe v0.20.0", doc["meta"])
-        self.assertIn("master@aaac4e2", doc["meta"])
-        self.assertIn("website@05b83a6", doc["meta"])
+        self.assertIn("master@003f717", doc["meta"])
+        self.assertIn("website@71c8b22", doc["meta"])
         for revision in (
             "1fb781055dd1567164358233e1125142ca6ef1fe",
-            "aaac4e294dae2c7b1aa1886447793f3aa1c30912",
-            "05b83a6cf9d6c4045a83d79eb8d0029605d655e7",
+            "003f717c0bb8bb896df499cbe143172928f1665c",
+            "71c8b22a05d6be72560b2cc326865930063cd0e8",
         ):
             self.assertIn(revision, markdown_text)
 
@@ -739,10 +845,13 @@ class RenderDocLayoutTest(unittest.TestCase):
             "idle count 严格小于",
             "`oci+fetch://`",
             "`ms://` ModelScope storage provider",
-            "依赖树包含针对已披露依赖漏洞的安全修复",
+            "依赖树继续包含针对已披露依赖漏洞的安全修复",
             "weighted `InferencePool` 后端选择",
             "versioned docs",
             "当前实现明确不支持 LLMInferenceService fetch",
+            "P/D engine 的 NixlConnector",
+            "LoRA adapter 的 LocalModelCache",
+            "controller TLS 证书热重载",
             "不能用于承诺 v0.20.0",
             "不属于 v0.20.0",
         ):
@@ -768,25 +877,25 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Multica 深度技术文档")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.4.32 · source@d60775a · 2026-08-22",
+            "Multica v0.4.37 · source@79559eb · main@61ea48f · 2026-09-01",
         )
         for summary_term in (
             "Issue/Task",
             "Agent/Runtime",
             "Squad",
             "Autopilot",
-            "21 种 provider",
-            "DeepSeek Harness",
-            "in_place/worktree",
-            "Private Skill Plugin",
-            "自托管",
+            "25 种 protocol family",
+            "Plugin Public API v1",
+            "ZeroClaw/CodeArts",
+            "Runtime claim",
+            "daemon 恢复",
             "没有 Sandbox",
         ):
             with self.subTest(summary_term=summary_term):
                 self.assertIn(summary_term, doc["summary"])
         self.assertIn(
             "https://github.com/multica-ai/multica/tree/"
-            "d60775aa9394b911b18701a326f655465604e7d1",
+            "79559ebb92c48746d716db30a85acdc8c3cef8ec",
             doc["footer"],
         )
         self.assertIn("https://multica.ai/docs", doc["footer"])
@@ -802,7 +911,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Multica 深度技术文档", html)
         self.assertIn('/Multica-Deep-Dive.html', html)
-        self.assertIn("Multica v0.4.32", html)
+        self.assertIn("Multica v0.4.37", html)
         self.assertIn("没有 Sandbox", html)
 
     def test_multica_execution_and_security_contract_is_documented(self):
@@ -814,9 +923,9 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         for required_text in (
-            "v0.4.32",
-            "d60775aa9394b911b18701a326f655465604e7d1",
-            "审校日期：2026-08-22",
+            "v0.4.37",
+            "79559ebb92c48746d716db30a85acdc8c3cef8ec",
+            "审校日期：2026-09-01",
             "没有强制的 Issue 状态机",
             "Task 完成不等于 Issue 完成",
             "Task 与目标 Runtime 固定绑定且不会自动迁移",
@@ -830,7 +939,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "容器内运行 daemon",
             "专用 VM",
             "/readyz",
-            "企业微信后端必须只部署单个副本",
+            "企业微信多副本回复路由",
+            "socket-owner relay",
             "自定义 Multica License，纳入 Apache 2.0 条款并附加托管服务、商业嵌入、品牌和署名条件",
             "Saved Issue Views",
             "Oh-My-Pi Runtime",
@@ -844,7 +954,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "`dsh`",
             "DEEPSEEK_API_KEY",
             "dsh --profile multica --probe",
-            "21 种 protocol family",
+            "25 种 protocol family",
             "`in_place`（默认）",
             "`worktree`",
             "agent/<agent>/<task>",
@@ -875,6 +985,12 @@ class RenderDocLayoutTest(unittest.TestCase):
             "Execution-root fencing",
             "exclusively claimed env root",
             "Workspace seats",
+            "Plugin Public API v1",
+            "durable scheduled hooks",
+            "ZeroClaw",
+            "华为云 CodeArts",
+            "MULTICA_TASK_QUEUED_TTL",
+            "Runtime 只是满并发而仍在线时，积压会继续保留",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -903,7 +1019,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             with self.subTest(task_status=task_status):
                 self.assertIn(f"| `{task_status}` |", markdown_text)
 
-        self.assertRegex(markdown_text, r"queued` 超过 \*\*2 小时\*\*")
+        self.assertIn("只有目标 Runtime 的心跳缺席超过", markdown_text)
         self.assertIn("修改负责人不会停止活动 Task", markdown_text)
         self.assertIn("修改 Issue 状态不会停止活动 Task", markdown_text)
 
@@ -911,8 +1027,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path("/data/Multica-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
-        stable_commit = "d60775aa9394b911b18701a326f655465604e7d1"
-        post_release_commit = "b8029973aa7da5f741f7bb01a9f833b38a0885438"
+        stable_commit = "79559ebb92c48746d716db30a85acdc8c3cef8ec"
+        post_release_commit = "61ea48fd2ef0e9818de38533553e830fd36be349"
         product_image = (
             "https://raw.githubusercontent.com/multica-ai/multica/"
             f"{stable_commit}/docs/assets/hero-board.png"
@@ -921,7 +1037,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn(product_image, markdown_text)
         self.assertIn(
             f"https://github.com/multica-ai/multica/blob/{stable_commit}/"
-            "server/internal/service/task.go",
+            "server/pkg/agent/agent.go",
             markdown_text,
         )
         self.assertNotRegex(
@@ -963,7 +1079,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("stateDiagram-v2", html)
         self.assertIn(
             "https://raw.githubusercontent.com/multica-ai/multica/"
-            "d60775aa9394b911b18701a326f655465604e7d1/"
+            "79559ebb92c48746d716db30a85acdc8c3cef8ec/"
             "docs/assets/hero-board.png",
             html,
         )
@@ -1019,10 +1135,17 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         for required_text in (
             "DRADeviceTaintRules",
-            "Go `1.26.5`",
-            "server-side apply",
-            "`422 required`",
-            "kubelet Pod sync context",
+            "scheduling.k8s.io/v1beta1",
+            "v1alpha2` 在 v1.37 不再 serve",
+            "DRAWorkloadResourceClaims` | Beta | **关**",
+            "DRA device metadata API 在 v1.37 升为 `v1beta1`",
+            "DRAResourceHealth",
+            "DRADeviceCompatibilityGroups",
+            "DRADerivedAttributes",
+            "DRAOptionalNodeOperations",
+            "DRAResourcePoolStatus",
+            "DRANodeAllocatableResources",
+            "SchedulerPreQueueingHints",
         ):
             with self.subTest(document="Kubernetes", required_text=required_text):
                 self.assertIn(required_text, native_text)
@@ -1132,14 +1255,14 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertEqual(doc["href"], "/Kubernetes-Native-Scheduler-Deep-Dive.html")
         self.assertEqual(doc["title"], "Kubernetes 原生调度器深度技术文档")
-        self.assertIn("v1.36.4", doc["meta"])
-        self.assertIn("bb826b1", doc["meta"])
+        self.assertIn("v1.37.0", doc["meta"])
+        self.assertIn("f54c212", doc["meta"])
         self.assertIn(
             "https://kubernetes.io/docs/concepts/scheduling-eviction/",
             doc["footer"],
         )
         self.assertIn(
-            "https://github.com/kubernetes/kubernetes/tree/bb826b1d48562f110659e64e8ec444327433db95",
+            "https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc",
             doc["footer"],
         )
 
@@ -1155,9 +1278,9 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Kubernetes 原生调度器深度技术文档", html)
         self.assertIn('/Kubernetes-Native-Scheduler-Deep-Dive.html', html)
-        self.assertIn("Kubernetes v1.36.4", html)
-        self.assertIn("DRA 对象与生命周期", html)
-        self.assertIn("DynamicResources 调用链", html)
+        self.assertIn("Kubernetes v1.37.0", html)
+        self.assertIn("v1.37 DRA 扩展", html)
+        self.assertIn("Workload/PodGroup v1beta1", html)
 
     def test_render_kubernetes_native_scheduler_doc(self):
         doc = next(
@@ -1195,8 +1318,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             html,
         )
         self.assertIn(
-            '<a href="#8-8-v1-36-4-feature-maturity-矩阵">'
-            "8.8 v1.36.4 feature maturity 矩阵</a>",
+            '<a href="#8-8-v1-37-0-feature-maturity-矩阵">'
+            "8.8 v1.37.0 feature maturity 矩阵</a>",
             html,
         )
         self.assertIn(
@@ -1220,7 +1343,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("stateDiagram-v2", html)
         self.assertIn("sequenceDiagram", html)
         self.assertIn("resource.k8s.io/v1", html)
-        self.assertIn("scheduling.k8s.io/v1alpha2", html)
+        self.assertIn("scheduling.k8s.io/v1beta1", html)
+        self.assertNotIn("apiVersion: scheduling.k8s.io/v1alpha2", html)
         for extension_point in (
             "PreEnqueue",
             "PreFilter",
@@ -1236,6 +1360,11 @@ class RenderDocLayoutTest(unittest.TestCase):
             "DRAWorkloadResourceClaims",
             "DRANodeAllocatableResources",
             "DRAListTypeAttributes",
+            "DRADeviceCompatibilityGroups",
+            "DRADerivedAttributes",
+            "DRAOptionalNodeOperations",
+            "DRAResourcePoolStatus",
+            "SchedulerPreQueueingHints",
         ):
             self.assertIn(feature_gate, html)
         self.assertIn("dra_grpc_operations_duration_seconds", html)
