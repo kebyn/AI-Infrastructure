@@ -2,9 +2,9 @@
 
 > **kube-scheduler 架构、Scheduling Framework、工作负载级调度与 AI 调度器对比**
 >
-> 基于 Kubernetes 官方 Scheduling、Preemption and Eviction 文档、调度配置参考与 v1.36.4 源码整理
+> 基于 Kubernetes 官方 Scheduling、Preemption and Eviction 文档、调度配置参考与 v1.37.0 源码整理
 >
-> 版本基线：Kubernetes `v1.36.4@bb826b1d48562f110659e64e8ec444327433db95`；审校日期：2026-08-22。
+> 版本基线：Kubernetes `v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc`；审校日期：2026-09-01。`v1.37.0` 为 annotated tag，正文使用解引用后的 source commit，不使用 tag object。
 
 ---
 
@@ -69,13 +69,13 @@ flowchart LR
 
 讨论“原生调度器能否承载 AI”时，需要分开三个层次：
 
-| 层次 | v1.36.4 原生能力 | 成熟度 |
+| 层次 | v1.37.0 原生能力 | 成熟度 |
 |------|-----------------|--------|
 | 单 Pod 放置 | Scheduling Framework、亲和性、污点、拓扑分布、优先级、卷、DRA | 主体稳定 |
-| 多 Pod 工作负载放置 | Workload/PodGroup、Gang、TAS、workload-aware preemption | v1.35/v1.36 Alpha，默认关闭 |
+| 多 Pod 工作负载放置 | Workload/PodGroup、Gang、TAS、workload-aware preemption、CompositePodGroup | Workload/PodGroup 与基础 Gang/抢占为 Beta gate，TAS/Composite 仍为 Alpha；均默认关闭 |
 | 租户队列与应用编排 | 团队配额借用、公平排队、多集群准入、推理组件图和启动顺序 | 不是 kube-scheduler 的完整职责 |
 
-因此，“原生完全没有 Gang”在 v1.36 已不准确；但“原生 Alpha Gang 已可无条件替代成熟批调度器”同样不准确。
+因此，“原生完全没有 Gang”在 v1.37 已不准确；但“API 升到 Beta 就已无条件替代成熟批调度器”同样不准确。
 
 ---
 
@@ -176,6 +176,8 @@ sequenceDiagram
 
 调度失败会记录是哪些插件判定 Unschedulable。插件可以注册与自己相关的集群事件和 QueueingHint，例如 Node label 改变、Pod 删除、PVC 完成绑定。事件到来时，仅把可能因此变得可调度的 Pod 移回 activeQ/backoffQ，减少全队列无差别重试。
 
+v1.37 增加 `SchedulerPreQueueingHints`，允许插件在更早的 PreQueue 阶段缩小需要响应某类事件的 entity 集合，DRA 插件可借此减少 `ResourceClaimTemplate` workload 的无效重试。该 gate 曾准备按 Beta 默认开启，但因发布前发现问题，v1.37.0 最终源码将它定为 **Alpha、默认关闭**；部署与文档必须服从 tag 内 feature-gate 表，不能照抄较早的 release-note 草稿。
+
 诊断时要区分：
 
 - `Unschedulable`：当前集群条件不满足，是正常调度结果。
@@ -189,7 +191,7 @@ sequenceDiagram
 
 ### 3.1 两个周期与扩展点
 
-Scheduling Framework 把调度拆为插件扩展点。v1.36.4 的主要扩展点如下：
+Scheduling Framework 把调度拆为插件扩展点。v1.37.0 的主要扩展点如下：
 
 | 扩展点 | 所在阶段 | 作用 | 失败后的关键行为 |
 |--------|----------|------|------------------|
@@ -210,9 +212,9 @@ Scheduling Framework 把调度拆为插件扩展点。v1.36.4 的主要扩展点
 
 `multiPoint` 不是运行时阶段，而是配置字段：一个插件若实现多个扩展点，可以一次启用到全部适用位置。具体扩展点的显式配置优先级更高，可覆盖 MultiPoint 展开结果。
 
-### 3.2 v1.36.4 默认插件
+### 3.2 v1.37.0 默认插件
 
-默认 profile 通过 MultiPoint 加载以下核心插件。权重是 v1.36.4 源码默认值，不应直接套用到其他版本：
+默认 profile 通过 MultiPoint 加载以下核心插件。权重是 v1.37.0 源码默认值，不应直接套用到其他版本：
 
 | 插件 | 主要职责 | Score 权重或特殊说明 |
 |------|----------|----------------------|
@@ -399,7 +401,7 @@ Topology spread 以 label selector、`topologyKey`、`maxSkew` 和 `whenUnsatisf
 - 多条 constraint 是合取关系，必须同时满足。
 - 缺失 topology label 的节点可能被排除或形成意外域，节点标签治理是前提。
 
-它解决的是同类 Pod 在拓扑域间的偏斜，不等于对一个多 Pod workload 做原子选址。v1.36 Alpha TAS 的 placement 是另一个层级。
+它解决的是同类 Pod 在拓扑域间的偏斜，不等于对一个多 Pod workload 做原子选址。v1.37 中仍为 Alpha 的 TAS placement 是另一个层级。
 
 ### 5.6 卷与节点选择是联合问题
 
@@ -447,7 +449,7 @@ Topology spread 以 label selector、`topologyKey`、`maxSkew` 和 `whenUnsatisf
 
 ### 6.4 Opportunistic Batching
 
-v1.36.4 中 `OpportunisticBatching` 为 Beta 且默认开启。对连续到达、调度约束等价的 Pod，scheduler 可以短时复用 Filter/Score 结果，减少重复计算。
+v1.37.0 中 `OpportunisticBatching` 仍为 Beta 且默认开启。对连续到达、调度约束等价的 Pod，scheduler 可以短时复用 Filter/Score 结果，减少重复计算。
 
 当前能力有明确限制：带 inter-Pod affinity、topology spread、DRA claim、DRA backing extended resource 等 Pod 不适用；自定义插件还需要正确实现签名相关接口。它是吞吐优化，不改变 Gang 的原子语义。
 
@@ -490,7 +492,7 @@ AI 平台不应把 PDB 当作训练 checkpoint 或推理副本保护的唯一机
 
 默认抢占一次主要为一个 Pod 找空间。它不了解团队累计用量、Job 是否只差最后一个 worker、租户是否长期超额，也没有 DRF/Cohort/层次队列语义。
 
-对分布式训练，逐 Pod 抢占可能让低优先级 Job 只丢部分成员，既无法继续工作又残留资源。v1.36 的 workload-aware preemption 开始补足 PodGroup 语义，但仍是默认关闭的 Alpha 能力。
+对分布式训练，逐 Pod 抢占可能让低优先级 Job 只丢部分成员，既无法继续工作又残留资源。v1.37 的 workload-aware preemption 已随 `GenericWorkload` 进入 Beta 路径，但该 gate 仍默认关闭。
 
 ---
 
@@ -511,7 +513,7 @@ MIG、MPS、HAMi 或厂商 device plugin/runtime 仍可能是必要组成部分�
 
 ### 8.2 DRA 对象模型与 source of truth
 
-Dynamic Resource Allocation 的核心 API 在 v1.34 GA，`DynamicResourceAllocation` 从 v1.35 起锁定为开启。v1.36.4 的稳定 API 是 `resource.k8s.io/v1`，五类对象共同构成声明、库存、分配和消费链路：
+Dynamic Resource Allocation 的核心 API 在 v1.34 GA，`DynamicResourceAllocation` 从 v1.35 起锁定为开启。v1.37.0 的稳定 API 是 `resource.k8s.io/v1`，五类对象共同构成声明、库存、分配和消费链路：
 
 ```mermaid
 flowchart LR
@@ -733,7 +735,7 @@ stateDiagram-v2
 
 ### 8.5 DynamicResources 插件调用链
 
-v1.36.4 的 `DynamicResources` 同时实现 `PreEnqueue`、`PreFilter`、`Filter`、`PostFilter`、`Score`、`Reserve`、`Unreserve` 和 `PreBind`。默认插件列表把它放在 `DefaultPreemption` 之前，因此无可行节点时会先尝试释放无消费者的失效 allocation，再考虑抢占普通 Pod。
+v1.37.0 的 `DynamicResources` 同时实现 `PreEnqueue`、`PreFilter`、`Filter`、`PostFilter`、`Score`、`Reserve`、`Unreserve` 和 `PreBind`。默认插件列表以权重 2 把它放在 `DefaultPreemption` 之前，因此无可行节点时会先尝试释放无消费者的失效 allocation，再考虑抢占普通 Pod。
 
 ```mermaid
 sequenceDiagram
@@ -769,7 +771,7 @@ sequenceDiagram
     K->>D: NodePrepareResources
 ```
 
-| 扩展点 | v1.36.4 行为 | 失败与恢复 |
+| 扩展点 | v1.37.0 行为 | 失败与恢复 |
 |--------|---------------|------------|
 | `PreEnqueue` | 解析 Pod 中所有 claim，验证生成 claim 的 owner、删除状态和存在性 | claim/template 尚未生成时留在 gated/unschedulable 路径，相关 claim 或 Pod status 事件重新激活 |
 | `PreFilter` | 读取 claims、已有 allocation、reservation、DeviceClass、PodGroup binding；汇总 committed 与 in-flight 设备，构造 allocator | claim 已被不兼容消费者占用、class 不存在、CEL/状态非法时短路 |
@@ -795,7 +797,7 @@ v1.36.4 修复了结构化 allocator 在 `allocateDevice` 候选搜索中的 res
 | 清单有效性 | 重复 device name 等问题使 pool invalid | 修正 slice；不能指望 scheduler 自动挑一个重复项 |
 | 变更传播 | informer 更新 scheduler cache；下一 scheduling cycle 重新汇总 pool | driver 必须幂等发布并处理 API Server 暂时失败 |
 
-v1.36 默认启用的 Beta DRA 能力会选择包含确定性排序的 allocator 路径：pool 按 driver/pool 名排序，pool 内 ResourceSlice 按名字排序，然后执行 first-fit 搜索。名称因此可能影响优先命中的 pool/slice，但这不是性能评分 API；driver 不应把脆弱的命名技巧当作拓扑或健康策略。设备在单个 slice 内仍按 driver 发布顺序参与搜索，也不能据此宣称“总会选设备名最小者”。
+v1.37 默认启用的 Beta/GA DRA 能力会选择包含确定性排序的 allocator 路径：pool 按 driver/pool 名排序，pool 内 ResourceSlice 按名字排序，然后执行 first-fit 搜索。名称因此可能影响优先命中的 pool/slice，但这不是性能评分 API；driver 不应把脆弱的命名技巧当作拓扑或健康策略。设备在单个 slice 内仍按 driver 发布顺序参与搜索，也不能据此宣称“总会选设备名最小者”。
 
 scheduler cache 不是独立真相。它把 informer 中已持久化 allocation 与 claim tracker 中尚未到达 informer 的 in-flight/assumed allocation 合并，避免同一设备被重复选中；若采集期间检测到并发 revision 变化，会短暂重试。driver 更新期间，`generation + resourceSliceCount` 只能让 scheduler 识别“不完整”，不能提供跨多个 API 对象的事务快照。生产 driver 必须持续 reconcile，scheduler 则宁可暂时判不可分配，也不应消费半套 inventory。
 
@@ -805,40 +807,45 @@ scheduler cache 不是独立真相。它把 informer 中已持久化 allocation 
 |------|-------------|----------------------|--------------------|
 | 手工共享 claim | 无自动 owner，通常由用户/controller 管理 | 每个 Pod 一项 | 名字预先已知，可跨多个 Pod 复用；最多 256 个 reservation，最后一个 Pod 结束后 claim 可重新分配但对象不会自动删除 |
 | 每 Pod template claim | Pod | 每个 claim 通常只有该 Pod 一项 | resourceclaim-controller 为每 Pod 生成；Pod 结束后清理并由 owner GC，隔离清晰但对象数量较多 |
-| 每 PodGroup template/shared claim | PodGroup | 整组仅一项 PodGroup reference | `DRAWorkloadResourceClaims` Alpha；组内所有匹配 Pod 共用 claim，Pod 数可超过 256，reservation 与 allocation 持续到 PodGroup 删除 |
+| 每 PodGroup template/shared claim | PodGroup | 整组仅一项 PodGroup reference | `DRAWorkloadResourceClaims` Beta、默认关闭；组内所有匹配 Pod 共用 claim，Pod 数可超过 256，reservation 与 allocation 持续到 PodGroup 删除 |
 
 PodGroup 共享不是仅仅“多个 Pod 写同一个 claim 名”。PodGroup `spec.resourceClaims` 和 Pod `spec.resourceClaims` 的 `name`、`resourceClaimName`/`resourceClaimTemplateName` 必须逐字段相同；匹配时 scheduler 把 consumer 绑定到 PodGroup UID，不匹配的 Pod claim 仍按普通 Pod reservation 处理。PodGroup 最多定义 4 个共享 claim。
 
 `reservedFor` 的 256 项上限约束的是 consumer reference 条目，不是设备数。手工 claim 给 300 个 Pod 逐一 reservation 会撞上限制；同一 PodGroup 的 300 个 Pod 只占一个 reservation，但会把设备释放时机延长到 PodGroup 删除。平台 controller 因此必须可靠删除已经结束的 PodGroup，否则共享设备会被有意保留。
 
-### 8.8 v1.36.4 feature maturity 矩阵
+### 8.8 v1.37.0 feature maturity 矩阵
 
-主分支文档会继续演进，下面只按 `v1.36.4` 的 `defaultVersionedKubernetesFeatureGates` 与依赖表判断。`默认开启` 不等于 GA，也不代表某个具体 driver 已支持该字段。
+主分支文档会继续演进，下面只按 `v1.37.0` 的 `defaultVersionedKubernetesFeatureGates` 与依赖表判断。`默认开启` 不等于 GA，也不代表某个具体 driver 已支持该字段。
 
-| Feature gate | v1.36.4 状态 | 默认 | 依赖 | 影响范围 |
+| Feature gate / API | v1.37.0 状态 | 默认 | 依赖 | 影响范围 |
 |--------------|---------------|------|------|----------|
 | `DynamicResourceAllocation` | GA，锁定 | 开 | 无 | `resource.k8s.io/v1` 核心、scheduler/kubelet DRA 路径 |
 | `DRAAdminAccess` | GA，锁定 | 开 | `DynamicResourceAllocation` | `adminAccess` 与 admin namespace 校验 |
-| `DRAPrioritizedList` | GA | 开 | `DynamicResourceAllocation` | `firstAvailable` subrequests 与 DRA Score |
+| `DRAPrioritizedList` | GA，锁定 | 开 | `DynamicResourceAllocation` | `firstAvailable` subrequests 与 DRA Score |
 | `DRAConsumableCapacity` | Beta | 开 | `DynamicResourceAllocation` | 多 allocation、capacity、share ID、`distinctAttribute` |
 | `DRADeviceBindingConditions` | Beta | 开 | DRA + `DRAResourceClaimDeviceStatus` | `bindsToNode`、PreBind 等待与失败恢复 |
-| `DRADeviceTaints` | Beta | 开 | `DynamicResourceAllocation` | device taints/tolerations 与 NoExecute 处理 |
-| `DRADeviceTaintRules` | Beta | **关** | `DRADeviceTaints` | 独立 DeviceTaintRule API；因依赖默认关闭的 Beta API 而保持关闭 |
-| `DRAExtendedResource` | Beta | 开 | `DynamicResourceAllocation` | DeviceClass 映射传统 extended resource 请求 |
+| `DRADeviceTaints` / `DRADeviceTaintRules` | GA | 开 | `DynamicResourceAllocation` / device taints | device taints/tolerations、独立 DeviceTaintRule API 与 NoExecute 处理；v1.37 尚未锁定，预计下一版本锁定 |
+| `DRAExtendedResource` | GA，锁定 | 开 | `DynamicResourceAllocation` | DeviceClass 映射传统 extended resource 请求 |
 | `DRAPartitionableDevices` | Beta | 开 | `DynamicResourceAllocation` | per-device node selection、shared counters、动态分区 |
-| `DRAResourceClaimDeviceStatus` | Beta | 开 | 对 DRA 为软依赖 | driver 写 `status.devices`；binding conditions 的硬依赖之一 |
+| `DRAFractionalCapacityRange` | Beta | 开（1.37 compatibility） | `DynamicResourceAllocation` | capacity range 的 milli-unit `min/max/step` |
+| `DRAResourceClaimDeviceStatus` | GA，锁定 | 开 | 对 DRA 为软依赖 | driver 写 `status.devices`；binding conditions 的硬依赖之一 |
 | `DRAResourceClaimGranularStatusAuthorization` | Beta | 开 | DRA + device status | allocation/reservation 与 driver device status 的细粒度授权 |
 | `DRASchedulerFilterTimeout` | Beta | 开 | `DynamicResourceAllocation` | 限制每节点 DRA Filter 计算时间 |
-| `DRANodeAllocatableResources` | Alpha | 关 | `DynamicResourceAllocation` | claim 消费 CPU、内存等 node allocatable 资源 |
+| `DRANodeAllocatableResources` | Alpha | 关 | `DynamicResourceAllocation` + node-declared capability | DRA 对 CPU/内存/hugepages 的 direct/overhead allocation、cgroup/OOM/MemoryQoS 与 resize 协同 |
 | `DRAListTypeAttributes` | Alpha | 关 | `DynamicResourceAllocation` | list attributes 与集合式 match/distinct 语义 |
-| `DRAResourcePoolStatus` | Alpha | 关 | `DynamicResourceAllocation` | 查询 pool 完整性/可用量的附加 API |
-| `DRAWorkloadResourceClaims` | Alpha | 关 | DRA + `GenericWorkload` | PodGroup 级 claim 生成、reservation 与共享 |
+| `DRADerivedAttributes` | Alpha | 关 | `DynamicResourceAllocation` | 以 CEL 定义虚拟属性，协调 GPU/NIC 等不同 driver 的拓扑属性 |
+| `DRADeviceCompatibilityGroups` | Alpha | 关 | DRA + `DRAPartitionableDevices` | 在 scheduler 阶段拒绝 shared counter 上无交集的 compatibility group |
+| `DRAOptionalNodeOperations` | Alpha | 关 | DRA + `NodeDeclaredFeatures` | 通过 `SkipNodeOperations` 跳过 node prepare/unprepare；目标节点必须声明支持 |
+| `DRAResourcePoolStatus` | Alpha（第二版） | 关 | `DynamicResourceAllocation` | 查询 pool 完整性与 partition/shareable availability；v1.37 修正 v1.36 计数语义 |
+| `DRAWorkloadResourceClaims` | Beta | **关** | DRA + `GenericWorkload` | PodGroup 级 claim 生成、reservation 与共享；Beta 不等于默认开启 |
+
+DRA device metadata API 在 v1.37 升为 `v1beta1`，driver 必须显式声明输出的 metadata API version；tag 内仍保留 `v1alpha1` 兼容实现。`DRAResourceHealth` kubelet gRPC API 则升为 v1：helper 的 `DRAPlugin.WatchHealthStatus` 成为必须实现的方法，不支持 health 的 driver 应返回 `ErrHealthNotSupported` 或用 `HealthService(false)` 关闭服务。helper 默认同时 serve v1/v1alpha1，kubelet 优先 v1，并在过渡期继续消费旧 driver 的 v1alpha1。这里的“API Beta/v1”分别描述 metadata schema 与 kubelet plugin RPC，不等价于对应硬件 driver 已支持健康上报。
 
 启用依赖 gate 需要在实际消费该字段的组件上保持一致，通常至少涉及 kube-apiserver、kube-scheduler、kube-controller-manager 和 kubelet；只打开 API Server 可能让对象可创建，却让 scheduler 或 kubelet 按旧语义处理。Alpha gate 更应使用独立集群/profile 做版本锁定和回滚演练。
 
 ### 8.9 安全边界与绕过 scheduler 的 Pod
 
-`adminAccess: true` 会忽略普通 claim 对设备的占用，并可能让 driver 暴露额外管理权限。v1.36.4 虽已 GA，也不意味着普通租户应该获得它。API Server 要求 ResourceClaim/Template 位于带有以下精确标签的 namespace，同时调用者仍必须通过 RBAC 的 create/update 授权：
+`adminAccess: true` 会忽略普通 claim 对设备的占用，并可能让 driver 暴露额外管理权限。v1.37.0 虽已 GA，也不意味着普通租户应该获得它。API Server 要求 ResourceClaim/Template 位于带有以下精确标签的 namespace，同时调用者仍必须通过 RBAC 的 create/update 授权：
 
 ```bash
 kubectl label namespace device-admin resource.kubernetes.io/admin-access=true
@@ -858,14 +865,14 @@ kubectl label namespace device-admin resource.kubernetes.io/admin-access=true
 | pool 长期 incomplete | 最高 generation 的 slice 数少于 `resourceSliceCount`，driver rollout 中断 | 对比同一 driver/pool 的 generation/count；修复 driver reconciliation，不能手工混用两代 slice |
 | DeviceClass 存在但一直无匹配设备 | CEL 读取错误属性、类型不一致、node scope 不匹配或库存陈旧 | 检查 CEL、ResourceSlice attributes/capacity 和目标节点 label；类变更只影响新 allocation |
 | 两个 Pod 竞争同一共享 claim | 两个 scheduler 都在 Reserve 模拟成功，`PreBind` status update 只有一方满足 reservation 上限/冲突检查 | 失败方执行 `Unreserve` 并进入 backoff；核对 claim UID、resourceVersion 和 `reservedFor` |
-| shared counter 看似耗尽但物理容量仍在 | v1.36.2 structured allocator 在候选拒绝/回溯时可能残留 counter reservation，或丢失 in-use marker 后重复扣费 | 升级到 v1.36.4；重建相同 ResourceSlice/Claim 组合并确认候选回滚后计数恢复 |
+| shared counter 看似耗尽但物理容量仍在 | v1.36.2 structured allocator 在候选拒绝/回溯时可能残留 counter reservation，或丢失 in-use marker 后重复扣费 | v1.36 线至少升级到 v1.36.4；升到 v1.37.0 后仍重建相同 ResourceSlice/Claim 组合并确认候选回滚与 compatibility group 计数 |
 | binding condition 超时或失败 | allocation 已写入，但 driver 未及时在 `status.devices.conditions` 报 True，或报告 failure condition | PreBind 返回 Error；下一周期把无其他 consumer 的 unavailable claim 交给 PostFilter 清空并重新分配 |
 | Pod 已绑定但卡在创建容器 | kubelet 找不到 plugin、`NodePrepareResources` 失败、CDI 响应错误或 driver 崩溃 | 查看 kubelet/DRA driver 日志与 `dra_grpc_operations_duration_seconds`；kubelet 重试，scheduler 不会自动改绑已绑定 Pod |
 | Pod 删除后设备未释放 | `NodeUnprepareResources` 失败、kubelet checkpoint 残留、PodGroup reservation 仍在 | 修复 driver 后让幂等 Unprepare/reconcile 重试；共享 claim 要确认 PodGroup 是否已删除 |
-| 高优先级 DRA Pod 长期 Pending | v1.36 scheduler 不支持为 DRA resource 执行默认抢占 | 等待/删除冲突 Pod，或由队列准入保证容量；Priority 本身不能夺回设备 |
+| 高优先级 DRA Pod 长期 Pending | v1.37 scheduler 仍不支持为 DRA resource 执行默认抢占 | 等待/删除冲突 Pod，或由队列准入保证容量；Priority 本身不能夺回设备 |
 | `nodeName` Pod 一直起不来 | 绕过 scheduler 后 claim 没有 allocation/reservation 或设备不在该节点 | 改用 scheduler 约束；若由自研 controller 预调度，必须完成整个 DRA 协议 |
 
-这里最重要的生产限制是：**Kubernetes v1.36 的默认抢占不支持 DRA 资源。** 正在使用 DRA device 的低优先级 Pod，不会因为另一个高优先级且同样需要该 device 的 Pod 而被 scheduler 自动抢占。队列层、容量预留或显式运维动作仍然必要。
+这里最重要的生产限制是：**Kubernetes v1.37 的默认抢占不支持 DRA 资源。** 正在使用 DRA device 的低优先级 Pod，不会因为另一个高优先级且同样需要该 device 的 Pod 而被 scheduler 自动抢占。队列层、容量预留或显式运维动作仍然必要。
 
 ### 8.11 可观测性与排障命令
 
@@ -896,7 +903,7 @@ journalctl -u kubelet --since '30 min ago' | grep -E 'dra-manager|NodePrepareRes
 kubectl -n <driver-namespace> logs <dra-driver-pod> --since=30m
 ```
 
-调度器通用的 `scheduler_plugin_execution_duration_seconds` 可按 `plugin="DynamicResources"` 和 extension point 分解耗时；v1.36.4 还提供以下专项指标：
+调度器通用的 `scheduler_plugin_execution_duration_seconds` 可按 `plugin="DynamicResources"` 和 extension point 分解耗时；v1.37.0 还提供以下专项指标：
 
 | 指标 | 用途 |
 |------|------|
@@ -924,19 +931,20 @@ kubectl -n <driver-namespace> logs <dra-driver-pod> --since=30m
 
 ---
 
-## 第九章：v1.36 工作负载级原生调度
+## 第九章：v1.37 工作负载级原生调度
 
 ### 9.1 成熟度快照
 
-| 能力 | 引入状态 | v1.36.4 默认 | 关键 feature gate |
+| 能力 | v1.37.0 状态 | 默认 | 关键 feature gate |
 |------|----------|---------------|-------------------|
-| Workload / PodGroup API | v1.35 Alpha | 关闭 | `GenericWorkload` |
-| Gang Scheduling | v1.35 Alpha | 关闭 | `GenericWorkload`、`GangScheduling` |
-| Topology-Aware Workload Scheduling | v1.36 Alpha | 关闭 | `GenericWorkload`、`TopologyAwareWorkloadScheduling` |
-| Workload-Aware Preemption | v1.36 Alpha | 关闭 | `GenericWorkload`、`GangScheduling`、`WorkloadAwarePreemption` |
-| Job 自动生成 Workload/PodGroup | v1.36 Alpha | 关闭 | `GenericWorkload`、`WorkloadWithJob` |
+| Workload / PodGroup API | `scheduling.k8s.io/v1beta1`；`GenericWorkload` Beta | 关 | `GenericWorkload` |
+| Gang Scheduling / workload-aware preemption | 随 `GenericWorkload` 进入 Beta 路径；v1.36 的独立 `GangScheduling` / `WorkloadAwarePreemption` gate 已移除 | 关 | `GenericWorkload` |
+| Topology-Aware Workload Scheduling | Alpha | 关 | `GenericWorkload`、`TopologyAwareWorkloadScheduling` |
+| CompositePodGroup | `v1alpha3` 资源与 v1beta1 Workload template 支持，Alpha | 关 | `CompositePodGroup`、`GenericWorkload`、`TopologyAwareWorkloadScheduling` |
+| PodGroup preemption policy | Alpha | 关 | `GenericWorkload`、`PodGroupPreemptionPolicy` |
+| Job 自动生成 Workload/PodGroup | Alpha | 关 | `GenericWorkload`、`WorkloadWithJob` |
 
-这些对象在 v1.36.4 release 源码中是 `scheduling.k8s.io/v1alpha2`。Alpha API 和 gate 默认关闭意味着升级可能有 schema、默认值或 controller 行为变化，不能按稳定 API 的维护承诺设计长期存量对象。`DRAWorkloadResourceClaims` 也为 v1.36 Alpha、默认关闭，并依赖 `DynamicResourceAllocation + GenericWorkload`。
+Workload/PodGroup 的主 API 在 v1.37.0 升为 `scheduling.k8s.io/v1beta1`，但 `GenericWorkload` 仍默认关闭；API maturity 和默认启用是两件事。v1.36 的 `v1alpha2` 在 v1.37 不再 serve，也没有跨该删除点的自动存储迁移：升级前必须在 v1.36 集群删除全部 `v1alpha2` Workload/PodGroup 对象，再升级控制面并以 v1beta1 schema 重建。`DRAWorkloadResourceClaims` 同步升为 Beta但仍默认关闭，并依赖 `DynamicResourceAllocation + GenericWorkload`。
 
 ### 9.2 Workload PodGroup 与 Pod 对象链
 
@@ -963,14 +971,16 @@ flowchart TB
 | Pod `spec.schedulingGroup` | 成员到 PodGroup 的运行时引用 | Pod 创建后不可变；引用对象可以稍后出现，但同名 PodGroup 被重建可能带来策略漂移 |
 | `PodGroupScheduled` | 初始组调度结果 | 成功后不会因成员后续失败、驱逐或缩容回退为 False，不是持续健康状态 |
 
+v1.37 还加入 CompositePodGroup building block：Workload 可以声明 `compositePodGroupTemplates`，树深最多 4，并以 CompositePodGroup 把多个子组纳入统一调度/抢占策略。该资源仍走 `scheduling.k8s.io/v1alpha3` 且依赖默认关闭的 `CompositePodGroup` 与 TAS gate；不能因为父 Workload 已是 v1beta1 就把整个组合 API 称为 Beta。
+
 controller 的正确创建顺序是 **Workload -> PodGroup -> Pods**。带 `podGroupTemplateRef` 的 PodGroup 若引用不存在或正在删除的 Workload，API Server 拒绝创建；Pod 先于 PodGroup 出现则会 Pending，PodGroup Add 事件再把它激活。
 
 典型 controller 会把 Workload 和 PodGroup 都设为高层 workload 的 owner；PodGroup 还可保存指向 Workload 的非 controller ownerReference 便于追踪。API admission 在 PodGroup 创建时加入 `scheduling.k8s.io/podgroup-protection` finalizer；删除期间只要仍有非终态 Pod 引用它，保护 controller 就保留 finalizer，所有成员进入 `Succeeded/Failed` 或被删除后才解除。
 
-完整策略与运行实例示例。它同时使用 Gang 与 TAS，必须在 API Server、scheduler 和相关 controller 上一致启用 `GenericWorkload`、`GangScheduling` 与 `TopologyAwareWorkloadScheduling`；以下 Alpha 清单只适合锁定 v1.36.4 的隔离验证环境：
+完整策略与运行实例示例。它同时使用 Gang 与 TAS，必须在 API Server、scheduler 和相关 controller 上一致启用 `GenericWorkload` 与 `TopologyAwareWorkloadScheduling`；基础 Gang 已归入 GenericWorkload，不再配置 v1.36 的独立 `GangScheduling` gate。以下清单因包含 TAS 字段仍只适合锁定 v1.37.0 的隔离验证环境：
 
 ```yaml
-apiVersion: scheduling.k8s.io/v1alpha2
+apiVersion: scheduling.k8s.io/v1beta1
 kind: Workload
 metadata:
   name: training-policy
@@ -988,7 +998,7 @@ spec:
       topology:
       - key: topology.example.com/fabric-block
 ---
-apiVersion: scheduling.k8s.io/v1alpha2
+apiVersion: scheduling.k8s.io/v1beta1
 kind: PodGroup
 metadata:
   name: training-workers-0
@@ -1093,7 +1103,7 @@ sequenceDiagram
 
 `GangScheduling` 只实现 `PreEnqueue` 与 `Permit`，但依赖 PodGroup cycle 提供整组 snapshot 和统一提交：
 
-| 阶段/故障 | v1.36.4 行为 | 恢复触发 |
+| 阶段/故障 | v1.37.0 行为 | 恢复触发 |
 |-----------|---------------|----------|
 | PodGroup 尚未创建 | `PreEnqueue` 返回 `UnschedulableAndUnresolvable`，Pod 不进入 active queue | 匹配 PodGroup Add |
 | 已创建同组 Pod 少于 `minCount` | gang Pod 在 `PreEnqueue` 等待，避免每个成员空转 | 匹配 Pod Add 使总数达到 quorum |
@@ -1152,13 +1162,13 @@ flowchart LR
 - `NodeResourcesFit` 的 Pod-level scoring strategy 可配置为 LeastAllocated 等，但 **placement scoring 固定用 `MostAllocated`**；CPU/内存等 resource weights 继承同一 `NodeResourcesFit` 配置。
 - `NodeResourcesFit` 与 `PodGroupPodsCount` 的默认 placement weight 都是 1；后者按已有 scheduled 数加 proposed assignment 数评分，偏好容纳更多成员的域。
 - `basic` policy 即使某个域只能放部分成员也可成功，`PodGroupPodsCount` 只是用分数偏好更多成员，不把部分放置升级成 Gang 保证。
-- v1.36 workload-aware preemption 明确拒绝带 scheduling constraints 的 PodGroup。不要期待 TAS placement 触发跨节点组级抢占来腾空一个完整域。
+- v1.37 会在带 scheduling constraints 的 PodGroup 整组调度失败后运行 PodGroup preemption，修复 v1.36 直接拒绝该组合的限制；仍须验证候选 placement、PDB 与跨节点 victim 选择，不能把它视为队列级容量保证。
 
 对 NVLink/NVSwitch、rail、rack 或 network block，TAS 只消费 node label。它不发现真实 fabric，不检查链路健康，也不把 DRA device-level `fabric` 属性自动提升为 node topology domain；设备与节点两层 source of truth 必须由平台 controller/driver 保持一致。
 
 ### 9.7 Workload-Aware Preemption
 
-启用 `WorkloadAwarePreemption` 后，一个无法调度的 gang PodGroup 可以作为单一 preemptor，在整个集群而非单节点范围选择 victims：
+启用 `GenericWorkload` 后，一个无法调度的 gang PodGroup 可以作为单一 preemptor，在整个集群而非单节点范围选择 victims；v1.37 已移除 v1.36 的独立 `WorkloadAwarePreemption` gate。若要使用 PodGroup 自己的 `preemptionPolicy` 字段，还要单独启用 Alpha `PodGroupPreemptionPolicy`：
 
 1. 读取所有 NodeInfo，把普通 Pod 作为独立 victim unit；仅当 PodGroup 的 `disruptionMode: PodGroup` 时，才把该组当前成员合并为跨节点 victim unit。默认/`Pod` 模式仍逐 Pod disruption。
 2. 只保留 priority 严格低于 preemptor PodGroup 的 victim units。若任一 preemptor Pod 设置 `preemptionPolicy: Never`，整组无资格发起抢占。
@@ -1168,7 +1178,7 @@ flowchart LR
 
 victim “更重要”的严格排序是：更高 Priority；同 Priority 下 PodGroup 优先于单 Pod；两个 PodGroup 之间成员更多者优先；再以更早启动者优先。单 Pod 之间则以更早启动者优先。这个排序用于“尽量 reprieve 谁”，不是租户公平或历史用量算法。
 
-PodGroup 的 `priorityClassName/priority` 和 `disruptionMode` 只在这条 workload-aware 路径中闭环。v1.36 的普通单 Pod 默认抢占如果把某个 PodGroup 成员当 victim，**不会尊重 PodGroup 级 priority 或 disruptionMode**；若平台依赖整组不可拆，必须避免让普通高优先级 Pod 绕过这条边界。
+PodGroup 的 `priorityClassName/priority` 和 `disruptionMode` 只在这条 workload-aware 路径中闭环。v1.37 的普通单 Pod 默认抢占如果把某个 PodGroup 成员当 victim，**不会尊重 PodGroup 级 priority 或 disruptionMode**；若平台依赖整组不可拆，必须避免让普通高优先级 Pod 绕过这条边界。
 
 ### 9.8 WorkloadWithJob 自动集成边界
 
@@ -1183,14 +1193,14 @@ PodGroup 的 `priorityClassName/priority` 和 `disruptionMode` 只在这条 work
 
 Job controller 先创建由 Job controller-owner 的 Workload，内含一个 template；再创建同时由 Job controller-owner、并非 controller-owner 地引用 Workload 的 PodGroup；最后给 Job Pods 写 scheduling group。生成 gang 的 `minCount` 等于 parallelism。出现多个歧义 Workload/PodGroup、owner UID 不匹配或 Workload template 结构不受支持时，Alpha 实现保守回退到普通调度。
 
-这不是所有 workload controller 的自动协议。JobSet、Ray、Kubeflow Trainer、MPI controller、Grove 或自定义训练 controller 必须明确实现 `Workload -> PodGroup -> Pods` 的创建、owner/finalizer、失败重建与版本兼容；仅给 Pod 加一个同名 annotation 不会触发上游集成。
+v1.37 的 Job controller 已改用 `workloadbuilder` library 对接 Workload building blocks，但适用条件和 `WorkloadWithJob` 默认关闭的 Alpha 边界不变。这不是所有 workload controller 的自动协议。JobSet、Ray、Kubeflow Trainer、MPI controller、Grove 或自定义训练 controller 必须明确实现 `Workload -> PodGroup -> Pods` 的创建、owner/finalizer、失败重建与版本兼容；仅给 Pod 加一个同名 annotation 不会触发上游集成。
 
 ### 9.9 DRA 与 Gang 的联合链路
 
-`DRAWorkloadResourceClaims` 让 PodGroup 成为 claim consumer。PodGroup 和每个成员 Pod 必须使用完全匹配的 claim 定义；以下清单还要求一致启用 `GenericWorkload`、`GangScheduling` 与 `DRAWorkloadResourceClaims`：
+`DRAWorkloadResourceClaims` 让 PodGroup 成为 claim consumer。PodGroup 和每个成员 Pod 必须使用完全匹配的 claim 定义；以下清单还要求一致启用 `GenericWorkload` 与 `DRAWorkloadResourceClaims`：
 
 ```yaml
-apiVersion: scheduling.k8s.io/v1alpha2
+apiVersion: scheduling.k8s.io/v1beta1
 kind: PodGroup
 metadata:
   name: training-workers
@@ -1253,14 +1263,14 @@ DRA + Gang 仍不提供 Kueue 的 ClusterQueue/Cohort 配额、公平排队、Jo
 
 ### 9.10 生产采用与升级边界
 
-- `GenericWorkload`、Gang、TAS、workload-aware preemption、Job integration 和 workload claim 都是默认关闭的 Alpha 能力；不要只启一个 scheduler gate。
+- `GenericWorkload` 和 `DRAWorkloadResourceClaims` 在 v1.37 为默认关闭的 Beta；TAS、CompositePodGroup、PodGroup preemption policy 与 Job integration 仍为默认关闭的 Alpha。不要把 Beta 等同默认开启，也不要继续传已移除的 `GangScheduling` / `WorkloadAwarePreemption` gate。
 - API Server、scheduler、controller-manager 与所有相关 kubelet 需要一致的 gate/版本；mixed-version upgrade 必须先验证字段 drop、informer 和 controller 行为。
-- Alpha 对象先导出并演练降级。目标版本若不再 serve `v1alpha2`，关闭 gate 之前必须明确存量 Workload/PodGroup/claim 谁来删除。
+- 从 v1.36 升级前先导出并删除所有 `v1alpha2` Workload/PodGroup；v1.37 不再 serve 该版本。启用 v1beta1 后按新 schema 重建，并在降级演练中明确对象与 shared claim 的清理责任。
 - 使用独立 scheduler profile 只能隔离 Pod 入口，不能隔离 cluster-scoped feature gate、API storage 或 controller-manager 行为。
 - 真实验证需覆盖异构角色、intra-group affinity、DRA conflict、driver failure、leader 切换、PodGroup 删除保护、TAS 标签漂移和 partial Bind。
 - 没有 Kueue 式 quota admission、Cohort 借用、层次队列或成熟 DRF；多角色启动顺序、服务发现和成组扩缩仍是 Grove/JobSet/Trainer 等 controller 的职责。
 
-对生产 AI 集群，合理做法是先在隔离环境锁定 patch 版本和 driver/controller 组合，保留成熟 admission/queue 与 workload controller，并用故障注入验证上游 Alpha 路径，而不是仅凭 API 已进入主仓库就替换现有批调度控制面。
+对生产 AI 集群，合理做法是先在隔离环境锁定 patch 版本和 driver/controller 组合，保留成熟 admission/queue 与 workload controller，并用故障注入验证默认关闭的 Beta/Alpha 路径，而不是仅凭 API 已进入主仓库就替换现有批调度控制面。
 
 ---
 
@@ -1281,13 +1291,13 @@ DRA + Gang 仍不提供 Kueue 的 ClusterQueue/Cohort 配额、公平排队、Jo
 
 ### 10.2 能力矩阵
 
-下表按本站固定版本比较：Kubernetes v1.36.4、Koordinator v1.8.0、Kueue v0.19.2、Grove v0.1.0-alpha.11、KAI-Scheduler v0.17.0 与 Volcano v1.15.1。“Gang 原子性”指 scheduler/admission 的组级提交语义，不代表 API Server 对多个 Pod binding 提供 ACID 事务。
+下表按本站固定版本比较：Kubernetes v1.37.0、Koordinator v1.8.0、Kueue v0.19.2、Grove v0.1.0-alpha.12、KAI-Scheduler v0.17.0 与 Volcano v1.15.2。“Gang 原子性”指 scheduler/admission 的组级提交语义，不代表 API Server 对多个 Pod binding 提供 ACID 事务。
 
-| 维度 | kube-scheduler v1.36.4 | Koordinator v1.8.0 | Kueue v0.19.2 | Grove v0.1.0-alpha.11 | KAI-Scheduler v0.17.0 | Volcano v1.15.1 |
+| 维度 | kube-scheduler v1.37.0 | Koordinator v1.8.0 | Kueue v0.19.2 | Grove v0.1.0-alpha.12 | KAI-Scheduler v0.17.0 | Volcano v1.15.2 |
 |------|------------------------|--------------------|---------------|--------------------------|-----------------------|-----------------|
-| API 稳定性 | 单 Pod API 稳定；DRA `resource.k8s.io/v1`；Workload/PodGroup `v1alpha2` 且默认关闭 | 多组扩展 API/CRD 仍含 `v1alpha1`，需核对 feature gate 与 koordlet | 核心 API 为 `v1beta2`，有明确转换与弃用策略 | 主体 `v1alpha1`，本版本仍明确为 Alpha | PodGroup、Queue、Operator API 快速演进，需按 migration guide 升级 | 历史较长，多组 `v1alpha1`/`v1beta1` CRD，升级面较大 |
+| API 稳定性 | 单 Pod API 稳定；DRA `resource.k8s.io/v1`；Workload/PodGroup `v1beta1` 但 gate 默认关闭；CompositePodGroup `v1alpha3` | 多组扩展 API/CRD 仍含 `v1alpha1`，需核对 feature gate 与 koordlet | 核心 API 为 `v1beta2`，有明确转换与弃用策略 | 主体 `v1alpha1`，本版本仍明确为 Alpha | PodGroup、Queue、Operator API 快速演进，需按 migration guide 升级 | 历史较长，多组 `v1alpha1`/`v1beta1` CRD，升级面较大 |
 | 最终 Bind | 是，Scheduling Framework | 是，`koord-scheduler` | 通常否，准入后交给下游 scheduler | 否，生成/翻译编排意图给 backend | 是，独立 scheduler + Binder | 是，独立 scheduler |
-| Gang 原子性 | `GenericWorkload` + `GangScheduling` Alpha；初始组级提交，真实 Bind 仍异步 | Coscheduling/PodGroup；保证取决于启用的插件与 controller 契约 | Workload/PodSet 准入和 PodsReady 恢复，不等于节点级原子 Bind | 表达层次化 PodGang；实际保证由所选 backend 决定 | PodGroup/SubGroup 是核心调度单元，支持层次化组决策 | gang + enqueue/allocate；PodGroup `minMember/minResources` 驱动组决策 |
+| Gang 原子性 | `GenericWorkload` Beta、默认关闭；初始组级提交，真实 Bind 仍异步 | Coscheduling/PodGroup；保证取决于启用的插件与 controller 契约 | Workload/PodSet 准入和 PodsReady 恢复，不等于节点级原子 Bind | 表达层次化 PodGang；实际保证由所选 backend 决定 | PodGroup/SubGroup 是核心调度单元，支持层次化组决策 | gang + enqueue/allocate；PodGroup `minMember/minResources` 驱动组决策 |
 | 队列、借用与公平 | 无完整租户队列或历史公平系统 | ElasticQuota 多树与 quota runtime | ClusterQueue/LocalQueue/Cohort、借用、Fair Sharing 是核心 | 无全局租户队列 | 层级队列、DRF、priority/time-based fairshare | Queue + DRF/Proportion/Capacity，支持 reclaim |
 | Job 准入 | 不负责；`WorkloadWithJob` 只自动接入特定 Indexed Job | 非核心职责 | suspend/admit、ResourceFlavor、AdmissionCheck、MultiKueue | 依赖上游队列或 backend | 支持 Pod Grouper/批调度路径 | Volcano Job、PodGroup 和广泛 controller 集成 |
 | 拓扑 | Pod/Node 约束稳定；PodGroup TAS Alpha、单 topology constraint | NetworkTopology、NUMA 与设备拓扑 | 在准入层分配 topology domain，具体节点仍由 scheduler 选择 | ClusterTopologyBinding 表达多层拓扑，落地依赖 backend | workload/SubGroup 级 TAS、GPU/NVLink domain 与 DRA | HyperNode、network-topology-aware、NUMA/task topology plugins |
@@ -1323,13 +1333,13 @@ Job -> Kueue LocalQueue/ClusterQueue admission
 
 Grove 描述复杂推理系统的组件、实例、启动依赖和成组扩缩，再通过 scheduler backend 转换 Gang/拓扑意图。kube-scheduler 决定具体 Pod 到 Node，不拥有 Prefill/Decode 或多角色服务的生命周期模型。
 
-v1.36 Workload/PodGroup API 提供了上游统一接口的方向，但 Alpha API 还不等价于 Grove 的多层 clique 和推理编排。二者未来可能是 API 对接关系，而不是简单替代。
+v1.37 Workload/PodGroup v1beta1 API 提供了更明确的上游统一接口方向，但默认关闭的 Beta API 与 Alpha CompositePodGroup 仍不等价于 Grove 的多层 clique 和推理编排。二者未来可能是 API 对接关系，而不是简单替代。
 
 ### 10.6 kube-scheduler 与 KAI-Scheduler
 
 KAI 面向 GPU/AI workload，提供层次队列、公平共享、PodGroup/Gang、GPU sharing、拓扑和分片等完整批调度能力。它适合 GPU 集群中“谁先获得多少资源、整组何时运行、放到哪种拓扑”需要由同一系统强协调的场景。
 
-原生 v1.36 Alpha Gang 不提供 KAI Pod Grouper 针对 segmented elastic PyTorchJob 的自动分组语义。KAI v0.16.7 修复了 `elasticPolicy.minReplicas` 与 segment 边界：必需 worker segments 数量为 `ceil(max(0, minReplicas - masterReplicas) / segmentSize)`，其余 segments 的 `MinAvailable` 为 0；v0.17.0 继续保留该修复，并新增 preemption delay。`kai.scheduler/preemption-delay` 或 PodGroup `spec.preemptionDelay` 只让 Pending workload 在窗口内不能通过 preempt、reclaim、consolidation 驱逐别人，仍允许它使用空闲容量，也不让它自身免于 eviction；每次 eviction 后窗口重新计时，适合给 Cluster Autoscaler 留出扩容时间。
+原生 v1.37 GenericWorkload/Gang 不提供 KAI Pod Grouper 针对 segmented elastic PyTorchJob 的自动分组语义。KAI v0.16.7 修复了 `elasticPolicy.minReplicas` 与 segment 边界：必需 worker segments 数量为 `ceil(max(0, minReplicas - masterReplicas) / segmentSize)`，其余 segments 的 `MinAvailable` 为 0；正文稳定基线 v0.17.0 继续保留该修复，并新增 preemption delay。`kai.scheduler/preemption-delay` 或 PodGroup `spec.preemptionDelay` 只让 Pending workload 在窗口内不能通过 preempt、reclaim、consolidation 驱逐别人，仍允许它使用空闲容量，也不让它自身免于 eviction；每次 eviction 后窗口重新计时，适合给 Cluster Autoscaler 留出扩容时间。审校时存在 `v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc` tag，但没有对应正式 GitHub Release，因此不替代 v0.17.0 基线。
 
 代价是引入独立 scheduler、Binder、admission/controllers、CRD 和升级矩阵。普通在线服务或只需少量标准 GPU Pod 的集群，原生 scheduler + DRA/Device Plugin 更容易运维。
 
@@ -1337,7 +1347,7 @@ KAI 面向 GPU/AI workload，提供层次队列、公平共享、PodGroup/Gang�
 
 Volcano 的 Session/Action/Plugin 模型与 Scheduling Framework 不同，除了放置还提供 Volcano Job 生命周期、Queue、PodGroup、DRF、reclaim/preempt、HyperNode 和广泛批处理集成。
 
-v1.15.1 延续 v1.15.0 的 DRA Queue quota 与 gang-aware actions，并加入 `golang.org/x/crypto` SSH 安全更新，以及 PVC informer race、PrePredicate 后续分配、DRA device count 溢出、HAMi/Ascend 设备记账、scalar milli-unit 和 nil panic 等调度修复。它是补丁基线，不改变 Volcano 与原生 Scheduling Framework 的架构边界。
+v1.15.2 延续 v1.15.0 的 DRA Queue quota 与 gang-aware actions、v1.15.1 的安全和调度修复，并进一步修复 GHSA-j38h-7pfq-cxmw 的 DRA capacity 线性迭代、reclaim/preempt 驱逐后的 predicate/device feasibility、backfill nil panic、HAMi Ascend normal preemption 与 terminating PodGroup 状态。它是补丁基线，不改变 Volcano 与原生 Scheduling Framework 的架构边界。
 
 已有 Spark、MPI、HPC、训练 Job 和成熟 Queue 治理的集群更适合评估 Volcano。仅希望调整 Pod Filter/Score 时，迁移到完整 Volcano 控制面通常超过实际需求。
 
@@ -1370,7 +1380,7 @@ flowchart TB
 | 多租户大规模训练与层级公平 | KAI-Scheduler 或 Volcano | 成熟 Queue/Gang/公平/抢占语义 |
 | HPC/大数据与完整 Job 生命周期 | Volcano | Job、Queue、插件和生态集成丰富 |
 | 多组件、P/D 分离推理 | Grove + 合适 backend | 需要应用编排和层次化 Gang |
-| 试验上游原生 Gang/TAS | 隔离环境启用 v1.36 Alpha gates | 不直接承诺生产兼容性 |
+| 试验上游原生 Gang/TAS | 隔离环境启用 v1.37 `GenericWorkload` Beta 与 TAS Alpha gates | 不直接承诺生产兼容性 |
 
 ### 11.2 只用原生 scheduler 的成功条件
 
@@ -1412,7 +1422,7 @@ flowchart TB
 
 ### 12.2 核心指标
 
-v1.36.4 中值得建立 dashboard 的指标包括：
+v1.37.0 中值得建立 dashboard 的指标包括：
 
 | 指标 | 用途 |
 |------|------|
@@ -1470,9 +1480,9 @@ kubectl describe podgroup -n <namespace> <podgroup>
 1. 锁定 Kubernetes minor/patch、发行版静态 Pod 或 Deployment 的 scheduler 参数。
 2. 校验 `KubeSchedulerConfiguration` API、插件名、参数 schema 和 feature gate 状态。
 3. out-of-tree 插件必须用目标版本 Framework 重新构建并通过兼容测试。
-4. Alpha Workload/PodGroup 对象先导出，确认目标版本 API 是否仍可读写及是否需要转换。
+4. 升级前导出 Workload/PodGroup；从 v1.36 到 v1.37 必须先删除不再 serve 的 `v1alpha2` 对象，再以 v1beta1 schema 重建。
 5. 验证 leader 切换、assumed Pod 回收、Permit 等待项和 DRA claim 状态。
-6. 对共享 counter/partitionable device 做候选回溯测试，确认 v1.36.4 的 reserved-state rollback 生效。
+6. 对共享 counter/partitionable device 做候选回溯与 compatibility group 测试，确认 v1.36.4 引入的 reserved-state rollback 在 v1.37.0 继续生效。
 7. 对关键 Pod 做调度回放，比较目标版本插件默认值和分数变化。
 8. 回滚方案必须同时覆盖二进制、配置、feature gate 和 Alpha API 对象。
 
@@ -1490,7 +1500,7 @@ kubectl describe podgroup -n <namespace> <podgroup>
 | Priority 等于资源预留 | Priority 只影响顺序和抢占，不创建长期容量保证 |
 | PDB 能阻止所有抢占和故障 | 默认抢占尽量尊重 PDB，但不是绝对；节点故障等也不受其完整保护 |
 | DRA 稳定意味着所有设备扩展都稳定 | DRA 核心稳定，多个高级子能力仍有独立 feature state |
-| v1.36 原生已完整替代批调度器 | PodGroup/Gang/TAS/组级抢占仍是 Alpha，队列公平和 Job 编排也未完整覆盖 |
+| v1.37 原生已完整替代批调度器 | Workload/PodGroup 虽升为 Beta，但 gate 默认关闭；TAS/Composite 仍为 Alpha，队列公平和多种 workload controller 编排也未完整覆盖 |
 | Kueue 和 kube-scheduler 二选一 | Kueue 通常负责准入，kube-scheduler 负责最终放置 |
 | Grove 是 GPU scheduler | Grove 描述推理工作负载，具体节点和设备由 backend/driver 选择 |
 | 多装几个 scheduler 会自动协同 | `schedulerName` 只分流 Pod，配额、webhook、设备所有权仍需显式设计 |
@@ -1499,7 +1509,7 @@ kubectl describe podgroup -n <namespace> <podgroup>
 
 1. kube-scheduler 是稳定、可扩展的单 Pod 放置引擎，Scheduling Framework、profile、DRA 和标准约束足以覆盖大量生产工作负载。
 2. 它的热路径依赖本地 cache、snapshot、assume 和异步 binding；理解这些机制比只记 Filter/Score 更有助于定位一致性与性能问题。
-3. Kubernetes v1.35/v1.36 已开始原生提供 Workload/PodGroup、Gang、TAS 和 workload-aware preemption，但 v1.36.4 中这些工作负载级能力仍是默认关闭的 Alpha 能力。
+3. Kubernetes v1.37 已把 Workload/PodGroup、基础 Gang 与 workload-aware preemption 推进到默认关闭的 Beta 路径；TAS、CompositePodGroup、PodGroup preemption policy 和 Job 自动集成仍是默认关闭的 Alpha，不能只看 API 版本判断生产就绪。
 4. AI 调度的缺口往往在队列公平、工作负载原子性、设备拓扑、运行时隔离和应用编排，不应期待一个 `schedulerName` 独立解决所有层。
 5. 选型的正确方式是先画清准入、编排、节点放置和设备隔离的责任边界，再决定保留原生 scheduler、组合 Kueue/Grove，还是采用 Koordinator/KAI/Volcano。
 
@@ -1511,19 +1521,21 @@ kubectl describe podgroup -n <namespace> <podgroup>
 
 | 项目 | 快照 |
 |------|------|
-| Kubernetes release | `v1.36.4` |
-| Annotated release tag object | `b16731bd963a0f0b4ca934ffbd7e56cef33df20e` |
-| Tag 解引用后的 source commit | `bb826b1d48562f110659e64e8ec444327433db95` |
+| Kubernetes release | `v1.37.0` |
+| Annotated release tag object | `157e582fcc3ebba3c22b16721f49d6890f784c1f` |
+| Tag 解引用后的 source commit | `f54c212e3a2f75d674b717a9b29052b20b60aefc` |
 | DRA | v1.34 GA；v1.35 起锁定为默认开启 |
-| GenericWorkload / GangScheduling | v1.35 Alpha，默认关闭 |
+| GenericWorkload（含基础 Gang/组级抢占） | v1.37 Beta，默认关闭 |
 | TopologyAwareWorkloadScheduling | v1.36 Alpha，默认关闭 |
-| WorkloadAwarePreemption | v1.36 Alpha，默认关闭 |
-| OpportunisticBatching | v1.35 Beta，v1.36.4 默认开启 |
-| 审校日期 | 2026-08-22 |
+| CompositePodGroup / PodGroupPreemptionPolicy | v1.37 Alpha，默认关闭 |
+| DRAWorkloadResourceClaims | v1.37 Beta，默认关闭 |
+| SchedulerPreQueueingHints | v1.37 Alpha，默认关闭 |
+| OpportunisticBatching | v1.35 Beta，v1.37.0 默认开启 |
+| 审校日期 | 2026-09-01 |
 
-`v1.36.4` 是 annotated tag：tag object 为 `b16731bd963a0f0b4ca934ffbd7e56cef33df20e`，解引用后的源码 commit 为 `bb826b1d48562f110659e64e8ec444327433db95`。本文页头和站点元数据使用后者；保留 tag object 仅用于复核 Git ref，不把它当作 source commit。
+`v1.37.0` 是 annotated tag：tag object 为 `157e582fcc3ebba3c22b16721f49d6890f784c1f`，解引用后的源码 commit 为 `f54c212e3a2f75d674b717a9b29052b20b60aefc`。本文页头和站点元数据使用后者；保留 tag object 仅用于复核 Git ref，不把它当作 source commit。
 
-本次 patch release 与本文直接相关的变更是 DRA structured allocator 共享 counter 回滚修复，以及 `DRADeviceTaintRules` 打开时 ResourceSlice 变化可能触发 scheduler panic/忽略规则更新的修复。v1.36.4 同时把构建工具链更新到 Go `1.26.5`，修复 kubelet Pod sync context 泄漏、server-side apply 对 container type 变更的 `422 required` 回归，以及 kubeadm etcd learner promotion 的瞬时客户端错误处理。它们都是 patch-level 正确性/安全修复，不新增 DRA、Gang、TAS 或 workload-aware preemption 的 feature gate，也不改变本文对 v1.36 Alpha maturity 的结论。
+v1.37.0 是新的 minor baseline：除 Workload/PodGroup v1beta1 与工作负载级 scheduler 路径外，还升级了 DRA metadata、ResourceHealth 和多个 allocator 扩展。`SchedulerPreQueueingHints` 曾在 release notes 中先宣布 Beta 默认开启，随后因发布前发现问题回退为 Alpha 默认关闭；本文以最终 tag 内 `defaultVersionedKubernetesFeatureGates` 为准。升级不能跳过 v1.36 `v1alpha2` 对象清理，也不能把默认关闭的 Beta/Alpha gate 当作稳定默认能力。
 
 ### A.2 Kubernetes 调度官方参考
 
@@ -1552,22 +1564,27 @@ kubectl describe podgroup -n <namespace> <podgroup>
 
 ### A.4 源码参考
 
-| 主题 | v1.36.4 源码 |
+| 主题 | v1.37.0 源码 |
 |------|--------------|
-| 调度与绑定主流程 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/scheduler/schedule_one.go> |
-| DRA `resource.k8s.io/v1` API 类型 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/staging/src/k8s.io/api/resource/v1/types.go> |
-| DynamicResources 调度插件 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/scheduler/framework/plugins/dynamicresources/dynamicresources.go> |
-| ResourceClaim controller | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/controller/resourceclaim/controller.go> |
-| kubelet DRA manager | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/kubelet/cm/dra/manager.go> |
-| 默认插件集合 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/scheduler/apis/config/v1/default_plugins.go> |
-| 调度指标 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/scheduler/metrics/metrics.go> |
-| Workload/PodGroup API 类型 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/staging/src/k8s.io/api/scheduling/v1alpha2/types.go> |
-| PodGroup scheduling cycle | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/scheduler/schedule_one_podgroup.go> |
-| GangScheduling 插件 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/scheduler/framework/plugins/gangscheduling/gangscheduling.go> |
-| TopologyPlacement 插件 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/scheduler/framework/plugins/topologyaware/topology_placement.go> |
-| Workload-aware preemption | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/scheduler/framework/preemption/podgrouppreemption.go> |
-| Job 自动集成 | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/controller/job/job_scheduling_manager.go> |
-| Feature gates | <https://github.com/kubernetes/kubernetes/blob/v1.36.4/pkg/features/kube_features.go> |
+| v1.37.0 exact source | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc> |
+| 调度与绑定主流程 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/schedule_one.go> |
+| DRA `resource.k8s.io/v1` API 类型 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/api/resource/v1/types.go> |
+| DynamicResources 调度插件 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/framework/plugins/dynamicresources/dynamicresources.go> |
+| ResourceClaim controller | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/controller/resourceclaim/controller.go> |
+| kubelet DRA manager | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/kubelet/cm/dra/manager.go> |
+| 默认插件集合 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/apis/config/v1/default_plugins.go> |
+| 调度指标 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/metrics/metrics.go> |
+| Workload/PodGroup v1beta1 API 类型 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/api/scheduling/v1beta1/types.go> |
+| CompositePodGroup v1alpha3 API 类型 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/api/scheduling/v1alpha3/types.go> |
+| PodGroup scheduling cycle | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/schedule_one_podgroup.go> |
+| GangScheduling 插件 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/framework/plugins/gangscheduling/gangscheduling.go> |
+| TopologyPlacement 插件 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/framework/plugins/topologyaware/topology_placement.go> |
+| Workload-aware preemption | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/framework/preemption/podgrouppreemption.go> |
+| Job 自动集成 | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/controller/job/job_scheduling_manager.go> |
+| Workload builder | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/component-helpers/scheduling/schedulingv1/workloadbuilder> |
+| DRA metadata v1beta1 | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/dynamic-resource-allocation/api/metadata/v1beta1> |
+| DRA ResourceHealth v1 | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/kubelet/pkg/apis/dra/v1> |
+| Feature gates | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/features/kube_features.go> |
 
 ### A.5 关联文档
 
