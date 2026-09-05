@@ -6,9 +6,11 @@
 
 ## 版本与证据边界
 
-当前文档集的审校截止日为 **2026-09-01**。正文优先固定官方最新非 draft、非 prerelease Release（Grove 保留正式 Alpha 标识），并在各文档页头或附录记录 annotated tag 解引用后的 exact source commit；lightweight tag 记录其直接 commit，没有 GitHub Release 的项目固定到审计时的分支 commit。`main`/`master` 后续能力只作为“未发布主线快照”单独说明，不计入稳定版兼容承诺。
+当前文档集的审校截止日为 **2026-09-05**。正文优先固定官方最新非 draft、非 prerelease Release（Grove 保留正式 Alpha 标识），并在各文档页头或附录记录 annotated tag 解引用后的 exact source commit；lightweight tag 记录其直接 commit，没有 GitHub Release 的项目固定到审计时的分支 commit。`main`/`master` 后续能力只作为“未发布主线快照”单独说明，不计入稳定版兼容承诺。
 
 **新稳定基线。** 本轮更新 Mooncake `v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a`、Dynamo `v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a`、Multica `v0.4.37@79559ebb92c48746d716db30a85acdc8c3cef8ec`、vLLM `v0.28.0@2cf0a6915ce544dc493a0990f2ea38d81601128a`、EvalScope `v1.11.1@203cdc93137376df91814036bf99f486b5f4f3d1`、Kubernetes `v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc`、Grove `v0.1.0-alpha.12@015b6d29056f833c144207300cc0da35c76b53b1` 与 Volcano `v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb`。重点包括 Dynamo v1.4.1/v1.4.2 的 classify/pooling 与 NIXL 镜像修复、Multica Plugin Public API v1/新 Runtime/Task 生命周期、vLLM/EvalScope 的压测正确性、Kubernetes Workload/PodGroup v1beta1、Grove PodGangMap/KAI backend，以及 Volcano GHSA-j38h-7pfq-cxmw 和调度修复。
+
+**Kubernetes Blog/RSS 补充审校。** 本轮新增 [Kubernetes Blog 新特性深度综述](Kubernetes-Blog-Feature-Deep-Dive.md)，以 Kubernetes `v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc` 为稳定基线，补入 2026-09-02 至 2026-09-04 发布的 HPA scale-to-zero、DRA Updates 与 KubeletInUserNamespace/rootless Beta 文章，并同时覆盖 9 月 1 日的 etcd RangeStream 和 v1.36 延续能力。Blog 中的 Alpha/Beta、Working Group proposal 和生态项目只记录为审计证据，不纳入 Stable 兼容承诺。
 
 **上轮遗漏纠正。** ModelExpress `v0.5.1@eb5011575dcf56327578634f93a2ec2f7b5416fd` 实际发布于 2026-08-20，早于上轮截止日；本轮补记其 TensorRT-LLM 一等支持与 protobuf 6 客户端兼容。loader、registry、P2P transfer plane 除这两项外没有新增语义，不能把这次补记描述成 8 月 22 日之后的新发布。
 

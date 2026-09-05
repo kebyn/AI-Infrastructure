@@ -4,7 +4,7 @@
 >
 > 基于 Multica 官方仓库和官方文档整理：<https://github.com/multica-ai/multica>
 >
-> 稳定版本基线：annotated tag `v0.4.37` 解引用后的 `79559ebb92c48746d716db30a85acdc8c3cef8ec`；发布后快照：`main@61ea48fd2ef0e9818de38533553e830fd36be349`；审校日期：2026-09-01。正文的产品契约、默认参数和部署行为只以 `v0.4.37` 的 peeled source commit 为准；发布后快照只记录审校时的分支边界，不纳入稳定版兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
+> 稳定版本基线：annotated tag `v0.4.37` 解引用后的 `79559ebb92c48746d716db30a85acdc8c3cef8ec`；发布后快照：`main@61ea48fd2ef0e9818de38533553e830fd36be349`；审校日期：2026-09-05。正文的产品契约、默认参数和部署行为只以 `v0.4.37` 的 peeled source commit 为准；发布后快照只记录审校时的分支边界，不纳入稳定版兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
 
 ![Multica v0.4.37 产品看板：成员与 AI Agent 在同一 Workspace 中围绕 Issue 协作，界面展示状态列、负责人、优先级和项目上下文](https://raw.githubusercontent.com/multica-ai/multica/79559ebb92c48746d716db30a85acdc8c3cef8ec/docs/assets/hero-board.png)
 
@@ -83,7 +83,7 @@ Multica 的核心产品价值不是“给模型一台隔离机器”，而是把
 | Workspace teardown | 删除过程改为单事务、有界 keyset page、owner/task fence 和 10 秒 lock wait 上限 | 避免无限等待或提交半清理租户；失败会回滚并要求重试，不代表跨存储自动删除 Runtime 本地数据 |
 | provider/权限修复 | 修复跨 Workspace project 更新、PR close intent 歧义、Reasonix per-task deny、Cursor MCP shape 与 resumed auth recovery | 这些修复收紧租户、工具与恢复边界，不放宽 Agent Access 或主机权限 |
 
-发布后 `main@61ea48fd...` 只记录 2026-09-01 审计时主线已经越过 `v0.4.37`；其中后续提交仍按未发布快照处理，不反推为本表的稳定能力。此前误把 E2B SDK 的 `b8029973...` 写成 Multica 主线提交，本轮已按 Multica 仓库真实分支头纠正。
+发布后 `main@61ea48fd...` 只记录 2026-09-05 审计时主线已经越过 `v0.4.37`；其中后续提交仍按未发布快照处理，不反推为本表的稳定能力。此前误把 E2B SDK 的 `b8029973...` 写成 Multica 主线提交，本轮已按 Multica 仓库真实分支头纠正。
 
 ### 1.6 v0.4.25/v0.4.32 执行与治理增量
 
@@ -1159,7 +1159,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 | Stable tag | `v0.4.37` | 官方最新稳定基线 | 是 |
 | Annotated tag object | `904911efdfb92c6a54b3eec734084f4f190fb5ae` | 证明 tag 是 annotated tag | 元数据，不是源码 commit |
 | Peeled source commit | `79559ebb92c48746d716db30a85acdc8c3cef8ec` | 正文所有稳定实现与文档证据 | 是 |
-| 审校日期 | `2026-09-01` | 本文证据截止日 | 不代表未来版本 |
+| 审校日期 | `2026-09-05` | 本文证据截止日 | 不代表未来版本 |
 | 发布后 main 快照 | [`main@61ea48fd2ef0e9818de38533553e830fd36be349`](https://github.com/multica-ai/multica/tree/61ea48fd2ef0e9818de38533553e830fd36be349) | 只记录审校时分支已越过 release | 否，不纳入 v0.4.37 稳定兼容承诺 |
 | Release | [`v0.4.37`](https://github.com/multica-ai/multica/releases/tag/v0.4.37) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
 
@@ -1366,4 +1366,4 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 - [Multica License](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/LICENSE)
 - [NOTICE](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/NOTICE)
 
-本文固定的是 2026-09-01 的 `v0.4.37`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
+本文固定的是 2026-09-05 的 `v0.4.37`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。

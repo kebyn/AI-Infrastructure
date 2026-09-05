@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.2@8eab687`、Grove `v0.1.0-alpha.12@015b6d2`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.2@1462fb7`；审校日期：2026-09-01。未发布辅助快照为 Koordinator `main@025aa5923342eb43bb10f29e7ae0cc64988cb540`；Grove 审校时 `main` 与 alpha.12 指向同一 commit。Volcano 官网证据固定到 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart 使用 `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`。主线快照只作证据，不扩大稳定版本承诺。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.2@8eab687`、Grove `v0.1.0-alpha.12@015b6d2`、KAI-Scheduler `v0.17.0@f218c69`、Volcano `v1.15.2@1462fb7`；审校日期：2026-09-05。未发布辅助快照为 Koordinator `main@025aa5923342eb43bb10f29e7ae0cc64988cb540`；Grove 审校时 `main` 与 alpha.12 指向同一 commit。Volcano 官网证据固定到 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart 使用 `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`。主线快照只作证据，不扩大稳定版本承诺。
 
 ---
 
@@ -816,7 +816,7 @@ v0.17.0 同时修复 operator 全集群缓存导致的内存增长、DRA device 
 
 ### 6.13 v0.20.1 tag-only 边界
 
-截至 2026-09-01，仓库已有 `v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc` tag，但它没有对应的正式 GitHub Release；按本文“最新非 draft、非 prerelease Release”规则，正文稳定基线继续使用 `v0.17.0@f218c69bee5e5fc6031273ba555d09916b1ca89a`。不能仅按 tag 排序把 v0.18–v0.20 的 CRD、Chart 或 scheduler 行为纳入兼容承诺。
+截至 2026-09-05，仓库已有 `v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc` tag，但它没有对应的正式 GitHub Release；按本文“最新非 draft、非 prerelease Release”规则，正文稳定基线继续使用 `v0.17.0@f218c69bee5e5fc6031273ba555d09916b1ca89a`。不能仅按 tag 排序把 v0.18–v0.20 的 CRD、Chart 或 scheduler 行为纳入兼容承诺。
 
 历史上 GitHub “latest” 也曾指向旧维护分支 `v0.16.9@724da8388358b7673495a935948ea0a67a86140b`；这同样说明 release channel、维护分支与 tag 序列必须分开审计。需要评估 v0.20.1 时，应等价地把它作为 tag-only 测试快照，独立检查 migration、CRD、镜像与 Helm chart，而不是覆盖本文的 v0.17.0 Release 基线。
 
