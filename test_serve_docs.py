@@ -12,14 +12,16 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_docs = {path.name for path in docs_dir.glob("*-Deep-Dive.md")}
         registered_docs = {Path(doc["src"]).name for doc in serve_docs.DOCS}
 
-        self.assertEqual(len(markdown_docs), 13)
+        self.assertEqual(len(markdown_docs), 14)
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-09-01", doc["meta"])
+                self.assertIn("2026-09-05", doc["meta"])
+                self.assertNotIn("2026-09-01", doc["meta"])
                 self.assertNotIn("2026-08-22", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-09-01", markdown_text)
+                self.assertIn("审校日期：2026-09-05", markdown_text)
+                self.assertNotIn("审校日期：2026-09-01", markdown_text)
                 self.assertNotIn("审校日期：2026-08-22", markdown_text)
 
     def test_readme_tracks_current_audit_summary(self):
@@ -28,7 +30,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         for required_text in (
-            "2026-09-01",
+            "2026-09-05",
             "新稳定基线",
             "上轮遗漏纠正",
             "稳定版未变化",
@@ -70,6 +72,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         for superseded_text in (
             "审校截止日为 **2026-08-13**",
             "审校截止日为 **2026-08-22**",
+            "审校截止日为 **2026-09-01**",
             "v0.4.24@ad23d1da3e94093924e06e9adf2745e9c312c7ce",
             "8 个正文主稳定基线发生变化",
             "v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
@@ -83,6 +86,86 @@ class RenderDocLayoutTest(unittest.TestCase):
         ):
             with self.subTest(superseded_text=superseded_text):
                 self.assertNotIn(superseded_text, readme_text)
+
+    def test_kubernetes_blog_doc_is_registered_rendered_and_source_backed(self):
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+
+        self.assertIn("Kubernetes-Blog-Feature-Deep-Dive.md", docs_by_src)
+        doc = docs_by_src["Kubernetes-Blog-Feature-Deep-Dive.md"]
+        self.assertEqual(
+            doc["title"], "Kubernetes Blog 新特性深度综述"
+        )
+        self.assertEqual(
+            doc["meta"],
+            "Kubernetes v1.36/v1.37 · Kubernetes Blog RSS · 2026-09-05",
+        )
+        for summary_term in (
+            "HPA Scale-to-Zero",
+            "DRA",
+            "Gang Scheduling",
+            "Storage Version Migration",
+            "RangeStream",
+            "Pod Certificates",
+            "ClusterTrustBundles",
+            "KubeletInUserNamespace",
+            "KYAML",
+            "Gateway API",
+            "Agent Sandbox",
+            "Stable/Beta/Alpha",
+        ):
+            with self.subTest(summary_term=summary_term):
+                self.assertIn(summary_term, doc["summary"])
+
+        for source_link in (
+            "https://kubernetes.io/blog/",
+            "https://kubernetes.io/feed.xml",
+            "https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/",
+            "https://kubernetes.io/docs/",
+            "https://kep.k8s.io/5966",
+            "f54c212e3a2f75d674b717a9b29052b20b60aefc",
+        ):
+            with self.subTest(source_link=source_link):
+                self.assertIn(source_link, doc["footer"])
+
+        markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
+        for required_text in (
+            "审校日期：2026-09-05",
+            "v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc",
+            "2026-09-02",
+            "2026-09-03",
+            "2026-09-04",
+            "HPA",
+            "Scale-to-Zero",
+            "DRA",
+            "Gang Scheduling",
+            "Storage Version Migration",
+            "RangeStream",
+            "Pod Certificates",
+            "ClusterTrustBundles",
+            "KubeletInUserNamespace",
+            "KYAML",
+            "Gateway API",
+            "Agent Sandbox",
+            "staticManifestsDir",
+            "StatefulSetRecreateStrategy",
+            "PodAndContainerStatsFromCRI",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc)
+            rendered_doc["dst"] = str(Path(tmpdir) / "kubernetes-blog.html")
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        self.assertIn(
+            '<a class="toc-chapter" href="#第一章rss-范围与证据边界">', html
+        )
+        self.assertIn('<div class="mermaid">', html)
+        self.assertNotIn('class="language-mermaid"', html)
+        self.assertIn("Kubernetes Blog 新特性深度综述", html)
+        self.assertIn("f54c212e3a2f75d674b717a9b29052b20b60aefc", html)
 
     def test_benchmark_snapshot_uses_current_stable_releases(self):
         doc = next(
@@ -877,7 +960,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Multica 深度技术文档")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.4.37 · source@79559eb · main@61ea48f · 2026-09-01",
+            "Multica v0.4.37 · source@79559eb · main@61ea48f · 2026-09-05",
         )
         for summary_term in (
             "Issue/Task",
@@ -925,7 +1008,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         for required_text in (
             "v0.4.37",
             "79559ebb92c48746d716db30a85acdc8c3cef8ec",
-            "审校日期：2026-09-01",
+            "审校日期：2026-09-05",
             "没有强制的 Issue 状态机",
             "Task 完成不等于 Issue 完成",
             "Task 与目标 Runtime 固定绑定且不会自动迁移",
