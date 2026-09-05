@@ -198,7 +198,7 @@ v1.37 完成了 resilient watch cache initialization 的成熟化：
 
 SVM 是通用的存储迁移 API，不是升级工具的万能自动修复。对于 v1.36 Workload/PodGroup 的 <code>scheduling.k8s.io/v1alpha2</code> 到 v1.37 <code>v1beta1</code> 迁移，必须遵守该 API 自己的移除和对象清理要求；不能假设 SVM 会在不再 served 的版本上替代 API 兼容迁移。
 
-证据：[Storage Version Migration Blog](https://kubernetes.io/blog/2026/08/31/kubernetes-v1-37-storage-version-migration-ga/)、[KEP-4192](https://kep.k8s.io/4192)、[Storage Version Migration 文档](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-version/)。
+证据：[Storage Version Migration Blog](https://kubernetes.io/blog/2026/08/31/kubernetes-v1-37-storage-version-migration-ga/)、[KEP-4192](https://kep.k8s.io/4192)、[Storage Version Migration 文档](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/storage-version-migration/)。
 
 ### 3.4 Server-side sharded list/watch：把过滤前移到 API server
 
@@ -1271,7 +1271,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 | Workload-aware scheduling | <https://kep.k8s.io/5732> |
 | Job/Workload integration | <https://kep.k8s.io/5547> |
 | PodGroup preemption policy | <https://kep.k8s.io/5710> |
-| Volume group snapshots | <https://kubernetes-csi.github.io/docs/group-snapshots.html> |
+| Volume group snapshots | <https://kubernetes-csi.github.io/docs/group-snapshot-restore-feature.html> |
 | SELinux mount changes | <https://kep.k8s.io/1710> |
 | StatefulSet Recreate | <https://kep.k8s.io/3541> |
 | kube-proxy nftables | <https://kep.k8s.io/3866> |
@@ -1295,7 +1295,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 | DRA kubelet manager | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/kubelet/cm/dra/manager.go> |
 | StatefulSet controller | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/controller/statefulset/stateful_set_control.go> |
 | kube-proxy nftables | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/proxy/nftables> |
-| API server storage | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/storage> |
+| API server storage | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/apiserver/pkg/storage> |
 
 ### A.7 相关仓库内文档
 
