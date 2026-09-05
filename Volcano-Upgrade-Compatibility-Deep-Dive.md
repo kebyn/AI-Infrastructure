@@ -4,7 +4,7 @@
 
 ---
 
-> 稳定目标版本：Volcano `v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb`；官方文档快照 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-09-01。网站分支只用于文档证据；Chart commit 由正式 chart tag 固定，不把其后主线内容写成 v1.15.2 能力。
+> 稳定目标版本：Volcano `v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb`；官方文档快照 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-09-05。网站分支只用于文档证据；Chart commit 由正式 chart tag 固定，不把其后主线内容写成 v1.15.2 能力。
 
 ---
 
