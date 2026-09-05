@@ -2,7 +2,7 @@
 
 > **Kubernetes v1.36/v1.37、Gateway API、AI/Agent 平台、控制面性能、安全与运维的 RSS 综述**
 >
-> 本文基于 [Kubernetes Blog RSS](https://kubernetes.io/feed.xml) 中 2026 年截至 2026-09-05 的文章，以及对应的官方 Blog 页面、Release 页面、文档、KEP 和 v1.37.0 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.md) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.md)。
+> 本文基于 [Kubernetes Blog RSS](https://kubernetes.io/feed.xml) 中 2026 年截至 2026-09-05 的文章，以及对应的官方 Blog 页面、Release 页面、文档、KEP 和 v1.37.0 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.html) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.html)。
 >
 > 稳定版本基线：Kubernetes <code>v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-09-05。<code>v1.37.0</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
 
@@ -110,8 +110,8 @@ v1.37 不是把所有“新特性”同时打开。尤其对于 AI 平台，要�
 
 | 文档 | 关注点 | 本文只保留的交集 |
 | --- | --- | --- |
-| [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.md) | scheduler queue、Scheduling Framework、DRA 插件、Workload/PodGroup 调度周期和源码 | 只总结 v1.37 的成熟度、升级和跨 SIG 依赖 |
-| [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.md) | Koordinator、Kueue、Grove、KAI-Scheduler、Volcano 的架构和选型 | 只说明这些项目可以如何消费上游 Workload、DRA、Gateway 和 metrics 能力 |
+| [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.html) | scheduler queue、Scheduling Framework、DRA 插件、Workload/PodGroup 调度周期和源码 | 只总结 v1.37 的成熟度、升级和跨 SIG 依赖 |
+| [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.html) | Koordinator、Kueue、Grove、KAI-Scheduler、Volcano 的架构和选型 | 只说明这些项目可以如何消费上游 Workload、DRA、Gateway 和 metrics 能力 |
 | 本文 | Blog/RSS 中跨 SIG 的 API、节点、网络、安全、存储和生态变化 | 给出全局平台组合、成熟度和升级检查 |
 
 ---
@@ -717,7 +717,7 @@ v1.37 还开始弃用 kube-proxy 的 ipvs mode，后续版本计划关闭默认�
 4. warm pool 解决冷启动，不解决多租户配额、secret 注入、逃逸风险和成本计量；
 5. 要把 agent 的工作目录、执行权限、egress、审计和回收分开建模。
 
-本仓库的 [E2B AI Sandbox 深度文档](E2B-Deep-Dive.md) 讨论 Firecracker microVM 和自托管；[Multica 深度文档](Multica-Deep-Dive.md) 讨论本地 coding agent 编排。Agent Sandbox Blog 的 CRD 不应被解读成这两套系统的替代或内建隔离证明。
+本仓库的 [E2B AI Sandbox 深度文档](E2B-Deep-Dive.html) 讨论 Firecracker microVM 和自托管；[Multica 深度文档](Multica-Deep-Dive.html) 讨论本地 coding agent 编排。Agent Sandbox Blog 的 CRD 不应被解读成这两套系统的替代或内建隔离证明。
 
 ### 7.2 AI Gateway Working Group：标准化 AI 流量基础设施，而不是发布一个产品
 
@@ -1299,12 +1299,12 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 ### A.7 相关仓库内文档
 
-- [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.md)
-- [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.md)
-- [Volcano 升级与 Feature 兼容性](Volcano-Upgrade-Compatibility-Deep-Dive.md)
-- [KServe 深度技术文档](KServe-Deep-Dive.md)
-- [Kubeflow 深度技术文档](Kubeflow-Deep-Dive.md)
-- [NVIDIA GPU Operator 深度技术文档](NVIDIA-GPU-Operator-Deep-Dive.md)
-- [HAMi 深度技术文档](HAMi-Deep-Dive.md)
-- [E2B AI Sandbox 深度技术文档](E2B-Deep-Dive.md)
-- [Multica 深度技术文档](Multica-Deep-Dive.md)
+- [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.html)
+- [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.html)
+- [Volcano 升级与 Feature 兼容性](Volcano-Upgrade-Compatibility-Deep-Dive.html)
+- [KServe 深度技术文档](KServe-Deep-Dive.html)
+- [Kubeflow 深度技术文档](Kubeflow-Deep-Dive.html)
+- [NVIDIA GPU Operator 深度技术文档](NVIDIA-GPU-Operator-Deep-Dive.html)
+- [HAMi 深度技术文档](HAMi-Deep-Dive.html)
+- [E2B AI Sandbox 深度技术文档](E2B-Deep-Dive.html)
+- [Multica 深度技术文档](Multica-Deep-Dive.html)
