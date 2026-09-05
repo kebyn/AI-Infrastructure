@@ -135,6 +135,26 @@ DOCS = [
         ),
     },
     {
+        "src": "/data/Kubernetes-Blog-Feature-Deep-Dive.md",
+        "dst": "/data/Kubernetes-Blog-Feature-Deep-Dive.html",
+        "href": "/Kubernetes-Blog-Feature-Deep-Dive.html",
+        "title": "Kubernetes Blog 新特性深度综述",
+        "hero": "Kubernetes Blog 新特性深度综述",
+        "subtitle": "Kubernetes v1.36/v1.37、Gateway API、AI/Agent、控制面、安全与运维新特性全量梳理",
+        "meta": "Kubernetes v1.36/v1.37 · Kubernetes Blog RSS · 2026-09-05",
+        "summary": "覆盖 HPA Scale-to-Zero、DRA、Gang Scheduling、Storage Version Migration、RangeStream、Pod Certificates、ClusterTrustBundles、KubeletInUserNamespace、KYAML、Gateway API、Agent Sandbox，以及 Stable/Beta/Alpha 成熟度和升级回滚边界。",
+        "footer": (
+            '基于 <a href="https://kubernetes.io/blog/">Kubernetes 官方 Blog</a>、'
+            '<a href="https://kubernetes.io/feed.xml">Kubernetes Blog RSS</a>、'
+            '<a href="https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/">'
+            'v1.37 Release 页面</a>、'
+            '<a href="https://kubernetes.io/docs/">Kubernetes 官方文档</a>、'
+            '<a href="https://kep.k8s.io/5966">相关 KEP</a> 与 '
+            '<a href="https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc">'
+            'v1.37.0 exact source</a> 整理'
+        ),
+    },
+    {
         "src": "/data/Kubernetes-Native-Scheduler-Deep-Dive.md",
         "dst": "/data/Kubernetes-Native-Scheduler-Deep-Dive.html",
         "href": "/Kubernetes-Native-Scheduler-Deep-Dive.html",
