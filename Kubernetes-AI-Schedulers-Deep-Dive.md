@@ -504,8 +504,8 @@ LWS 限制修复的是明确的 quota bypass：旧行为允许已 admitted 的 L
 
 | 区域 | v0.19.3 稳定行为 | 升级动作与边界 |
 | --- | --- | --- |
-| DRA/resource transformation | 当 transformation 使用保留资源名 `pods` 时会与 Kueue 内置 Pod 计数冲突；校验要求先移除或重命名该输出 | 扫描 `ResourceTransformation`/自研 transformation 配置，升级前删除或改名 `pods`，并验证旧 Workload 的 quota 结果；不能把保留名当作普通扩展资源 |
-| WorkloadAwareScheduler | 支持 `kueue.x-k8s.io/workload-aware-scheduler` annotation，准入时保留并校验 workload-aware scheduler 选择 | 仅在 scheduler profile 与 controller 明确协同时使用；annotation 不会替代 `schedulerName`、Gang 或最终 Pod binding |
+| DRA/resource transformation | 当 DRA device-class mapping 或 resource transformation 使用保留资源名 `pods` 时，旧版本可能静默丢弃配置或让 Workload 永久 pending；v0.19.3 启动校验会拒绝这类配置 | 升级前删除或重命名 `pods` mapping/output，并同步修改 ClusterQueue `nominalQuota`；不能把保留名当作普通扩展资源 |
+| WorkloadAwareScheduler | 在 `SchedulerLibraryIntegration` gate 开启时，Kueue-managed Job 创建的 Pod 会带 `kueue.x-k8s.io/workload` annotation；此前只有 TAS 路径添加该标记 | 仅在 scheduler profile 与 controller 明确协同时使用；annotation 不会替代 `schedulerName`、Gang 或最终 Pod binding |
 | AdmissionCheck / FairSharing | 修复 AdmissionCheck 状态传播、fair-sharing share/penalty 更新和 re-admit 边界，避免 stale condition 影响排序 | 升级后重新基线 ClusterQueue share、pending reason 和 AdmissionCheck condition；短期顺序变化属于统计纠正，不是配额扩大 |
 | DRA 校验 | 收紧 DeviceClass、ResourceClaim 与 resource transformation 的 schema/引用校验，避免非法 claim 进入准入 | 在 staging 用真实 DeviceClass/ResourceSlice/claim 组合做 dry-run；DRA driver 仍负责设备分配和隔离 |
 | MultiKueue / RayService | 修复 worker/manager Workload 派发、远端状态回写和 RayService 更新竞态 | 验证 worker cluster 断连、重复 watch、RayService 扩缩与回滚；不改变 MultiKueue “准入后由目标集群 scheduler 放置”边界 |
@@ -667,7 +667,7 @@ PodGang epoch migration、KAI backend 与 operator/CRD 必须按同一 alpha.12 
 - **standalone PodClique 的 1:N 映射**：没有 ScalingGroup 的 standalone PodClique 可以映射到一个逻辑 PodGang 下的多个实例，PodGangMap 明确记录 clique 到 gang 的 1:N 关系。依赖该映射的 backend 必须按 map 条目和 owner/reference 处理，不能假设一对一。
 - **低于 `MinAvailable` 的恢复**：当成员缩减使 PodGang 低于 `MinAvailable`，controller 会重新建立可调度状态并恢复缺失成员，而不是把 PodGang 永久留在不一致的 scheduled/ready 状态。缩容、节点故障和 rolling update 需联合测试，确认不会绕过 Gang 门槛。
 - **ClusterTopologyBinding short name**：修复 CRD short name 升级/生成问题，使 `ClusterTopologyBinding` 的 kubectl short name 在安装、升级和回滚后保持可发现。现有脚本应使用完整 kind 或重新读取 discovery，不要依赖旧 short name 的偶然行为。
-- **KAI backend 依赖**：KAI scheduler backend 的依赖版本与 alpha.13 对齐；必须使用同一 release 提供的 backend image/CRD，不能将 alpha.13 operator 与旧 KAI API 混装。KAI 仍负责 PodGroup 的最终调度，Grove 只负责转换和生命周期。
+- **KAI backend 依赖**：alpha.13 将 KAI Scheduler 依赖升级到 `v0.16.9`，backend image/CRD 必须与该依赖和 alpha.13 operator 一起对齐，不能混装旧 KAI API。KAI 仍负责 PodGroup 的最终调度，Grove 只负责转换和生命周期。
 
 升级前导出 PodCliqueSet、PodGang、PodGangMap 和 ClusterTopologyBinding；先在 staging 验证 map 重建、standalone 1:N、成员缩减恢复、backend claim/gate 清理，再滚动升级 operator 与 backend。alpha.13 的修复减少 churn，但不改变 Grove 的 Alpha API、Kueue 配额或 scheduler backend 职责边界。
 

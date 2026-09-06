@@ -4,7 +4,7 @@
 >
 > 基于 Lustre Wiki、DeepSeek 3FS 官方仓库、3FS Design Notes、USRBIO API Reference 与 Fire-Flyer AI-HPC 论文整理
 >
-> 版本基线：deepseek-ai/3fs `main@22fca04564c7cc230fd8b9523b8b92864e1dad47`（项目尚无 GitHub Release）；Lustre 以官方 Wiki/手册为准；审校日期：2026-09-05。本轮复核基线未变化。
+> 版本基线：deepseek-ai/3fs `main@22fca04564c7cc230fd8b9523b8b92864e1dad47`（项目尚无 GitHub Release）；Lustre 以官方 Wiki/手册为准；审校日期：2026-09-06。本轮复核基线未变化。
 
 ---
 
