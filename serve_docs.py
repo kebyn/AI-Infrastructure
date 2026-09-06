@@ -140,9 +140,9 @@ DOCS = [
         "href": "/Kubernetes-Blog-Feature-Deep-Dive.html",
         "title": "Kubernetes Blog 新特性深度综述",
         "hero": "Kubernetes Blog 新特性深度综述",
-        "subtitle": "Kubernetes v1.36/v1.37、Gateway API、AI/Agent、控制面、安全与运维新特性全量梳理",
+        "subtitle": "Kubernetes v1.24—v1.37、Gateway API、AI/Agent、控制面、安全与运维特性历史演进",
         "meta": "Kubernetes v1.36/v1.37 · Kubernetes Blog RSS · 2026-09-06",
-        "summary": "覆盖 HPA Scale-to-Zero、DRA、Gang Scheduling、Storage Version Migration、RangeStream、Pod Certificates、ClusterTrustBundles、KubeletInUserNamespace、KYAML、Gateway API、Agent Sandbox，以及 Stable/Beta/Alpha 成熟度和升级回滚边界。",
+        "summary": "覆盖 2022 年起 v1.24—v1.37 的版本时间线与演进矩阵，以及 HPA Scale-to-Zero、DRA、Gang Scheduling、Storage Version Migration、RangeStream、Pod Certificates、ClusterTrustBundles、KubeletInUserNamespace、KYAML、Gateway API、Agent Sandbox 和 Stable/Beta/Alpha 成熟度、升级回滚边界。",
         "footer": (
             '基于 <a href="https://kubernetes.io/blog/">Kubernetes 官方 Blog</a>、'
             '<a href="https://kubernetes.io/feed.xml">Kubernetes Blog RSS</a>、'

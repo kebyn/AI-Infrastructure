@@ -24,7 +24,7 @@ RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口�
 
 | 类型 | 纳入方式 | 证据边界 |
 | --- | --- | --- |
-| Kubernetes release/feature Blog | 纳入 v1.36、v1.37 的 API、feature gate、控制器和节点能力 | 以对应文章、Release 页面、KEP 与目标 source commit 交叉核对 |
+| Kubernetes release/feature Blog | 纳入 v1.24—v1.37 的 API、feature gate、控制器和节点能力 | 以对应文章、Release 页面、KEP 与目标 source commit 交叉核对；无独立 Blog 的节点标记为 Release/KEP |
 | Gateway API/etcd 等上游项目文章 | 纳入与 Kubernetes 平台直接相关的版本和迁移影响 | 项目版本独立于 Kubernetes minor 版本，不能只看 Kubernetes release |
 | AI/Agent/Headlamp 生态文章 | 提炼 CRD、扩展接口、操作模型和采用边界 | 明确标为生态/提案/教程，不把它们写成 Kubernetes Core API |
 | 观点、访谈、路线图和预告 | 只保留能影响平台决策的事实 | “计划”“建议”“roadmap”不等于已发布实现 |
@@ -50,15 +50,15 @@ RSS XML 的 <code>description</code> 是文章摘要或 HTML 片段，不能代�
 | 2026-07-29 | [controller-runtime Cache](https://kubernetes.io/blog/2026/07/29/controller-runtime-cache-explained/) | 控制器开发 | <code>Get/List</code> 默认走本地 list/watch cache，低 API 请求成本与内存、陈旧读、隐藏扫描是同一个设计的两面 |
 | 2026-07-14 | [Custom Metrics Exporter](https://kubernetes.io/blog/2026/07/14/custom-metrics-exporter-kubernetes/) | 可观测性 / HPA | 自定义指标适配器是 HPA 的外部依赖，不是 Kubernetes Core 指标 API 的自动扩展 |
 | 2026-07-13 | [Headlamp Kubeflow Plugin](https://kubernetes.io/blog/2026/07/13/introducing-headlamp-plugin-for-kubeflow/) | AI 平台生态 | 让 Notebook、TrainJob、Katib 等 CRD 在通用 Kubernetes UI 中可观测 |
-| 2026-06-25 | [Headlamp Volcano Plugin](https://kubernetes.io/blog/2026/06/25/visual-context-volcano-headlamp-plugin/) 与 [Headlamp Knative Plugin](https://kubernetes.io/blog/2026/06/25/headlamp-knative-plugin/) | 运维生态 | 插件改善批任务和 serverless 资源的操作体验，不改变底层调度或伸缩语义 |
+| 2026-07-13 | [Kubernetes Dashboard to Headlamp](https://kubernetes.io/blog/2026/07/13/kubernetes-dashboard-to-headlamp/) | UI 生态迁移 | Dashboard 项目迁移建议和 Headlamp 采用路径；不改变 API server、RBAC 默认值或 Core UI API |
+| 2026-07-08 | [Announcing etcd v3.7.0](https://kubernetes.io/blog/2026/07/08/announcing-etcd-3.7/) | etcd 生态版本 | etcd 3.7 正式版包含 RangeStream 等存储层能力；其版本独立于 Kubernetes，v1.37 `EtcdRangeStream` 需要该版本或兼容实现 |
+| 2026-06-25 | [Cluster API Headlamp](https://kubernetes.io/blog/2026/06/25/headlamp-cluster-api-plugin/)、[Headlamp Volcano Plugin](https://kubernetes.io/blog/2026/06/25/visual-context-volcano-headlamp-plugin/) 与 [Headlamp Knative Plugin](https://kubernetes.io/blog/2026/06/25/headlamp-knative-plugin/) | 平台 UI 生态 | 插件展示 CAPI、批调度和 serverless CRD，不替代各自 controller、scheduler 或 admission |
+| 2026-06-01 | [Dashboard to Headlamp transition](https://kubernetes.io/blog/2026/06/01/dashboard-to-headlamp/) | UI 生态迁移 | 解释项目迁移背景和权限/部署差异，不改变 Core API |
 | 2026-05-13 至 2026-04-22 | [v1.36 Workload-Aware Scheduling](https://kubernetes.io/blog/2026/05/13/kubernetes-v1-36-advancing-workload-aware-scheduling/)、[DRA](https://kubernetes.io/blog/2026/05/07/kubernetes-v1-36-dra-136-updates/)、[Server-Side Sharded List and Watch](https://kubernetes.io/blog/2026/05/06/kubernetes-v1-36-server-side-sharded-list-and-watch/)、[Declarative Validation](https://kubernetes.io/blog/2026/05/05/kubernetes-v1-36-declarative-validation-ga/)、[Memory QoS](https://kubernetes.io/blog/2026/04/29/kubernetes-v1-36-memory-qos-tiered-protection/) 等 | v1.36 前置能力 | v1.37 的 Workload、设备、控制面和 cgroups v2 变化都建立在这批 Alpha/Beta/GA 演进上 |
 | 2026-05-15 至 2026-04-27 | [Mixed Version Proxy](https://kubernetes.io/blog/2026/05/15/kubernetes-1-36-feature-mixed-version-proxy-beta/)、[Service ExternalIPs 弃用/移除](https://kubernetes.io/blog/2026/05/14/kubernetes-v1-36-deprecation-and-removal-of-service-externalips/)、[Cloud Controller Manager Route Sync 指标](https://kubernetes.io/blog/2026/05/15/ccm-new-metric-route-sync-total/)、[PSI Metrics GA](https://kubernetes.io/blog/2026/05/12/kubernetes-v1-36-psi-metrics-ga/)、[Controllers Staleness Mitigation](https://kubernetes.io/blog/2026/04/28/kubernetes-v1-36-staleness-mitigation-for-controllers/)、[Mutable Pod Resources for Suspended Jobs](https://kubernetes.io/blog/2026/04/27/kubernetes-v1-36-mutable-pod-resources-for-suspended-jobs/) | v1.36 兼容/运维 | 代理混版本、网络弃用、节点压力指标、控制器陈旧度和挂起 Job 资源修改必须分别验证，不能合并成一个 feature gate |
 | 2026-03-20 至 2026-03-09 | [Agent Sandbox](https://kubernetes.io/blog/2026/03/20/running-agents-on-kubernetes-with-agent-sandbox/)、[Ingress2Gateway 1.0](https://kubernetes.io/blog/2026/03/20/ingress2gateway-1-0-release/)、[AI Gateway Working Group](https://kubernetes.io/blog/2026/03/09/announcing-ai-gateway-wg/) | AI/网络生态 | AI agent 的隔离状态工作负载、迁移工具和 AI 流量标准仍处于生态项目/提案边界 |
 | 2026-03-18 | [Securing Production Debugging](https://kubernetes.io/blog/2026/03/18/securing-production-debugging-in-kubernetes/) | 安全/运维 | 以临时凭据、最小 RBAC、审计和 JIT 流程约束 `exec`、`port-forward` 与节点调试；不是新 Core API |
 | 2026-03-17 | [Image Promoter rewrite](https://kubernetes.io/blog/2026/03/17/image-promoter-rewrite/) | 项目维护 | 解释 Kubernetes 发布镜像推广基础设施重写；不改变集群 API 或 workload 行为，列作维护证据 |
-| 2026-07-08 | [Announcing etcd v3.7.0](https://kubernetes.io/blog/2026/07/08/announcing-etcd-3.7/) | etcd 生态版本 | etcd 3.7 正式版包含 RangeStream 等存储层能力；其版本独立于 Kubernetes，v1.37 `EtcdRangeStream` 需要该版本或兼容实现 |
-| 2026-07-13 | [Kubernetes Dashboard to Headlamp](https://kubernetes.io/blog/2026/07/13/kubernetes-dashboard-to-headlamp/)、[Transition explained](https://kubernetes.io/blog/2026/06/01/dashboard-to-headlamp/) | UI 生态迁移 | Dashboard 项目迁移建议和 Headlamp 采用路径；不改变 API server、RBAC 默认值或 Core UI API |
-| 2026-06-25 至 2026-07-13 | [Cluster API Headlamp](https://kubernetes.io/blog/2026/06/25/headlamp-cluster-api-plugin/)、[Volcano Headlamp](https://kubernetes.io/blog/2026/06/25/visual-context-volcano-headlamp-plugin/)、[Knative Headlamp](https://kubernetes.io/blog/2026/06/25/headlamp-knative-plugin/)、[Kubeflow Headlamp](https://kubernetes.io/blog/2026/07/13/introducing-headlamp-plugin-for-kubeflow/) | 平台 UI 生态 | 插件展示 CAPI、批调度、serverless 和 ML CRD，不替代各自 controller、scheduler 或 admission |
 
 RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以帮助理解生态方向，但本文不会把 Headlamp 插件、AI Gateway proposal、Agent Sandbox CRD 或某个 Gateway controller 的实现误写成 Kubernetes <code>v1.37.0</code> 的 Core API。
 
@@ -81,7 +81,7 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 
 本章把 Blog 的发布时间与 Kubernetes minor release 分开记录。`Blog` 是发现和解释来源；`Release/KEP/source` 是成熟度、默认 gate 和兼容性的校验来源。没有独立 Blog 的版本节点不会被伪装成 Blog 报道，而是明确标记为“Release/KEP（非 Blog）”。“进入 Beta/GA”和“默认开启”是两个独立事实：前者描述 API/行为的稳定性，后者描述目标版本的默认配置。
 
-纳入规则是：标题或正文明确对应 Kubernetes minor release，或者介绍 API、feature gate、组件行为、迁移、弃用、性能、安全和运维能力；Gateway API、etcd、AI Gateway、Inference Extension、Agent Sandbox、Headlamp 等直接影响 Kubernetes 平台组合的生态专题另列，不把它们冒充 Core。人物访谈、社区 spotlight、维护者故事、无实现的路线图和一般教程不进入特性正文，在 [附录 A.8 排除项](#a8-排除项与审计统计) 统计。
+纳入规则是：标题或正文明确对应 Kubernetes minor release，或者介绍 API、feature gate、组件行为、迁移、弃用、性能、安全和运维能力；Gateway API、etcd、AI Gateway、Inference Extension、Agent Sandbox、Headlamp 等直接影响 Kubernetes 平台组合的生态专题另列，不把它们冒充 Core。人物访谈、社区 spotlight、维护者故事、无实现的路线图和一般教程不进入特性正文，在 [附录 A.8 排除项](#a-8-排除项与审计统计) 统计。
 
 表中“当前边界”均以 `v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc` 为准；“仍稳定”指 Core API 或行为可作为 v1.37 兼容基线，不表示 CSI、CRI、CNI、DRA driver 或生态 controller 已自动支持。
 
@@ -90,7 +90,7 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
 | v1.24 | [Release 2022-05-03](https://kubernetes.io/blog/2022/05/03/kubernetes-1-24-release-announcement/) | Dockershim 移除 | Stable 行为变更，无独立 gate | 把 CRI runtime 作为唯一节点运行时入口，迫使迁移到 containerd/CRI-O | v1.37 仍是前置兼容边界；[Release notes](https://github.com/kubernetes/kubernetes/blob/release-1.24/CHANGELOG/CHANGELOG-1.24.md) |
-| v1.24 | Release/KEP（非 Blog） | Non-graceful node shutdown | Beta，`NonGracefulNodeShutdown` default-on | 将云平台/硬件断电后的 Pod 重调度从 alpha 实验推进到可配置行为 | v1.37 仍稳定，但 provider 与 StatefulSet 恢复策略必须配套；[KEP-2000](https://kep.k8s.io/2000) |
+| v1.24 | [Non-Graceful Node Shutdown Alpha](https://kubernetes.io/blog/2022/05/20/kubernetes-1-24-non-graceful-node-shutdown-alpha/)（2022-05-20） | Non-graceful node shutdown | Alpha，`NonGracefulNodeShutdown` default-off | 首次为云平台/硬件断电后的 Pod 重调度定义恢复语义 | v1.26 升为 Beta、v1.28 GA；v1.37 仍稳定，但 provider 与 StatefulSet 恢复策略必须配套；[KEP-2000](https://kep.k8s.io/2000) |
 | v1.24 | Release/KEP（非 Blog） | cgroups v2 支持 | Beta，Linux/runtime 依赖 | 为 Memory QoS、CRI stats 和 rootless 路径提供内核基础 | v1.37 的 MemoryQoS 仍只对 cgroups v2 有意义；[KEP-2254](https://kep.k8s.io/2254) |
 | v1.24 | Release/KEP（非 Blog） | CSI migration（AWS/GCE 等） | Stable/逐 driver 默认启用 | 让 in-tree volume plugin 迁移到 CSI，保留旧 API 兼容层 | v1.37 只承诺 CSI API，不承诺已退休 driver 的实现；[CSI migration](https://kubernetes.io/docs/concepts/storage/volumes/#csi-migration) |
 | v1.24 | Release notes（非 Blog） | Kubelet credential provider | Beta，`KubeletCredentialProviders` default-on | 将镜像 registry 凭据从静态配置转为 exec plugin | v1.26 API/feature gate 已 GA 并移除 gate；[Release notes](https://github.com/kubernetes/kubernetes/blob/release-1.24/CHANGELOG/CHANGELOG-1.24.md) |
@@ -99,35 +99,39 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
-| v1.25 | [Release 2022-08-23](https://kubernetes.io/blog/2022/08/23/kubernetes-v1-25-release/) | Pod Security Admission | Stable/GA，`PodSecurity` default-on | 从 PodSecurityPolicy 迁移到内置的 namespace label admission | v1.37 仍是 Core 安全基线；策略仍需按 namespace/豁免项审计；[KEP-2579](https://kep.k8s.io/2579) |
+| v1.25 | [Pod Security Admission Stable](https://kubernetes.io/blog/2022/08/25/pod-security-admission-stable/)（2022-08-25） | Pod Security Admission | Stable/GA，`PodSecurity` default-on | 从 PodSecurityPolicy 迁移到内置的 namespace label admission | v1.37 仍是 Core 安全基线；策略仍需按 namespace/豁免项审计；[KEP-2579](https://kep.k8s.io/2579) |
 | v1.25 | Release/KEP（非 Blog） | Ephemeral containers | Stable/GA，无独立 gate | 固化 `kubectl debug` 的临时容器 API 和 RBAC 边界 | v1.37 仍稳定，但生产调试需遵守 [Securing Production Debugging](https://kubernetes.io/blog/2026/03/18/securing-production-debugging-in-kubernetes/) |
 | v1.25 | Release/KEP（非 Blog） | User namespaces for Pods | Alpha，`UserNamespacesSupport` default-off | 首次允许 Pod 内 root 映射为非 root 主机 uid | v1.36 GA；早期仅支持 stateless Pod，不能据此推断 volume/hostNetwork 支持；[KEP-127](https://kep.k8s.io/127) |
 | v1.25 | Release/KEP（非 Blog） | CronJob timeZone | Beta，`CronJobTimeZone` default-on | 让调度时区从 controller 本地时区变成对象字段，避免跨地域歧义 | v1.37 稳定；旧客户端仍应处理 `.spec.timeZone` 缺省；[KEP-3140](https://kep.k8s.io/3140) |
-| v1.25 | Release/KEP（非 Blog） | KMS v2 alpha 与 encryption provider | Alpha，default-off | 为低延迟 envelope encryption 和密钥轮换铺路 | v1.37 KMSv2 已 GA，不能以 v1.25 alpha 配置回滚；[KEP-3299](https://kep.k8s.io/3299) |
+| v1.25 | [KMS v2 Improvements](https://kubernetes.io/blog/2022/09/09/kms-v2-improvements/)（2022-09-09） | KMS v2 alpha 与 encryption provider | Alpha，default-off | 为低延迟 envelope encryption 和密钥轮换铺路 | v1.37 KMSv2 已 GA，不能以 v1.25 alpha 配置回滚；[KEP-3299](https://kep.k8s.io/3299) |
+| v1.25 | [cgroup v2 GA](https://kubernetes.io/blog/2022/08/31/cgroupv2-ga-1-25/)（2022-08-31） | cgroups v2 | Stable/GA，无独立 gate | 为 Memory QoS、CRI stats 和 rootless 路径提供内核基础 | v1.37 的 MemoryQoS 仍只对 cgroups v2 有意义；runtime/kernel 需独立验证 |
 
 ### v1.26（2022-12-09）
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
-| v1.26 | [Release 2022-12-09](https://kubernetes.io/blog/2022/12/09/kubernetes-v1-26-release/) | Dynamic Resource Allocation | Alpha，`DynamicResourceAllocation` default-off | 首次把 GPU/NIC 等结构化设备 claim 引入 Core 调度和 kubelet | v1.37 DRA 已 GA，但 Workload claim、拓扑和健康扩展仍分层；[KEP-3063](https://kep.k8s.io/3063) |
-| v1.26 | Release/KEP（非 Blog） | ValidatingAdmissionPolicy | Alpha，default-off | 以 CEL 表达式在 API server 内执行参数化 admission | v1.37 已 GA；迁移前需检查 CEL 类型检查与旧 webhook 顺序；[KEP-3488](https://kep.k8s.io/3488) |
-| v1.26 | Release/KEP（非 Blog） | Kubelet credential provider | Stable/GA，无独立 gate | `v1beta1` plugin/config API 升为 `v1`，行为保持兼容 | v1.37 稳定路径仍要求 exec plugin、缓存和 registry 版本一致；[KEP-2133](https://kep.k8s.io/2133) |
+| v1.26 | [Dynamic Resource Allocation Alpha](https://kubernetes.io/blog/2022/12/15/dynamic-resource-allocation/)（2022-12-15） | Dynamic Resource Allocation | Alpha，`DynamicResourceAllocation` default-off | 首次把 GPU/NIC 等结构化设备 claim 引入 Core 调度和 kubelet | v1.37 DRA 已 GA，但 Workload claim、拓扑和健康扩展仍分层；[KEP-3063](https://kep.k8s.io/3063) |
+| v1.26 | [Validating Admission Policies](https://kubernetes.io/blog/2022/12/20/validating-admission-policies-alpha/)（2022-12-20） | ValidatingAdmissionPolicy | Alpha，default-off | 以 CEL 表达式在 API server 内执行参数化 admission | v1.37 已 GA；迁移前需检查 CEL 类型检查与旧 webhook 顺序；[KEP-3488](https://kep.k8s.io/3488) |
+| v1.26 | [Kubelet Credential Providers GA](https://kubernetes.io/blog/2022/12/22/kubelet-credential-providers/)（2022-12-22） | Kubelet credential provider | Stable/GA，无独立 gate | `v1beta1` plugin/config API 升为 `v1`，行为保持兼容 | v1.37 稳定路径仍要求 exec plugin、缓存和 registry 版本一致；[KEP-2133](https://kep.k8s.io/2133) |
+| v1.26 | [Device Manager GA](https://kubernetes.io/blog/2022/12/19/devicemanager-ga/)（2022-12-19） | Device Manager | Stable/GA，无独立 gate | 固定 kubelet device plugin manager 的分配、重启和资源上报路径 | v1.37 DRA 是更结构化的设备合同，旧 device plugin 仍受支持 |
+| v1.26 | [Non-Graceful Node Shutdown Beta](https://kubernetes.io/blog/2022/12/16/kubernetes-1-26-non-graceful-node-shutdown-beta/)（2022-12-16） | Non-graceful node shutdown | Beta，`NonGracefulNodeShutdown` default-on | 将 alpha 恢复路径推进为可灰度的节点生命周期能力 | v1.28 GA；v1.37 仍需 provider、PDB 和 StatefulSet 演练；[KEP-2000](https://kep.k8s.io/2000) |
 
 ### v1.27（2023-04-11）
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
-| v1.27 | [Release 2023-04-11](https://kubernetes.io/blog/2023/04/11/kubernetes-v1-27-release/) | In-place Pod resize | Alpha，`InPlacePodVerticalScaling` default-off | 首次允许调整运行中 Pod 的 requests/limits，不必重建 Pod | v1.37 的 suspended Job/Pod-level resize 仍需分别检查 gate 和 kubelet/runtime；[KEP-1287](https://kep.k8s.io/1287) |
-| v1.27 | Release/KEP（非 Blog） | Node log query | Alpha，`NodeLogQuery` default-off | 允许 kubelet 直接查询节点日志，减少 hostPath 调试 | v1.37 仍不是跨发行版日志合同；按节点 RBAC 和审计启用；[KEP-2802](https://kep.k8s.io/2802) |
-| v1.27 | Release/KEP（非 Blog） | KMS v2 | Beta，`KMSv2` default-on | 将 v1 alpha 实现推进为可轮换、可观测的加密路径 | v1.29 KMSv2/KMSv2KDF GA；旧 KMS v1 仅作迁移过渡；[KEP-3299](https://kep.k8s.io/3299) |
+| v1.27 | [In-place Pod Resize Alpha](https://kubernetes.io/blog/2023/05/12/in-place-pod-resize-alpha/)（2023-05-12） | In-place Pod resize | Alpha，`InPlacePodVerticalScaling` default-off | 首次允许调整运行中 Pod 的 requests/limits，不必重建 Pod | v1.35 GA；v1.37 的 suspended Job/Pod-level resize 仍需分别检查 gate 和 kubelet/runtime；[KEP-1287](https://kep.k8s.io/1287) |
+| v1.27 | [Query Node Logs](https://kubernetes.io/blog/2023/04/21/node-log-query-alpha/)（2023-04-21） | Node log query | Alpha，`NodeLogQuery` default-off | 允许 kubelet 直接查询节点日志，减少 hostPath 调试 | v1.37 仍不是跨发行版日志合同；按节点 RBAC 和审计启用；[KEP-2802](https://kep.k8s.io/2802) |
+| v1.27 | [KMS v2 Moves to Beta](https://kubernetes.io/blog/2023/05/16/kms-v2-moves-to-beta/)（2023-05-16） | KMS v2 | Beta，`KMSv2` default-on | 将 v1 alpha 实现推进为可轮换、可观测的加密路径 | v1.29 KMSv2/KMSv2KDF GA；旧 KMS v1 仅作迁移过渡；[KEP-3299](https://kep.k8s.io/3299) |
+| v1.27 | [Efficient SELinux relabeling](https://kubernetes.io/blog/2023/04/18/kubernetes-1-27-efficient-selinux-relabeling-beta/)（2023-04-18） | SELinux volume relabel | Beta，`SELinuxMount` default-off | 通过 mount context 避免大卷逐 inode 重标记 | v1.36 GA、v1.37 默认路径；共享 volume label 仍需回归；[KEP-1710](https://kep.k8s.io/1710) |
 | v1.27 | Release/KEP（非 Blog） | API server tracing | Beta，`APIServerTracing` gate default-on（trace 本身 default-off） | 固定 OpenTelemetry 配置入口和采样边界 | v1.34 `APIServerTracing` GA；采样和 payload 脱敏仍需独立配置；[KEP-647](https://kep.k8s.io/647) |
 
-### v1.28（2023-07-28）
+### v1.28（2023-08-15）
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
-| v1.28 | [Release 2023-07-28](https://kubernetes.io/blog/2023/07/28/kubernetes-v1-28-release/) | Sidecar containers | Alpha，default-off | 通过 restartable init containers 解决日志代理、服务 mesh 和 Job sidecar 退出问题 | v1.37 Stable；不能把 v1.28 alpha manifest 当作跨版本合同；[KEP-753](https://kep.k8s.io/753) |
-| v1.28 | Release/KEP（非 Blog） | User namespaces for Pods | Alpha，`UserNamespacesSupport` default-off（由 stateless gate 重命名） | 让 Pod 内 uid 0 映射到非 root 主机 uid，缩小容器逃逸影响面 | v1.36 Pod User Namespaces GA；与 v1.37 kubelet rootless 是两条独立链；[KEP-127](https://kep.k8s.io/127) |
+| v1.28 | [Native Sidecar Containers](https://kubernetes.io/blog/2023/08/25/native-sidecar-containers/)（2023-08-25） | Sidecar containers | Alpha，default-off | 通过 restartable init containers 解决日志代理、服务 mesh 和 Job sidecar 退出问题 | v1.37 Stable；不能把 v1.28 alpha manifest 当作跨版本合同；[KEP-753](https://kep.k8s.io/753) |
+| v1.28 | [UserNS Stateful Pods](https://kubernetes.io/blog/2023/09/13/userns-alpha/)（2023-09-13） | User namespaces for Pods | Alpha，`UserNamespacesSupport` default-off（由 stateless gate 重命名） | 让 Pod 内 uid 0 映射到非 root 主机 uid，缩小容器逃逸影响面，并扩展到 stateful volume | v1.36 Pod User Namespaces GA；与 v1.37 kubelet rootless 是两条独立链；[KEP-127](https://kep.k8s.io/127) |
 | v1.28 | Release/KEP（非 Blog） | ValidatingAdmissionPolicy | Beta，`ValidatingAdmissionPolicy` default-on | CEL admission 进入可集成阶段，支持参数引用和 failurePolicy | v1.37 GA；仍需审计 CEL 版本、参数 CRD 和 webhook 顺序；[KEP-3488](https://kep.k8s.io/3488) |
 | v1.28 | Release/KEP（非 Blog） | DRA scheduler integration | Alpha，`DynamicResourceAllocation` default-off | scheduler plugin 开始读取 ResourceClaim 并参与预留/分配 | v1.37 DRA Core GA，但 driver/API group 兼容仍需单独验证；[KEP-3063](https://kep.k8s.io/3063) |
 
@@ -136,7 +140,7 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
 | v1.29 | [Release 2023-12-13](https://kubernetes.io/blog/2023/12/13/kubernetes-v1-29-release/) | Sidecar containers | Beta，`SidecarContainers` default-on | 让 sidecar ordering、termination 和 readiness 在 Job/Deployment 中可灰度使用 | v1.37 Stable；旧 controller 仍可能不理解 restartable init；[KEP-753](https://kep.k8s.io/753) |
-| v1.29 | Release/KEP（非 Blog） | ReadWriteOncePod | Stable/GA，gate locked-on | 用 CSI 驱动保证单 Pod 独占 PVC，而非仅单节点独占 | v1.37 稳定；CSI sidecar 版本仍是必要依赖；[KEP-1498](https://kep.k8s.io/1498) |
+| v1.29 | [ReadWriteOncePod Stable](https://kubernetes.io/blog/2023/12/18/read-write-once-pod-access-mode-ga/)（2023-12-18） | ReadWriteOncePod | Stable/GA，gate locked-on | 用 CSI 驱动保证单 Pod 独占 PVC，而非仅单节点独占 | v1.37 稳定；CSI sidecar 版本仍是必要依赖；[KEP-1498](https://kep.k8s.io/1498) |
 | v1.29 | Release/KEP（非 Blog） | API Priority and Fairness | Stable，`APIPriorityAndFairness` locked-on | 将 API server 并发配额从简单 inflight limit 推进为 FlowSchema/PriorityLevel | v1.37 稳定；v1beta3 API 按 v1.32 移除计划迁移；[KEP-1040](https://kep.k8s.io/1040) |
 | v1.29 | Release/KEP（非 Blog） | kube-proxy nftables mode | Alpha，`NFTablesProxyMode` default-off | 引入 nftables 数据平面，为大 Service 数量降低规则更新开销 | v1.31 Beta、v1.33 GA；v1.37 继续增强 netlink 并规划 ipvs retirement；[KEP-3866](https://kep.k8s.io/3866) |
 
@@ -144,9 +148,9 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
-| v1.30 | [Release 2024-04-17](https://kubernetes.io/blog/2024/04/17/kubernetes-v1-30-release/) | ValidatingAdmissionPolicy | Stable/GA，`ValidatingAdmissionPolicy` locked-on | CEL admission 成为 Core API，减少简单策略对 webhook 的依赖 | v1.37 稳定；复杂外部调用仍需要 webhook；[KEP-3488](https://kep.k8s.io/3488) |
+| v1.30 | [Validating Admission Policy GA](https://kubernetes.io/blog/2024/04/24/validating-admission-policy-ga/)（2024-04-24） | ValidatingAdmissionPolicy | Stable/GA，`ValidatingAdmissionPolicy` locked-on | CEL admission 成为 Core API，减少简单策略对 webhook 的依赖 | v1.37 稳定；复杂外部调用仍需要 webhook；[KEP-3488](https://kep.k8s.io/3488) |
 | v1.30 | Release/KEP（非 Blog） | AppArmor fields | Stable/GA，无 gate | 将 AppArmor profile 从 annotation 迁移到结构化 Pod securityContext | v1.37 仍稳定；旧 annotation 兼容和 runtime profile 需盘点；[KEP-24](https://kep.k8s.io/24) |
-| v1.30 | Release/KEP（非 Blog） | Structured authentication configuration | Beta，`StructuredAuthenticationConfiguration` default-on | 以文件/API version 表达 JWT issuer、audience 和 claim mapping | v1.37 仍是 beta/逐组件验证能力；不能与 RBAC 自动等同；[KEP-3331](https://kep.k8s.io/3331) |
+| v1.30 | [Structured Authentication Beta](https://kubernetes.io/blog/2024/04/25/structured-authentication-moves-to-beta/)（2024-04-25） | Structured authentication configuration | Beta，`StructuredAuthenticationConfiguration` default-on | 以文件/API version 表达 JWT issuer、audience 和 claim mapping | v1.37 仍是 beta/逐组件验证能力；不能与 RBAC 自动等同；[KEP-3331](https://kep.k8s.io/3331) |
 | v1.30 | Release/KEP（非 Blog） | User namespaces for Pods | Beta，`UserNamespacesSupport` default-off | 从 stateless alpha 扩展到 volume 等组合，并准备 kubeadm/rootless 路径 | v1.33 默认开启、v1.36 GA；节点 runtime/kernel 仍是前置条件；[KEP-127](https://kep.k8s.io/127) |
 | v1.30 | Release/KEP（非 Blog） | Container restart rules | Alpha，`ContainerRestartRules` default-off | 允许按容器退出码声明 restart 行为，补足 Job/sidecar 生命周期 | v1.37 仍需逐 gate 灰度；不应写入 Stable 兼容合同；[KEP-5307](https://kep.k8s.io/5307) |
 
@@ -155,17 +159,19 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
 | v1.31 | [Release 2024-08-13](https://kubernetes.io/blog/2024/08/13/kubernetes-v1-31-release/) | nftables kube-proxy | Beta，`NFTablesProxyMode` default-on | 从 alpha 数据平面进入可灰度生产路径，改善规则编程和本地流量处理 | v1.37 继续增强 netlink 和 localhost NodePort；[KEP-3866](https://kep.k8s.io/3866) |
-| v1.31 | Release/KEP（非 Blog） | VolumeAttributesClass | Beta，`VolumeAttributesClass` default-on | 允许 PVC 绑定后引用 CSI 参数类，支持在线性能/类型策略选择 | v1.37 稳定性取决于 CSI driver；不是通用 storage migration；[KEP-3751](https://kep.k8s.io/3751) |
+| v1.31 | [VolumeAttributesClass](https://kubernetes.io/blog/2024/08/15/kubernetes-1-31-volume-attributes-class/)（2024-08-15） | VolumeAttributesClass | Beta，`VolumeAttributesClass` default-on | 允许 PVC 绑定后引用 CSI 参数类，支持在线性能/类型策略选择 | v1.37 稳定性取决于 CSI driver；不是通用 storage migration；[KEP-3751](https://kep.k8s.io/3751) |
 | v1.31 | Release/KEP（非 Blog） | PersistentVolume lastPhaseTransitionTime | Beta，default-on | 给容量运维和回收控制器提供 PV 状态变化时间 | v1.37 稳定；旧客户端应忽略新增字段；[KEP-2644](https://kep.k8s.io/2644) |
 | v1.31 | Release/KEP（非 Blog） | Pod lifecycle sleep action | Beta，`PodLifecycleSleepAction` default-on | 为 preStop/postStart 提供可观测、可限制的 sleep，而非 shell hack | v1.37 仍需结合 terminationGracePeriodSeconds 验证；[KEP-3960](https://kep.k8s.io/3960) |
 
-### v1.32（2024-12-10）
+### v1.32（2024-12-11）
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
-| v1.32 | [Release 2024-12-10](https://kubernetes.io/blog/2024/12/11/kubernetes-v1-32-release/) | Dynamic Resource Allocation | Beta，`DynamicResourceAllocation` default-on | DRA API、scheduler、kubelet claim lifecycle 进入可灰度阶段 | v1.37 Core DRA GA；Workload claim、health、topology 仍分别演进；[KEP-3063](https://kep.k8s.io/3063) |
+| v1.32 | [Release 2024-12-11](https://kubernetes.io/blog/2024/12/11/kubernetes-v1-32-release/) | Dynamic Resource Allocation | Beta，`DynamicResourceAllocation` default-on | DRA API、scheduler、kubelet claim lifecycle 进入可灰度阶段 | v1.37 Core DRA GA；Workload claim、health、topology 仍分别演进；[KEP-3063](https://kep.k8s.io/3063) |
 | v1.32 | Release/KEP（非 Blog） | SupplementalGroupsPolicy | Beta，default-on | 让 kubelet 明确控制容器 supplementary groups，减少宿主 `/etc/group` 泄漏 | v1.37 稳定；需在 CRI/runtime 上验证 Strict 模式；[KEP-3619](https://kep.k8s.io/3619) |
 | v1.32 | Release/KEP（非 Blog） | Image volumes | Beta，`ImageVolume` default-on | 把 OCI artifact 作为只读 volume 挂载，支持模型/配置分发 | v1.37 仍需 runtime、registry 和签名策略；[KEP-4639](https://kep.k8s.io/4639) |
+| v1.32 | [Volume Group Snapshots Beta](https://kubernetes.io/blog/2024/12/18/kubernetes-1-32-volume-group-snapshot-beta/)（2024-12-18） | Volume Group Snapshots | Beta，CSI driver 依赖 | 让多个 PVC 形成 crash-consistent snapshot group | v1.36 GA Blog；CSI snapshotter/controller 版本仍必须匹配；[KEP-3476](https://kep.k8s.io/3476) |
+| v1.32 | [Memory Manager GA](https://kubernetes.io/blog/2024/12/13/memory-manager-goes-ga/)（2024-12-13） | Memory Manager | Stable/GA，无独立 gate | 将 NUMA 内存分配与 CPU/Topology manager 的节点策略固定 | v1.37 仍稳定；Pod-level manager 是后续独立 gate |
 | v1.32 | Release/KEP（非 Blog） | User namespaces | Beta 路径持续修复，默认按节点能力 | 解决 idmap、volume、网络和安全上下文的组合问题 | v1.36 才 GA；历史 beta 不等于所有 CSI/CNI 可用；[KEP-127](https://kep.k8s.io/127) |
 
 ### v1.33（2025-04-23）
@@ -173,8 +179,8 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
 | v1.33 | [Release 2025-04-23](https://kubernetes.io/blog/2025/04/23/kubernetes-v1-33-release/) | Sidecar containers | Stable/GA，gate locked-on | 完成从 restartable init alpha→beta→stable 的生命周期演进 | v1.37 可作为 Core 合同，但服务 mesh/Job controller 仍需版本测试；[KEP-753](https://kep.k8s.io/753) |
-| v1.33 | Release/KEP（非 Blog） | In-place Pod resize | Beta，`InPlacePodVerticalScaling` default-on | 允许调整运行中 Pod 资源并由 kubelet/runtime 执行 resize | v1.35 GA；v1.37 对 suspended Job、Pod-level manager 有额外 gate；[KEP-1287](https://kep.k8s.io/1287) |
-| v1.33 | Release/KEP（非 Blog） | User namespaces | Beta，`UserNamespacesSupport` default-on | 在节点能力满足时默认启用 Pod user namespace | v1.36 GA；hostNetwork/volume/CNI/CSI 仍需逐项兼容；[KEP-127](https://kep.k8s.io/127) |
+| v1.33 | [In-Place Pod Resize Beta](https://kubernetes.io/blog/2025/05/16/kubernetes-v1-33-in-place-pod-resize-beta/)（2025-05-16） | In-place Pod resize | Beta，`InPlacePodVerticalScaling` default-on | 允许调整运行中 Pod 资源并由 kubelet/runtime 执行 resize | v1.35 GA；v1.37 对 suspended Job、Pod-level manager 有额外 gate；[KEP-1287](https://kep.k8s.io/1287) |
+| v1.33 | [User Namespaces Enabled by Default](https://kubernetes.io/blog/2025/04/25/userns-enabled-by-default/)（2025-04-25） | User namespaces | Beta，`UserNamespacesSupport` default-on | 在节点能力满足时默认启用 Pod user namespace | v1.36 GA；hostNetwork/volume/CNI/CSI 仍需逐项兼容；[KEP-127](https://kep.k8s.io/127) |
 | v1.33 | Release/KEP（非 Blog） | SupplementalGroupsPolicy | Stable/GA，default-on | 将 Strict/外部 group 语义固定为 Pod security API | v1.37 稳定；CRI 仍需支持 `status` 反馈；[KEP-3619](https://kep.k8s.io/3619) |
 | v1.33 | Release/KEP（非 Blog） | DRA device binding/health groundwork | Beta，部分 gate default-on | 为设备状态、taint、健康和 driver helper 铺设升级路径 | v1.37 的 DRA Updates 才把多项设备能力提升 Stable；[DRA v1.33 notes](https://github.com/kubernetes/kubernetes/blob/release-1.33/CHANGELOG/CHANGELOG-1.33.md) |
 
@@ -182,8 +188,8 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
-| v1.34 | [Release 2025-08-27](https://kubernetes.io/blog/2025/08/27/kubernetes-v1-34-release/) | Dynamic Resource Allocation | Stable/GA，`DynamicResourceAllocation` locked-on | 将 ResourceClaim/DeviceClass/ResourceSlice 的 Core contract 固定 | v1.37 仍是稳定基线；Workload claim 与拓扑组合不是自动 GA；[KEP-3063](https://kep.k8s.io/3063) |
-| v1.34 | Release/KEP（非 Blog） | Pod-level resources | Beta，`PodLevelResources` default-on | 允许 Pod 总体 requests/limits，给 topology/resource manager 更完整的预算 | v1.37 Pod-level manager 另有 beta/default-off gate；[KEP-2837](https://kep.k8s.io/2837) |
+| v1.34 | [DRA Graduates to GA](https://kubernetes.io/blog/2025/09/01/kubernetes-v1-34-dra-updates/)（2025-09-01） | Dynamic Resource Allocation | Stable/GA，`DynamicResourceAllocation` locked-on | 将 ResourceClaim/DeviceClass/ResourceSlice 的 Core contract 固定 | v1.37 仍是稳定基线；Workload claim 与拓扑组合不是自动 GA；[KEP-3063](https://kep.k8s.io/3063) |
+| v1.34 | [Pod Level Resources Beta](https://kubernetes.io/blog/2025/09/22/kubernetes-v1-34-pod-level-resources/)（2025-09-22） | Pod-level resources | Beta，`PodLevelResources` default-on | 允许 Pod 总体 requests/limits，给 topology/resource manager 更完整的预算 | v1.37 Pod-level manager 另有 beta/default-off gate；[KEP-2837](https://kep.k8s.io/2837) |
 | v1.34 | Release/KEP（非 Blog） | User namespaces | Beta/默认按 runtime 能力 | 继续补齐 volume ownership、procfs、hostNetwork 和 securityContext 交互 | v1.36 Pod User Namespaces GA，v1.37 kubelet rootless 仍独立；[KEP-127](https://kep.k8s.io/127) |
 | v1.34 | Release/KEP（非 Blog） | Resilient watch cache initialization | Stable，默认开启 | 把 API server cache 冷启动的 429/backoff 行为固定下来 | v1.37 与 RangeStream、ConcurrentWatchObjectDecode 组合；[KEP-4569](https://kep.k8s.io/4569) |
 | v1.34 | Release/KEP（非 Blog） | API server tracing | Stable/GA，`APIServerTracing` locked-on | 固定 `TracingConfiguration` v1 配置入口 | v1.37 稳定；采样、传输和 payload 脱敏仍由运维配置；[KEP-647](https://kep.k8s.io/647) |
@@ -192,7 +198,7 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
-| v1.35 | [Release 2025-12-17](https://kubernetes.io/blog/2025/12/17/kubernetes-v1-35-release/) | Workload API / PodGroup groundwork | Alpha，`GenericWorkload` default-off | 把 PodSet、minCount、group status 和 gang 调度从生态约定带入上游 API | v1.37 `scheduling.k8s.io/v1beta1` 仍需显式 gate；[KEP-3385](https://kep.k8s.io/3385) |
+| v1.35 | [Workload Aware Scheduling](https://kubernetes.io/blog/2025/12/29/kubernetes-v1-35-introducing-workload-aware-scheduling/)（2025-12-29） | Workload API / PodGroup groundwork | Alpha，`GenericWorkload` default-off | 把 PodSet、minCount、group status 和 gang 调度从生态约定带入上游 API | v1.37 `scheduling.k8s.io/v1beta1` 仍需显式 gate；[KEP-3385](https://kep.k8s.io/3385) |
 | v1.35 | Release/KEP（非 Blog） | Pod-level resource managers | Alpha，`PodLevelResourceManagers` default-off | 让 CPU/Memory/Topology manager 在 Pod 总预算上协同 | v1.37 Beta 但仍 default-off；[KEP-5526](https://kep.k8s.io/5526) |
 | v1.35 | Release/KEP（非 Blog） | In-place Pod resize | Stable/GA，gate locked-on | 完成运行中 Pod 资源调整的 API、kubelet 和 runtime 合同 | v1.37 稳定；suspended Job、Pod-level manager 是独立能力；[KEP-1287](https://kep.k8s.io/1287) |
 | v1.35 | Release/KEP（非 Blog） | Volume group snapshots | Beta/CSI extension 过渡 | 为多卷 crash-consistent backup 补齐 CSI controller/driver 合同 | v1.36 Blog 宣布 GA 的 Kubernetes 侧集成；CSI snapshotter 版本仍必须匹配；[KEP-3476](https://kep.k8s.io/3476) |
@@ -203,9 +209,9 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
 | v1.36 | [Release 2026-04-22](https://kubernetes.io/blog/2026/04/22/kubernetes-v1-36-release/) | Pod User Namespaces | Stable/GA，按 Linux/runtime 能力 | 将容器 uid 0 与主机 root 解耦，建立 rootless Pod 生产边界 | v1.37 稳定；不是 kubelet 自身 rootless；[User Namespaces Blog](https://kubernetes.io/blog/2026/04/23/kubernetes-v1-36-userns-ga/) |
-| v1.36 | 2026-04-24 | Fine-Grained Kubelet API Authorization | Stable，`KubeletFineGrainedAuthz` locked-on | 用 `nodes/metrics`、`nodes/stats` 等子资源替代宽泛 `nodes/proxy` | v1.37 稳定；监控/日志 RBAC 仍需重新签发；[Blog](https://kubernetes.io/blog/2026/04/24/kubernetes-v1-36-fine-grained-kubelet-authorization-ga/) |
-| v1.36 | 2026-04-29 | Memory QoS | Beta，`MemoryQoS` default-on | 引入 `memory.min/low/high` 分层保护，区分 reservation 与 throttling | v1.37 仍 beta，`memoryThrottlingFactor` 默认不主动设置；[Blog](https://kubernetes.io/blog/2026/04/29/kubernetes-v1-36-memory-qos-tiered-protection/) |
-| v1.36 | 2026-05-05 | Declarative Validation | Stable/default-on | 将 API 约束生成代码化并保留 validation warning | v1.37 稳定；旧客户端 apply/patch 要做兼容回归；[Blog](https://kubernetes.io/blog/2026/05/05/kubernetes-v1-36-declarative-validation-ga/) |
+| v1.36 | [Fine-Grained Kubelet API Authorization GA](https://kubernetes.io/blog/2026/04/24/kubernetes-v1-36-fine-grained-kubelet-authorization-ga/)（2026-04-24） | Fine-Grained Kubelet API Authorization | Stable，`KubeletFineGrainedAuthz` locked-on | 用 `nodes/metrics`、`nodes/stats` 等子资源替代宽泛 `nodes/proxy` | v1.37 稳定；监控/日志 RBAC 仍需重新签发 |
+| v1.36 | [Tiered Memory Protection with Memory QoS](https://kubernetes.io/blog/2026/04/29/kubernetes-v1-36-memory-qos-tiered-protection/)（2026-04-29） | Memory QoS | Beta，`MemoryQoS` default-on | 引入 `memory.min/low/high` 分层保护，区分 reservation 与 throttling | v1.37 仍 beta，`memoryThrottlingFactor` 默认不主动设置 |
+| v1.36 | [Declarative Validation GA](https://kubernetes.io/blog/2026/05/05/kubernetes-v1-36-declarative-validation-ga/)（2026-05-05） | Declarative Validation | Stable/default-on | 将 API 约束生成代码化并保留 validation warning | v1.37 稳定；旧客户端 apply/patch 要做兼容回归 |
 | v1.36 | 2026-05-06 至 05-13 | Sharded list/watch、DRA、Workload-aware scheduling | Alpha/Beta，按 gate 分层 | 把过滤、设备状态和调度单位从 Pod 推向 controller/Workload | v1.37 Workload/DRA 仍有 default-off 组合，不能按 Blog 预告整体开启；[Release notes](https://github.com/kubernetes/kubernetes/blob/release-1.36/CHANGELOG/CHANGELOG-1.36.md) |
 
 ### v1.37（2026-08-26 至 2026-09-04）
@@ -1543,3 +1549,143 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 - [HAMi 深度技术文档](HAMi-Deep-Dive.html)
 - [E2B AI Sandbox 深度技术文档](E2B-Deep-Dive.html)
 - [Multica 深度技术文档](Multica-Deep-Dive.html)
+
+### A.8 排除项与审计统计
+
+年份归档和 RSS 中的文章先按标题、正文和发布日期去重，再按下表分类。统计是截至 2026-09-06 的审计快照；由于 Blog RSS 只保留近期条目，2022—2025 的候选来自年份归档、sitemap 和文章页面，不把当前 feed 的截断误判为历史文章不存在。
+
+| 分类 | 处理 | 2022—2026 快照数量/说明 |
+| --- | --- | --- |
+| Release/feature | 纳入正文和时间线，交叉 Release/KEP/source | 14 个 minor release 总览，另有 30+ 个 feature/migration Blog |
+| Gateway、etcd、AI/Agent、Headlamp | 纳入生态章节，独立记录项目版本、CRD/API group 和 conformance | Gateway API v1.5/v1.6、etcd v3.7.0、Inference Extension、Agent Sandbox、4 类 Headlamp plugin |
+| 教程/实践 | 只在能影响平台行为时引用，否则列索引 | Custom Metrics Exporter、controller-runtime Cache 等；不改变 Core API |
+| 访谈、社区 spotlight、维护者故事 | 排除正文，保留标题和类别以证明 RSS 检查没有遗漏 | 例如 WG Device Management、SIG Storage spotlight、open source maintainership |
+| 路线图、proposal、prerelease | 不计入 Stable；仅作为未发布或历史证据 | AI Gateway WG、etcd 3.7.0-beta.0、v1.36/v1.37 Sneak Peek |
+| 第三方产品宣传 | 没有上游 API/KEP/conformance 证据时排除 | 不把某个 Gateway controller、GPU 产品或 UI 功能写成 Kubernetes Core |
+
+排除项的判断不是质量评价：spotlight 和教程可能很有价值，但它们不能证明 API maturity、feature gate 默认值或跨 minor 兼容性。正文只引用它们解释操作方法，并在表格中标明“教程/生态”。
+
+### A.9 2022—2026 全量范围索引（按年份）
+
+下表是本次历史审计的纳入索引。每个 minor 至少有一条官方 Release 文章作为锚点；同一行列出的 feature 文章是本文正文实际使用的官方来源，`Release/KEP` 明确表示该节点没有独立 Blog。
+
+| 年份/版本 | Blog 日期与文章 | 领域 | 分类 |
+| --- | --- | --- | --- |
+| 2022 / v1.24 | 2022-05-03 [Kubernetes 1.24 Release Announcement](https://kubernetes.io/blog/2022/05/03/kubernetes-1-24-release-announcement/)；Dockershim removal、Non-graceful node shutdown | 节点、运行时 | Core Release/KEP |
+| 2022 / v1.25 | 2022-08-23 [Kubernetes v1.25 Release](https://kubernetes.io/blog/2022/08/23/kubernetes-v1-25-release/)；Pod Security Admission、CronJob timeZone | 安全、控制器 | Core Release/KEP |
+| 2022 / v1.26 | 2022-12-09 [Kubernetes v1.26 Release](https://kubernetes.io/blog/2022/12/09/kubernetes-v1-26-release/)；Dynamic Resource Allocation、ValidatingAdmissionPolicy | 设备、准入 | Core Release/KEP |
+| 2023 / v1.27 | 2023-04-11 [Kubernetes v1.27 Release](https://kubernetes.io/blog/2023/04/11/kubernetes-v1-27-release/)；In-place Pod resize、NodeLogQuery、KMSv2 beta | 资源、节点、加密 | Core Release/KEP |
+| 2023 / v1.28 | 2023-08-15 [Kubernetes v1.28 Release](https://kubernetes.io/blog/2023/08/15/kubernetes-v1-28-release/)；Sidecar containers、User namespaces、VAP beta、DRA scheduler | 生命周期、安全、准入、设备 | Core Release/KEP |
+| 2023 / v1.29 | 2023-12-13 [Kubernetes v1.29 Release](https://kubernetes.io/blog/2023/12/13/kubernetes-v1-29-release/)；Sidecar beta、ReadWriteOncePod GA、nftables alpha | 存储、网络、生命周期 | Core Release/KEP |
+| 2024 / v1.30 | 2024-04-17 [Kubernetes v1.30 Release](https://kubernetes.io/blog/2024/04/17/kubernetes-v1-30-release/)；VAP GA、AppArmor fields、structured auth | 准入、安全 | Core Release/KEP |
+| 2024 / v1.31 | 2024-08-13 [Kubernetes v1.31 Release](https://kubernetes.io/blog/2024/08/13/kubernetes-v1-31-release/)；nftables beta、VolumeAttributesClass、PV transition time | 网络、存储 | Core Release/KEP |
+| 2024 / v1.32 | 2024-12-11 [Kubernetes v1.32 Release](https://kubernetes.io/blog/2024/12/11/kubernetes-v1-32-release/)；DRA beta、ImageVolume、SupplementalGroupsPolicy | 设备、镜像、安全 | Core Release/KEP |
+| 2025 / v1.33 | 2025-04-23 [Kubernetes v1.33 Release](https://kubernetes.io/blog/2025/04/23/kubernetes-v1-33-release/)；Sidecar GA、in-place resize beta、supplemental groups GA | 生命周期、资源、安全 | Core Release/KEP |
+| 2025 / v1.34 | 2025-08-27 [Kubernetes v1.34 Release](https://kubernetes.io/blog/2025/08/27/kubernetes-v1-34-release/)；DRA GA、Pod-level resources、watch-cache resilience | 设备、资源、控制面 | Core Release/KEP |
+| 2025 / v1.35 | 2025-12-17 [Kubernetes v1.35 Release](https://kubernetes.io/blog/2025/12/17/kubernetes-v1-35-release/)；Workload/PodGroup groundwork、declarative validation beta | 调度、API machinery | Core Release/KEP |
+| 2025 / Gateway | 2025-06-05 [Gateway API Inference Extension](https://kubernetes.io/blog/2025/06/05/introducing-gateway-api-inference-extension/) | AI 流量 | 生态 extension |
+| 2026 / v1.36 | 2026-04-22 [Haru Release](https://kubernetes.io/blog/2026/04/22/kubernetes-v1-36-release/)；04-22 至 05-15 的 UserNS、SELinux、Memory QoS、VAP、DRA、Workload、PSI、Mixed Proxy、ExternalIPs | Core 与迁移 | Core Blog/Release |
+| 2026 / Gateway | 2026-04-21 [Gateway API v1.5](https://kubernetes.io/blog/2026/04/21/gateway-api-v1-5/)、03-20 [Ingress2Gateway 1.0](https://kubernetes.io/blog/2026/03/20/ingress2gateway-1-0-release/) | 网络迁移 | Gateway project/tool |
+| 2026 / AI/Agent | 2026-03-20 [Agent Sandbox](https://kubernetes.io/blog/2026/03/20/running-agents-on-kubernetes-with-agent-sandbox/)、03-09 [AI Gateway WG](https://kubernetes.io/blog/2026/03/09/announcing-ai-gateway-wg/) | AI/Agent | 生态/提案 |
+| 2026 / etcd/UI | 2026-07-08 [etcd v3.7.0](https://kubernetes.io/blog/2026/07/08/announcing-etcd-3.7/)、06-01/07-13 [Dashboard→Headlamp](https://kubernetes.io/blog/2026/06/01/dashboard-to-headlamp/) | 存储、UI | 独立项目 |
+| 2026 / v1.37 | 2026-08-26 [Garhwal Release](https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/)；08-27 至 09-04 metrics API、CTB/Pod Certificates、SVM、RangeStream、HPA zero、DRA、rootless | Core | Core Blog/Release |
+
+#### A.9.1 历史 Feature Blog 交叉索引
+
+以下链接是年份归档中与本文能力域直接相关的 Feature Blog；它们补足“Release 总览 + KEP”之间的可读证据。文章中的成熟度文字仍以同版本 Release notes/source 为准。
+
+| 日期 | Feature Blog | 能力与版本节点 |
+| --- | --- | --- |
+| 2022-05-05 | [Volume Expansion Now Stable](https://kubernetes.io/blog/2022/05/05/volume-expansion-ga/) | v1.24 存储扩容 GA |
+| 2022-05-06 | [Storage Capacity Tracking GA](https://kubernetes.io/blog/2022/05/06/storage-capacity-ga/) | v1.24 CSI capacity scheduling GA |
+| 2022-05-16 | [Volume Populators Beta](https://kubernetes.io/blog/2022/05/16/volume-populators-beta/) | v1.24 外部数据源填充 PVC beta |
+| 2022-05-20 | [Non-Graceful Node Shutdown Alpha](https://kubernetes.io/blog/2022/05/20/kubernetes-1-24-non-graceful-node-shutdown-alpha/) | v1.24 节点异常关机 alpha |
+| 2022-07-13 | [Gateway API Graduates to Beta](https://kubernetes.io/blog/2022/07/13/gateway-api-graduates-to-beta/) | Gateway API 项目 beta，独立于 Core minor |
+| 2022-08-25 | [Pod Security Admission Stable](https://kubernetes.io/blog/2022/08/25/pod-security-admission-stable/) | v1.25 PSA GA |
+| 2022-08-31 | [cgroup v2 GA](https://kubernetes.io/blog/2022/08/31/cgroupv2-ga-1-25/) | v1.25 节点 cgroups v2 支持 GA |
+| 2022-09-09 | [KMS v2 Improvements](https://kubernetes.io/blog/2022/09/09/kms-v2-improvements/) | v1.25 KMS v2 alpha |
+| 2022-12-15 | [Dynamic Resource Allocation Alpha](https://kubernetes.io/blog/2022/12/15/dynamic-resource-allocation/) | v1.26 ResourceClaim/DRA alpha |
+| 2022-12-16 | [Non-Graceful Node Shutdown Beta](https://kubernetes.io/blog/2022/12/16/kubernetes-1-26-non-graceful-node-shutdown-beta/) | v1.26 节点异常关机 beta |
+| 2022-12-19 | [Device Manager GA](https://kubernetes.io/blog/2022/12/19/devicemanager-ga/) | v1.26 device plugin manager GA |
+| 2022-12-20 | [Validating Admission Policies](https://kubernetes.io/blog/2022/12/20/validating-admission-policies-alpha/) | v1.26 CEL admission alpha |
+| 2022-12-22 | [Kubelet Credential Providers GA](https://kubernetes.io/blog/2022/12/22/kubelet-credential-providers/) | v1.26 镜像凭据 provider GA |
+| 2023-04-21 | [Query Node Logs](https://kubernetes.io/blog/2023/04/21/node-log-query-alpha/) | v1.27 NodeLogQuery alpha |
+| 2023-05-12 | [In-place Pod Resize Alpha](https://kubernetes.io/blog/2023/05/12/in-place-pod-resize-alpha/) | v1.27 在线资源调整 alpha |
+| 2023-05-16 | [KMS v2 Moves to Beta](https://kubernetes.io/blog/2023/05/16/kms-v2-moves-to-beta/) | v1.27 KMSv2 beta |
+| 2023-08-25 | [Native Sidecar Containers](https://kubernetes.io/blog/2023/08/25/native-sidecar-containers/) | v1.28 restartable init/sidecar alpha |
+| 2023-09-13 | [UserNS Stateful Pods](https://kubernetes.io/blog/2023/09/13/userns-alpha/) | v1.28 UserNamespacesSupport 扩展到 stateful alpha |
+| 2023-12-18 | [ReadWriteOncePod Stable](https://kubernetes.io/blog/2023/12/18/read-write-once-pod-access-mode-ga/) | v1.29 单 Pod PVC 独占 GA |
+| 2024-04-22 | [User Namespaces Beta](https://kubernetes.io/blog/2024/04/22/userns-beta/) | v1.30 Pod user namespace beta |
+| 2024-04-24 | [Validating Admission Policy GA](https://kubernetes.io/blog/2024/04/24/validating-admission-policy-ga/) | v1.30 VAP GA |
+| 2024-04-25 | [Structured Authentication Beta](https://kubernetes.io/blog/2024/04/25/structured-authentication-moves-to-beta/) | v1.30 结构化认证 beta |
+| 2024-08-15 | [VolumeAttributesClass](https://kubernetes.io/blog/2024/08/15/kubernetes-1-31-volume-attributes-class/) | v1.31 CSI 参数类 beta |
+| 2024-12-13 | [Memory Manager GA](https://kubernetes.io/blog/2024/12/13/memory-manager-goes-ga/) | v1.32 Memory Manager GA |
+| 2024-12-18 | [Volume Group Snapshots Beta](https://kubernetes.io/blog/2024/12/18/kubernetes-1-32-volume-group-snapshot-beta/) | v1.32 CSI group snapshot beta |
+| 2025-02-28 | [NFTables kube-proxy](https://kubernetes.io/blog/2025/02/28/nftables-kube-proxy/) | v1.33 nftables GA 前的实现/运维说明 |
+| 2025-04-25 | [User Namespaces Enabled by Default](https://kubernetes.io/blog/2025/04/25/userns-enabled-by-default/) | v1.33 UserNamespacesSupport default-on |
+| 2025-05-16 | [In-Place Pod Resize Beta](https://kubernetes.io/blog/2025/05/16/kubernetes-v1-33-in-place-pod-resize-beta/) | v1.33 resize beta |
+| 2025-06-05 | [Gateway API Inference Extension](https://kubernetes.io/blog/2025/06/05/introducing-gateway-api-inference-extension/) | Gateway 生态 InferencePool/InferenceModel |
+| 2025-09-01 | [DRA Graduates to GA](https://kubernetes.io/blog/2025/09/01/kubernetes-v1-34-dra-updates/) | v1.34 DRA structured parameters GA |
+| 2025-09-22 | [Pod Level Resources Beta](https://kubernetes.io/blog/2025/09/22/kubernetes-v1-34-pod-level-resources/) | v1.34 `PodLevelResources` beta/default-on |
+| 2025-12-29 | [Workload Aware Scheduling](https://kubernetes.io/blog/2025/12/29/kubernetes-v1-35-introducing-workload-aware-scheduling/) | v1.35 Workload/Gang alpha |
+
+### A.10 特性首次出现与成熟度索引
+
+“首次 Blog”是官方文章第一次解释该能力的日期；“首次 KEP”有些早于 Blog，表示设计提案而不是已发布 API；Alpha/Beta/GA 版本来自 Release notes 或目标版本源码。对同一能力的多个 gate，不把其中一个 gate 的 GA 推断为全部扩展 GA。
+
+| 特性 | 首次 Blog/首次 KEP | Alpha | Beta | Stable/GA | v1.37 判定 |
+| --- | --- | --- | --- | --- | --- |
+| Pod Security Admission | v1.25 Release / KEP-2579 | v1.22 | v1.23 | v1.25 | Core stable/default-on |
+| Dynamic Resource Allocation | v1.26 Release / KEP-3063 | v1.26 | v1.32 | v1.34（Core） | Workload claims/拓扑另计 |
+| ValidatingAdmissionPolicy | v1.26 Release / KEP-3488 | v1.26 | v1.28 | v1.30 | Core stable，CEL/参数需验证 |
+| Sidecar containers | v1.28 Release / KEP-753 | v1.28 | v1.29 | v1.33 | Core stable |
+| In-place Pod resize | v1.27 Release / KEP-1287 | v1.27 | v1.33 | v1.35 | Core stable；suspended Job/manager 另有 gate |
+| User Namespaces for Pods | v1.25 Release notes / KEP-127 | v1.25 | v1.30 | v1.36 | Core stable；v1.33 default-on，kubelet rootless 独立 |
+| ReadWriteOncePod | v1.29 Release / KEP-1498 | v1.22 | v1.25 | v1.29 | Core stable，CSI 依赖 |
+| KMS v2 | v1.27 Release / KEP-3299 | v1.25 | v1.27 | v1.29 | KMSv2/KMSv2KDF stable |
+| Kubelet credential provider | v1.24 Release notes / KEP-2133 | v1.20 | v1.24 | v1.26 | Core stable；v1.28 移除 gate |
+| API server tracing | v1.27 Release notes / KEP-647 | v1.22 | v1.27 | v1.34 | Core stable；配置与采样独立 |
+| kube-proxy nftables | v1.29 Release / KEP-3866 | v1.29 | v1.31 | v1.33 | Core stable；v1.37 增强 netlink，ipvs 退场规划 |
+| Pod-level resources | v1.34 Release / KEP-2837 | v1.27 proposal | v1.34 | 未 GA | API beta/default-on；manager gate default-off |
+| Memory QoS | v1.36 Blog / KEP-2570 | v1.22 | v1.36 | 未 GA | Beta/default-on，cgroups v2 |
+| Workload/Gang | v1.35 Release、v1.36 Blog / KEP-3385/5732 | v1.35 | v1.37 部分路径 | 未 GA | API v1beta1 但 gate 分层 |
+| HPA scale-to-zero | v1.37 Blog / KEP-2021 | v1.23 proposal | v1.37 | 未 GA | Beta/default-on，需 object/external metrics |
+| Pod Certificates/ClusterTrustBundles | v1.29 CTB notes / KEP-4317/3257 | v1.29 | v1.36 | v1.37 | signer、RBAC、rotation 仍外置 |
+| Storage Version Migration | KEP-4192 | v1.28 | v1.31 | v1.37 | API `storagemigration.k8s.io/v1`，controller default-on |
+| Declarative Validation | v1.35 Release / KEP-5073 | v1.32 proposal | v1.35 | v1.36 | 仅已迁移 API |
+| Volume Group Snapshots | CSI extension / KEP-3476 | 外部 | v1.35 | v1.36 | CSI controller/driver 依赖 |
+| etcd RangeStream | v1.37 Blog / KEP-5966 | v1.36 proposal | v1.37 | 未 GA | etcd 3.7+，fallback unary |
+
+### A.11 Core、生态项目和独立版本边界
+
+| 项目 | 自身版本/日期 | API group 或接口 | 与 Kubernetes Core 的关系 |
+| --- | --- | --- | --- |
+| Kubernetes | `v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc`，2026-08-26 | `*.k8s.io` Core API、feature gates | 本文唯一的 Stable 兼容基线 |
+| etcd | `v3.7.0`，2026-07-08 Blog | etcd v3 gRPC `RangeStream` | 存储项目独立发布；是 v1.37 RangeStream 的外部依赖 |
+| Gateway API | v1.5 / v1.6（2026） | `gateway.networking.k8s.io/v1`、实验 `gateway.networking.x-k8s.io` | SIG Network 独立 release train；controller conformance 另审计 |
+| Ingress2Gateway | 1.0，2026-03-20 | CLI converter | 迁移工具，不是 apiserver API 或 controller |
+| Inference Extension | 2025-06 Blog | `InferencePool`、`InferenceModel`、EPP | Gateway ecosystem extension，CRD/controller 独立 |
+| Agent Sandbox | 2026-03 Blog；项目自身版本另行固定 | Sandbox/SandboxClaim CRD | 生态项目，不提供 Core microVM 或默认隔离 |
+| Headlamp | 2026 plugin articles | UI plugin、Kubernetes REST API | Dashboard/UI 迁移和插件不改变 Core API/RBAC |
+| Kueue、Volcano、Koordinator、Grove、KAI | 各自 release/tag | Workload/Queue/PodGroup 等扩展 | 可消费上游 Workload/DRA，但 queue、quota、fairness 属于生态 |
+
+### A.12 Blog 声明与 Release/KEP/source 差异记录
+
+| 差异 | 文章表述 | 审计采用的事实和处理 |
+| --- | --- | --- |
+| Beta 与 default-on 混淆 | Sneak Peek 或摘要常写“available” | 以目标版本 `defaultVersionedKubernetesFeatureGates`、组件 config 和 CHANGELOG 为准，矩阵同时写 maturity/default |
+| DRA “下一代”叙述 | v1.36/v1.37 DRA Blog 将多个 driver、health、taint、NUMA 能力并列 | 只把 v1.34 Core DRA 和 v1.37 明确 Stable 的 gate 写入稳定基线，Workload claim、topology、derived attribute 保留 beta/alpha |
+| Workload/PodGroup API | Blog 可能使用 Workload、PodGroup、Gang 统称 | 按 `scheduling.k8s.io/v1beta1`、具体 gate 和 controller 分拆；不把 Kueue/Volcano 行为归给 Core |
+| RangeStream 依赖 | Kubernetes Blog 以 v1.37 feature 描述 | etcd v3.7.0 是独立前置，旧 etcd `Unimplemented` fallback 作为性能降级而非等价实现 |
+| User namespaces 与 rootless | “rootless”标题容易把 Pod 和 kubelet 混为一谈 | Pod UserNS v1.36 GA、KubeletInUserNamespace v1.37 Beta 分开记录；runtime/CNI/CSI/GPU 仍需节点级验证 |
+| ExternalIPs 弃用 | Blog 标题同时出现 deprecation/removal | 以 v1.36/v1.37 discovery、release notes 和现有对象迁移步骤为准，不宣称 Service API 整体移除 |
+| Headlamp/Dashboard | 迁移文章可能被读成 Core UI 替换 | 记录为生态部署和权限迁移；API server、RBAC、审计和 controller 语义不变 |
+| etcd prerelease | v3.7.0-beta.0 文章先于正式版 | beta 仅作为 prerelease 证据，正式兼容记录固定 v3.7.0 |
+
+### A.13 未发布主线、proposal、prerelease 与 tag-only 审计区
+
+- `v1.36/v1.37 Sneak Peek`、AI Gateway WG charter、Inference Extension roadmap 和 Agent Sandbox 快照只证明审校时的设计/实现形态；它们不扩大 `v1.37.0` Stable 承诺。
+- etcd `v3.7.0-beta.0` 是 prerelease，正式 RangeStream 依赖固定到 `v3.7.0`；不要用 beta 性能数字作为生产容量合同。
+- Gateway API `x-k8s` 实验 group、Inference Extension CRD、Headlamp plugin 和 Kueue/Volcano/Grove/KAI 的自身 tag 都有独立版本；升级 Kubernetes 时不能只看 minor 号。
+- 没有 GitHub Release 的生态 tag、分支 commit 或 proposal 若需要复现实验，应记录 exact commit、日期和“未发布/审计证据”标签；它们不得写入本文 v1.37 Stable 表。
+- 未来 Blog 不会自动纳入本版本文档；下一轮审校应重新抓取年份归档、RSS、sitemap，并更新截止日期、文章索引和差异表。
