@@ -1059,6 +1059,74 @@ v1.37 release notes 记录 client-go 的 context propagation 和 contextual logg
 - 保持日志 key 稳定，避免把高基数 object UID 无限制放到 metrics label；
 - 对认证插件仍可能使用 global klog 的少数调用单独评估。
 
+## v1.36/v1.37 Blog 补全审计
+
+本节逐条补充 RSS 中容易被版本总览掩盖的文章。它们有些是 Core feature，有些是弃用/迁移或运维说明；文章出现于同一周不代表共享 feature gate，也不代表都进入 Stable。
+
+### v1.36 Mixed Version Proxy（2026-05-15）
+
+[Mixed Version Proxy Graduates to Beta](https://kubernetes.io/blog/2026/05/15/kubernetes-1-36-feature-mixed-version-proxy-beta/) 描述 kube-apiserver 在控制面组件版本不一致窗口内代理请求的行为。它解决的是升级期间旧 kube-apiserver 不认识新 API group、客户端却通过统一 endpoint 访问资源的问题；它不是允许任意 minor 版本长期混跑的兼容合同。
+
+| 项目 | v1.36 记录 |
+| --- | --- |
+| 成熟度 | Beta；以 release branch 的 feature-gate 表和 `--runtime-config` 共同判断 |
+| 默认状态 | 由目标组件配置决定，不能仅凭 Blog 标题推断 default-on |
+| 兼容边界 | 只覆盖 API aggregation/proxy 的已定义路径；对象 schema、admission、storage version 和 webhook 仍需按最老组件验证 |
+| v1.37 处理 | 升级窗口结束后仍应收敛到受支持的 skew；把代理指标、429/5xx 和 discovery 缓存纳入回滚演练 |
+
+### v1.36 Service ExternalIPs 弃用与移除（2026-05-14）
+
+[Deprecation and removal of Service ExternalIPs](https://kubernetes.io/blog/2026/05/14/kubernetes-v1-36-deprecation-and-removal-of-service-externalips/) 是 API 行为和安全边界调整，不是新 service type。`spec.externalIPs` 允许把任意节点上的地址作为 Service 入口，历史上容易绕过云负载均衡和网络策略；迁移应使用 `LoadBalancer`、Gateway API、NodePort 或明确的外部 ingress。
+
+| 阶段 | 事实 |
+| --- | --- |
+| v1.36 | Blog 宣布弃用/移除路径；旧对象读取和更新要对照 release notes、API discovery 与 admission 行为 |
+| v1.37 | 不把 externalIPs 当作新增能力；现有集群必须盘点字段、iptables/nftables 规则和云 provider 依赖 |
+| 迁移 | 先建立等价的 `LoadBalancer`/Gateway/Ingress 流量，再删除字段；验证源 IP、健康检查、TLS 和 NetworkPolicy |
+
+### v1.36 Cloud Controller Manager Route Sync 指标（2026-05-15）
+
+[New Metric for Route Sync](https://kubernetes.io/blog/2026/05/15/ccm-new-metric-route-sync-total/) 增加 route sync 成功/失败和耗时的可观测性。它是 cloud-controller-manager 的组件指标，不是 Kubernetes API；provider 仍决定路由表、重试和最终一致性。
+
+建议至少记录 `cloudprovider_route_sync_total`（按 provider、result 分类）、sync latency、API throttling 和节点/Service 数量，并把指标与 Gateway/LoadBalancer 事件关联。v1.37 只承诺已发布组件暴露的指标名称和帮助文本，不能假设所有 cloud provider 都实现同一 label 集合。
+
+### v1.36 PSI Metrics GA（2026-05-12）
+
+[PSI Metrics for Kubernetes Graduates to GA](https://kubernetes.io/blog/2026/05/12/kubernetes-v1-36-psi-metrics-ga/) 将 Linux Pressure Stall Information 从实验采集路径提升为稳定 kubelet/cAdvisor 指标。PSI 的 `some`/`full` pressure 表示任务等待资源的时间比例，不能直接当作 CPU 使用率或 OOM 计数。
+
+使用边界：仅 Linux 内核开启 PSI 的节点能提供值；Windows、旧内核或禁用 cgroup/PSI 的节点可能返回缺失；采集端、Prometheus recording rule 和告警需允许 absent series。它可辅助解释 GPU/CPU/内存争用和 scale-out 延迟，但不替代 HPA resource/custom metrics。
+
+### v1.36 Staleness Mitigation and Observability for Controllers（2026-04-28）
+
+[Staleness Mitigation and Observability for Controllers](https://kubernetes.io/blog/2026/04/28/kubernetes-v1-36-staleness-mitigation-for-controllers/) 讨论 informer/controller cache 陈旧读和控制器重试风暴。重点是暴露 cache freshness、workqueue latency、resource version gap，并在 watch 断线、compaction、API 429 时退避和重新 list。
+
+这篇文章是控制器工程指南，不是新 Core API。v1.37 的 RangeStream 和 watch-cache 初始化只降低 API server 侧峰值；自研 controller 仍要选择 namespace/selector/metadata-only cache，明确哪些 reconcile 必须 live GET，避免把缓存陈旧误判成对象删除。
+
+### v1.36 Mutable Pod Resources for Suspended Jobs（2026-04-27）
+
+[Mutable Pod Resources for Suspended Jobs](https://kubernetes.io/blog/2026/04/27/kubernetes-v1-36-mutable-pod-resources-for-suspended-jobs/) 允许 Job 在 suspended 状态下调整 Pod template 的资源请求，再恢复执行。这是批作业/队列系统根据实际 GPU、CPU 或内存配额做 admission 的过渡能力。
+
+- 资源修改只在 Job 未启动或被挂起的条件下有定义，不能当作通用在线 resize；
+- scheduler、kubelet、runtime 仍要支持最终 Pod resources，DRA claim 的 allocation 不会自动随资源字段重算；
+- v1.37 的 `InPlacePodVerticalScaling`、`PodLevelResourceManagers` 和 Workload claim 是不同 gate，升级/回滚不能混为一个 API；
+- 使用时记录 Job suspend/resume、template hash、Pod UID、claim reservation 和失败原因。
+
+### v1.36 总览与 v1.37 Sneak Peek
+
+[Kubernetes v1.36: Haru](https://kubernetes.io/blog/2026/04/22/kubernetes-v1-36-release/) 是版本边界的总览文章；[v1.36 Sneak Peek](https://kubernetes.io/blog/2026/03/30/kubernetes-v1-36-sneak-peek/) 和 [v1.37 Sneak Peek](https://kubernetes.io/blog/2026/07/31/kubernetes-v1-37-sneak-peek/) 是 release 前预告。预告中的 proposal、Alpha 和预计名称只能作为历史线索，最终成熟度、默认 gate 和 API 字段必须回到对应 CHANGELOG、KEP 和 exact source。
+
+### etcd v3.7.0 与 RangeStream 的关系
+
+[Announcing etcd v3.7.0](https://kubernetes.io/blog/2026/07/08/announcing-etcd-3.7/) 是 etcd 项目自己的正式 release；[v3.7.0-beta.0](https://kubernetes.io/blog/2026/05/20/etcd-370-beta/) 只属于 prerelease 证据。Kubernetes v1.37 的 `EtcdRangeStream` 依赖 etcd 3.7 的 server-streaming RPC，但 etcd release 不会自动升级 kube-apiserver，也不改变 Kubernetes API 版本。生产记录应分别保存 Kubernetes `v1.37.0@f54c212e...`、etcd `v3.7.0`、容器镜像 digest 和 gate，旧 etcd 的 `Unimplemented` fallback 仍需容量测试。
+
+### Securing Production Debugging（2026-03-18）
+
+[Securing Production Debugging in Kubernetes](https://kubernetes.io/blog/2026/03/18/securing-production-debugging-in-kubernetes/) 是安全运维指南，围绕 ephemeral container、`exec`、`port-forward`、节点 shell 和临时凭据给出 JIT 授权、最小 RBAC、审计与过期回收流程。它没有新增 API 或 feature gate；v1.37 平台应把 `nodes/proxy`、细粒度 kubelet authz、audit policy 和 break-glass 身份一起验收。
+
+### Dashboard → Headlamp 迁移（2026-06-01、2026-07-13）
+
+[From Kubernetes Dashboard to Headlamp](https://kubernetes.io/blog/2026/06/01/dashboard-to-headlamp/) 与 [Step-by-Step Guide](https://kubernetes.io/blog/2026/07/13/kubernetes-dashboard-to-headlamp/) 记录 UI 项目和部署路径迁移。Headlamp 是独立 CNCF 项目，插件通过 Kubernetes API 读取 CRD；迁移不改变 API server、RBAC、audit 或控制器语义。迁移验收应核对 namespace scope、impersonation、secret 脱敏、plugin 版本和反向代理，而不是只比较页面是否能打开。
+
 ---
 
 ## 第九章：Stable/Beta/Alpha 对照矩阵
