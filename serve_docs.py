@@ -54,6 +54,24 @@ DOCS = [
         ),
     },
     {
+        "src": "/data/Teleport-Deep-Dive.md",
+        "dst": "/data/Teleport-Deep-Dive.html",
+        "href": "/Teleport-Deep-Dive.html",
+        "title": "Teleport OSS 深度技术文档",
+        "hero": "Teleport OSS 深度技术文档",
+        "subtitle": "身份感知基础设施访问、短期证书、统一 RBAC、反向隧道与审计架构解析",
+        "meta": "Teleport v18.10.0 · source@ddaa46b · 2026-09-06",
+        "summary": "覆盖 Auth/Proxy/Agent、短期证书与 CA、Role/标签授权、SSH/Kubernetes/数据库/App/Desktop/MCP、会话审计、HA、升级恢复及 Community/Enterprise 边界。",
+        "footer": (
+            '基于 <a href="https://github.com/gravitational/teleport/tree/ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d">'
+            'gravitational/teleport v18.10.0 源码</a>、'
+            '<a href="https://github.com/gravitational/teleport/releases/tag/v18.10.0">'
+            'v18.10.0 Release</a>、'
+            '<a href="https://goteleport.com/docs/">Teleport 官方文档</a> 与 '
+            '<a href="https://goteleport.com/docs/reference/architecture/">官方架构说明</a> 整理'
+        ),
+    },
+    {
         "src": "/data/Multica-Deep-Dive.md",
         "dst": "/data/Multica-Deep-Dive.html",
         "href": "/Multica-Deep-Dive.html",
@@ -981,7 +999,7 @@ def render_index():
 <div class="doc-container">
   <div class="doc-hero">
     <h1>AI 基础设施深度文档</h1>
-    <p class="subtitle">LLM 推理、压测、存储、Sandbox、异构设备、AI 调度、模型服务与 MLOps 技术分析入口</p>
+    <p class="subtitle">LLM 推理、压测、存储、Sandbox、基础设施访问治理、异构设备、AI 调度、模型服务与 MLOps 技术分析入口</p>
     <p class="meta">统一运行在 80 端口</p>
   </div>
   <div class="doc-grid">
