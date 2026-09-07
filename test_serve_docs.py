@@ -12,7 +12,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_docs = {path.name for path in docs_dir.glob("*-Deep-Dive.md")}
         registered_docs = {Path(doc["src"]).name for doc in serve_docs.DOCS}
 
-        self.assertEqual(len(markdown_docs), 14)
+        self.assertEqual(len(markdown_docs), 15)
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
@@ -36,6 +36,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "稳定版未变化",
             "稳定对照与未发布快照",
             "v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
+            "v18.10.0@ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
             "v0.5.1@eb5011575dcf56327578634f93a2ec2f7b5416fd",
             "v0.4.40@2cf5674d2e951db7733b622069e752b150dd6ab8",
             "v0.19.3@2ade4776eadb571ecfba02f3680c4ef617a07e71",
@@ -65,6 +66,9 @@ class RenderDocLayoutTest(unittest.TestCase):
             "v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc",
             "IAM",
             "`ms://`",
+            "Teleport OSS 边界",
+            "Teleport Community Edition License",
+            "Session/Identity Lock",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, readme_text)
@@ -86,6 +90,111 @@ class RenderDocLayoutTest(unittest.TestCase):
         ):
             with self.subTest(superseded_text=superseded_text):
                 self.assertNotIn(superseded_text, readme_text)
+
+    def test_teleport_doc_is_registered_rendered_and_source_backed(self):
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+
+        self.assertIn("Teleport-Deep-Dive.md", docs_by_src)
+        doc = docs_by_src["Teleport-Deep-Dive.md"]
+        self.assertEqual(Path(doc["dst"]).name, "Teleport-Deep-Dive.html")
+        self.assertEqual(doc["href"], "/Teleport-Deep-Dive.html")
+        self.assertEqual(doc["title"], "Teleport OSS 深度技术文档")
+        self.assertEqual(doc["hero"], "Teleport OSS 深度技术文档")
+        self.assertEqual(
+            doc["meta"],
+            "Teleport v18.10.0 · source@ddaa46b · 2026-09-06",
+        )
+        for summary_term in (
+            "Auth/Proxy/Agent",
+            "短期证书",
+            "Role/标签授权",
+            "SSH/Kubernetes/数据库/App/Desktop/MCP",
+            "会话审计",
+            "Community/Enterprise 边界",
+        ):
+            with self.subTest(summary_term=summary_term):
+                self.assertIn(summary_term, doc["summary"])
+
+        for source_link in (
+            "https://github.com/gravitational/teleport/tree/"
+            "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
+            "https://github.com/gravitational/teleport/releases/tag/v18.10.0",
+            "https://goteleport.com/docs/",
+            "https://goteleport.com/docs/reference/architecture/",
+        ):
+            with self.subTest(source_link=source_link):
+                self.assertIn(source_link, doc["footer"])
+
+        markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
+        for required_text in (
+            "审校日期：2026-09-06",
+            "v18.10.0",
+            "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
+            "lightweight tag",
+            "GNU AGPL-3.0",
+            "Teleport Community Edition License",
+            "少于 100 名员工且年收入低于 1,000 万美元",
+            "Auth Service",
+            "Proxy Service",
+            "Node Service",
+            "Reverse Tunnel",
+            "Trusted Cluster",
+            "`tsh`",
+            "`tctl`",
+            "`tbot`",
+            "kubernetes_resources",
+            "db_labels",
+            "app_labels",
+            "mcp.tools",
+            "Per-session MFA",
+            "Community 唯一官方 SSO connector",
+            "OIDC / SAML",
+            "Session/Identity Lock",
+            "SSH Server Access",
+            "Kubernetes Access",
+            "Database Access",
+            "Application、TCP 与 Cloud API Access",
+            "Windows Desktop Access",
+            "MCP Access",
+            "mcp.session.start/end/request/notification",
+            "Teleport-Jwt-Assertion",
+            "node-sync",
+            "proxy-sync",
+            "Auth→Proxy→Agent",
+            "v19.*-dev.*",
+        ):
+            with self.subTest(required_text=required_text):
+                self.assertIn(required_text, markdown_text)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc)
+            rendered_doc["dst"] = str(Path(tmpdir) / "teleport.html")
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+            original_index = serve_docs.INDEX
+            serve_docs.INDEX = str(Path(tmpdir) / "index.html")
+            try:
+                serve_docs.render_index()
+                index_html = Path(serve_docs.INDEX).read_text(encoding="utf-8")
+            finally:
+                serve_docs.INDEX = original_index
+
+        self.assertIn(
+            '<a class="toc-chapter" '
+            'href="#第一章产品定位-许可证与证据边界">',
+            html,
+        )
+        self.assertGreaterEqual(html.count('<div class="mermaid">'), 3)
+        self.assertIn("flowchart LR", html)
+        self.assertIn("sequenceDiagram", html)
+        self.assertNotIn('class="language-mermaid"', html)
+        self.assertIn(
+            "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d", html
+        )
+        self.assertIn("Teleport OSS 深度技术文档", index_html)
+        self.assertIn('/Teleport-Deep-Dive.html', index_html)
+        self.assertIn("Teleport v18.10.0", index_html)
 
     def test_kubernetes_blog_doc_is_registered_rendered_and_source_backed(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
@@ -286,6 +395,9 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "557445ffddda8d9a27f6f529a3f4d7732cf81a13",
                 "bb72f49d79f009a960eed2ae6c32e1cc082399c5",
             ),
+            "Teleport-Deep-Dive.md": (
+                "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
+            ),
             "Multica-Deep-Dive.md": (
                 "2cf5674d2e951db7733b622069e752b150dd6ab8",
             ),
@@ -364,6 +476,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         expected = {
             "Mooncake-Deep-Dive.md": ("v0.3.13.post1", "v0.3.12.post1"),
             "Dynamo-Deep-Dive.md": ("Dynamo v1.4.2", "Dynamo v1.4.0"),
+            "Teleport-Deep-Dive.md": ("Teleport v18.10.0", "Teleport v19"),
             "Multica-Deep-Dive.md": ("Multica v0.4.40", "Multica v0.4.32"),
             "LLM-Benchmark-Deep-Dive.md": ("vLLM v0.28.0", "vLLM v0.27.1"),
             "Kubernetes-Native-Scheduler-Deep-Dive.md": (
