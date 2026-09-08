@@ -57,18 +57,18 @@ DOCS = [
         "src": "/data/Teleport-Deep-Dive.md",
         "dst": "/data/Teleport-Deep-Dive.html",
         "href": "/Teleport-Deep-Dive.html",
-        "title": "Teleport OSS 深度技术文档",
-        "hero": "Teleport OSS 深度技术文档",
-        "subtitle": "身份感知基础设施访问、短期证书、统一 RBAC、反向隧道与审计架构解析",
-        "meta": "Teleport v18.10.0 · source@ddaa46b · 2026-09-06",
-        "summary": "覆盖 Auth/Proxy/Agent、短期证书与 CA、Role/标签授权、SSH/Kubernetes/数据库/App/Desktop/MCP、会话审计、HA、升级恢复及 Community/Enterprise 边界。",
+        "title": "Self-hosted 基础设施访问平台对比",
+        "hero": "Self-hosted 基础设施访问平台对比",
+        "subtitle": "Teleport、The Bastion、Warpgate 与 Boundary/Pomerium/Guacamole 的身份、协议、审计和运维比较",
+        "meta": "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.28.6 · Boundary v0.21.3 · Pomerium v0.33.1 · Guacamole 1.6.0 tag-only · 2026-09-06",
+        "summary": "覆盖六个平台的统一能力矩阵、信任边界、短期凭据、RBAC/JIT、SSH/Kubernetes/数据库/HTTP/RDP/VNC 协议审计、录制/SIEM、HA、迁移验收和许可证商业边界。",
         "footer": (
-            '基于 <a href="https://github.com/gravitational/teleport/tree/ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d">'
-            'gravitational/teleport v18.10.0 源码</a>、'
-            '<a href="https://github.com/gravitational/teleport/releases/tag/v18.10.0">'
-            'v18.10.0 Release</a>、'
-            '<a href="https://goteleport.com/docs/">Teleport 官方文档</a> 与 '
-            '<a href="https://goteleport.com/docs/reference/architecture/">官方架构说明</a> 整理'
+            '基于 <a href="https://github.com/gravitational/teleport/tree/ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d">Teleport v18.10.0 源码</a>、'
+            '<a href="https://github.com/ovh/the-bastion/releases/tag/v3.24.01">The Bastion v3.24.01</a>、'
+            '<a href="https://github.com/warp-tech/warpgate/releases/tag/v0.28.6">Warpgate v0.28.6</a>、'
+            '<a href="https://developer.hashicorp.com/boundary/docs/concepts">Boundary 官方文档</a>、'
+            '<a href="https://www.pomerium.com/docs">Pomerium 官方文档</a> 与 '
+            '<a href="https://guacamole.apache.org/doc/gug/">Guacamole 官方手册</a> 整理'
         ),
     },
     {
