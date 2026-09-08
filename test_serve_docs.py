@@ -66,7 +66,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc",
             "IAM",
             "`ms://`",
-            "Teleport OSS 边界",
+            "Self-hosted 访问平台比较",
             "Teleport Community Edition License",
             "Session/Identity Lock",
         ):
@@ -98,19 +98,20 @@ class RenderDocLayoutTest(unittest.TestCase):
         doc = docs_by_src["Teleport-Deep-Dive.md"]
         self.assertEqual(Path(doc["dst"]).name, "Teleport-Deep-Dive.html")
         self.assertEqual(doc["href"], "/Teleport-Deep-Dive.html")
-        self.assertEqual(doc["title"], "Teleport OSS 深度技术文档")
-        self.assertEqual(doc["hero"], "Teleport OSS 深度技术文档")
+        self.assertEqual(doc["title"], "Self-hosted 基础设施访问平台对比")
+        self.assertEqual(doc["hero"], "Self-hosted 基础设施访问平台对比")
         self.assertEqual(
             doc["meta"],
-            "Teleport v18.10.0 · source@ddaa46b · 2026-09-06",
+            "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.28.6 · Boundary v0.21.3 · Pomerium v0.33.1 · Guacamole 1.6.0 tag-only · 2026-09-06",
         )
         for summary_term in (
-            "Auth/Proxy/Agent",
-            "短期证书",
-            "Role/标签授权",
-            "SSH/Kubernetes/数据库/App/Desktop/MCP",
-            "会话审计",
-            "Community/Enterprise 边界",
+            "六个平台",
+            "统一能力矩阵",
+            "短期凭据",
+            "RBAC/JIT",
+            "SSH/Kubernetes/数据库/HTTP/RDP/VNC",
+            "录制/SIEM",
+            "许可证商业边界",
         ):
             with self.subTest(summary_term=summary_term):
                 self.assertIn(summary_term, doc["summary"])
@@ -118,9 +119,11 @@ class RenderDocLayoutTest(unittest.TestCase):
         for source_link in (
             "https://github.com/gravitational/teleport/tree/"
             "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
-            "https://github.com/gravitational/teleport/releases/tag/v18.10.0",
-            "https://goteleport.com/docs/",
-            "https://goteleport.com/docs/reference/architecture/",
+            "https://github.com/ovh/the-bastion/releases/tag/v3.24.01",
+            "https://github.com/warp-tech/warpgate/releases/tag/v0.28.6",
+            "https://developer.hashicorp.com/boundary/docs/concepts",
+            "https://www.pomerium.com/docs",
+            "https://guacamole.apache.org/doc/gug/",
         ):
             with self.subTest(source_link=source_link):
                 self.assertIn(source_link, doc["footer"])
@@ -182,7 +185,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn(
             '<a class="toc-chapter" '
-            'href="#第一章产品定位-许可证与证据边界">',
+            'href="#第一章比较对象-版本与证据规则">',
             html,
         )
         self.assertGreaterEqual(html.count('<div class="mermaid">'), 3)
@@ -192,7 +195,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn(
             "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d", html
         )
-        self.assertIn("Teleport OSS 深度技术文档", index_html)
+        self.assertIn("Self-hosted 基础设施访问平台对比", index_html)
         self.assertIn('/Teleport-Deep-Dive.html', index_html)
         self.assertIn("Teleport v18.10.0", index_html)
 
