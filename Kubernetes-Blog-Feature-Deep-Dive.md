@@ -37,6 +37,14 @@ RSS XML 的 <code>description</code> 是文章摘要或 HTML 片段，不能代�
 
 | RSS 日期 | 官方文章 | 本文归类 | 主要结论 |
 | --- | --- | --- | --- |
+| 2026-09-16 | [Hardening Container Storage](https://kubernetes.io/blog/2026/09/16/kubernetes-v1-37-hardening-container-storage/) | v1.37 / 存储安全 | `VolumeBindMountOptions` 与 `EmptyDirVolumeMode` 均为 Alpha/default-off；分别控制容器 bind mount flags 与 `emptyDir` 初始 mode |
+| 2026-09-15 | [Pod-Level Resource Managers Beta](https://kubernetes.io/blog/2026/09/15/kubernetes-v1-37-pod-level-resource-managers-beta/) | v1.37 / 节点资源 | kubelet CPU/Memory/Topology Manager 可消费 Pod 级预算；Beta 但默认关闭，PodResources API 增加 Pod 顶层 CPU/memory assignment |
+| 2026-09-14 | [Memory QoS Beta](https://kubernetes.io/blog/2026/09/14/kubernetes-v1-37-memory-qos-graduates-to-beta/) | v1.37 / cgroups v2 | gate 默认开但配置默认不写 `memory.high/min/low`；throttling 与 tiered reservation 仍需显式开启 |
+| 2026-09-14 | [Changed Block Tracking Beta Differences](https://kubernetes.io/blog/2026/09/14/csi-changed-block-tracking-beta/) | CSI 生态 / 备份 | external-snapshot-metadata v1.0.0 把 CRD 升到 `v1beta1` 并移除 `v1alpha1`，没有自动 conversion |
+| 2026-09-11 | [Native Histograms Beta](https://kubernetes.io/blog/2026/09/11/kubernetes-v1-37-native-histograms-beta/) | v1.37 / 可观测性 | `NativeHistograms` Beta/default-on，以 Protobuf dual exposition 保留 classic buckets 并新增 native spans |
+| 2026-09-10 | [Scheduler Preemption for In-Place Pod Resize](https://kubernetes.io/blog/2026/09/10/kubernetes-v1-37-scheduler-preemption-for-in-place-pod-resize-alpha/) | v1.37 / 调度 | Alpha gate 允许 scheduler 为同节点 Deferred resize 抢占低优先级 Pod；不是迁移或跨节点重调度 |
+| 2026-09-09 | [Node Lifecycle Conditions](https://kubernetes.io/blog/2026/09/09/kubernetes-v1-37-node-lifecycle-conditions/) | v1.37 / 节点运维 | 预留 drain/maintenance/shutdown 五种 well-known condition；Alpha gate 在 v1.37 实际 no-op，Core controller 尚不消费 |
+| 2026-09-08 | [Advancing Workload-Aware Scheduling](https://kubernetes.io/blog/2026/09/08/kubernetes-v1-37-advancing-workload-aware-scheduling/) | v1.37 / Workload 调度 | Workload/PodGroup/Gang、WAP 与 PodGroup shared DRA claim 进入 Beta；CompositePodGroup/多层 TAS 仍是 Alpha |
 | 2026-09-04 | [KubeletInUserNamespace Graduates to Beta](https://kubernetes.io/blog/2026/09/04/kubernetes-v1-37-rootless-beta/) | v1.37 / 节点安全 | 节点组件可在预先建立的 Linux user namespace 中以非 root 主机用户运行；gate 默认开启不等于集群自动 rootless |
 | 2026-09-03 | [DRA Updates](https://kubernetes.io/blog/2026/09/03/kubernetes-v1-37-dra-updates/) | v1.37 / 设备资源 | DRA extended resource、设备状态、设备 taint/toleration 和标准 NUMA 属性进入 Stable；Workload claim 与更多设备配对能力仍分层演进 |
 | 2026-09-02 | [HPA Scale-to-Zero](https://kubernetes.io/blog/2026/09/02/kubernetes-v1-37-hpa-scale-to-zero-beta/) | v1.37 / 弹性 | <code>HPAScaleToZero</code> 进入 Beta，支持对象指标或外部指标驱动的 <code>minReplicas: 0</code> |
@@ -214,7 +222,7 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | v1.36 | [Declarative Validation GA](https://kubernetes.io/blog/2026/05/05/kubernetes-v1-36-declarative-validation-ga/)（2026-05-05） | Declarative Validation | Stable/default-on | 将 API 约束生成代码化并保留 validation warning | v1.37 稳定；旧客户端 apply/patch 要做兼容回归 |
 | v1.36 | 2026-05-06 至 05-13 | Sharded list/watch、DRA、Workload-aware scheduling | Alpha/Beta，按 gate 分层 | 把过滤、设备状态和调度单位从 Pod 推向 controller/Workload | v1.37 Workload/DRA 仍有 default-off 组合，不能按 Blog 预告整体开启；[Release notes](https://github.com/kubernetes/kubernetes/blob/release-1.36/CHANGELOG/CHANGELOG-1.36.md) |
 
-### v1.37（2026-08-26 至 2026-09-04）
+### v1.37（2026-08-26 至 2026-09-16）
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
@@ -222,6 +230,13 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | v1.37 | 2026-08-28 | Pod Certificates、ClusterTrustBundles | Stable/GA | 为 Pod 提供可轮换 X.509 signer/trust 投影 | v1.37 稳定，signer/controller/应用 mTLS 仍需配套；[Blog](https://kubernetes.io/blog/2026/08/28/kubernetes-v1-37-pod-certificates-and-cluster-trust-bundles/) |
 | v1.37 | 2026-08-31 至 09-01 | Storage Version Migration、etcd RangeStream | GA/default-on、Beta/default-on | 同时治理旧存储版本迁移和大集合 list 的内存峰值 | RangeStream 需要 etcd 3.7，旧 etcd 走 unary fallback；[Blogs](https://kubernetes.io/blog/2026/09/01/kubernetes-v1-37-etcd-range-stream/) |
 | v1.37 | 2026-09-02 至 09-04 | HPA scale-to-zero、DRA Updates、KubeletInUserNamespace | Beta/Stable 混合，gate 需逐项核对 | 将零副本弹性、设备 taint/NUMA/health 和节点 rootless 推入生产灰度 | Beta/default-on 不代表 driver/runtime 自动兼容；[Release](https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/) |
+| v1.37 | 2026-09-08 | Workload/PodGroup/Gang、WAP、shared DRA claim | Beta；`GenericWorkload` 等 gate 仍需显式核对 | 把 PodGroup 变成调度队列一等对象，并让 `minCount` 可变 | CompositePodGroup/multi-level TAS 仍为 Alpha；[Blog](https://kubernetes.io/blog/2026/09/08/kubernetes-v1-37-advancing-workload-aware-scheduling/) |
+| v1.37 | 2026-09-09 | Node Lifecycle Conditions | Alpha/no-op gate | 给 drain、maintenance、graceful shutdown 建立 Kubernetes-owned status vocabulary | 只报告状态；不替代 cordon/drain/taint，Core controller 尚不消费；[Blog](https://kubernetes.io/blog/2026/09/09/kubernetes-v1-37-node-lifecycle-conditions/) |
+| v1.37 | 2026-09-10 | In-place resize scheduler preemption | Alpha/default-off | 为同节点高优先级 Deferred resize 主动释放 headroom | 只在当前 Node 选 victim，仍受 PDB/priority/graceful termination；[Blog](https://kubernetes.io/blog/2026/09/10/kubernetes-v1-37-scheduler-preemption-for-in-place-pod-resize-alpha/) |
+| v1.37 | 2026-09-11 | Native Histograms | Beta/default-on | component-base metrics 同时暴露 classic/native histogram | collector 必须协商 Protobuf；迁移期保留 classic series；[Blog](https://kubernetes.io/blog/2026/09/11/kubernetes-v1-37-native-histograms-beta/) |
+| CSI 生态 | 2026-09-14 | Changed Block Tracking v1.0.0 | Beta，独立项目版本 | block-volume backup 可读取 allocated/delta metadata stream | CRD `v1alpha1` 被移除且无 conversion；需 Kubernetes 1.33+、CSI 1.10+；[Blog](https://kubernetes.io/blog/2026/09/14/csi-changed-block-tracking-beta/) |
+| v1.37 | 2026-09-14 至 09-15 | Memory QoS、Pod-Level Resource Managers | Beta；前者 default-on、后者 default-off | cgroups v2 保护与 Pod 级 NUMA/CPU/memory assignment 进入生产试验层 | 默认配置不启用 throttling/reservation；PodResources consumer 需更新；[Blogs](https://kubernetes.io/blog/2026/09/15/kubernetes-v1-37-pod-level-resource-managers-beta/) |
+| v1.37 | 2026-09-16 | bind mount options、`emptyDir.mode` | Alpha/default-off | 在 Pod API 表达 `noexec/nosuid/nodev` 与 sticky/private directory mode | Linux/runtime/node-feature/version-skew 边界不同，默认行为不变；[Blog](https://kubernetes.io/blog/2026/09/16/kubernetes-v1-37-hardening-container-storage/) |
 
 ## 跨版本能力演进矩阵
 
@@ -240,6 +255,9 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | Gateway API、Ingress2Gateway、Inference Extension | Gateway API v0.x experimental → v1.5 (2026-04) ListenerSet/TLSRoute 等 Standard → v1.6 (2026-08) TCPRoute/UDPRoute Standard；Ingress2Gateway 1.0 (2026-03)；Inference Extension Blog (2025-06) | Gateway API 项目 release/controller conformance 独立于 Kubernetes；Inference Extension、AI Gateway WG 和 Ingress2Gateway 都是生态扩展/工具 |
 | etcd RangeStream、sharded list/watch、watch-cache init/controller cache | watch cache/list 传统整批读取 → v1.34 resilient init Stable → v1.36 sharded list/watch alpha + controller staleness metrics → etcd 3.7 (2026-07) → v1.37 RangeStream beta/default-on | RangeStream 需要 etcd 3.7，旧版本 fallback；controller-runtime cache 仍可能陈旧、占内存和触发全量扫描 |
 | KYAML、Native Histograms、CRI-full stats | YAML 输出/Prometheus classic histogram/cAdvisor stats → v1.36 PSI/CRI stats 逐步成熟 → v1.37 KYAML Stable、NativeHistograms beta、`PodAndContainerStatsFromCRI` beta/default-off | 工具、监控后端、CRI/runtime 需分别支持；API/输出格式稳定不等于数据采集组件已升级 |
+| Node lifecycle、drain 与 resize preemption | Readiness/taint/cordon/drain 的间接信号 → v1.35 in-place resize GA → v1.37 well-known lifecycle conditions Alpha + Deferred resize preemption Alpha | lifecycle condition 当前只报告状态；resize preemption 只在原 Node 选择 victim，两者都不自动迁移 workload 或取代维护控制器 |
+| Changed Block Tracking | CSI snapshot/backup 全量路径 → 2025 Alpha SnapshotMetadata API → external-snapshot-metadata v1.0.0 Beta | 独立 CSI 生态 API，只覆盖 block volume；`v1alpha1 -> v1beta1` 无 conversion，driver/sidecar/client 必须一起升级 |
+| Volume bind hardening、`emptyDir` mode | PV filesystem mount options/init-container chmod → v1.37 `VolumeBindMountOptions`/`EmptyDirVolumeMode` Alpha | bind flags 依赖 CRI `mount_options`/Node Declared Features；`emptyDir.mode` 与 `fsGroup` 交互，Windows 不生效 |
 | Agent Sandbox、AI Gateway WG、Headlamp | 2025 Gateway Inference Extension → 2026-03 Agent Sandbox、AI Gateway WG、Ingress2Gateway → 2026-06/07 Headlamp CAPI/Kubeflow/Volcano/Knative plugins | 全部是生态 CRD、proposal、controller 或 UI plugin；不扩大 Kubernetes Core v1.37 API、隔离、调度或 AI 路由承诺 |
 
 ## 第二章：Kubernetes v1.37 总览
@@ -522,6 +540,8 @@ v1.36 把 Workload API 的静态模板语义与 PodGroup 的运行时状态语�
 
 v1.36 产生的 <code>scheduling.k8s.io/v1alpha2</code> 存量对象是 v1.37 升级重点。升级前应导出并删除不再 served 的 v1alpha2 Workload/PodGroup，再用 v1beta1 schema 重建；不要依靠通用 storage migration 掩盖 API 版本已被移除的对象问题。
 
+9 月 8 日的专题还补充了几个会影响 controller 集成的细节：PodGroup 现在作为一等对象进入 scheduling queue，不再只把成员 Pod 分散排队；Gang 的 <code>minCount</code> 可变，允许 controller 调整弹性最低规模；独立 <code>WorkloadAwarePreemption</code> gate 合并进 <code>GenericWorkload</code>，default preemption 也会尊重 PodGroup <code>disruptionMode</code>。Beta API 使用 <code>single</code>/<code>all</code> 命名，而 Alpha 清理路径以 <code>v1alpha3</code> 替代 <code>v1alpha2</code>；CompositePodGroup、多层 TAS 和 <code>PodGroupPreemptionPolicy</code> 仍须按各自 Alpha gate 处理。out-of-tree controller 可复用 controller integration types 与 <code>workloadbuilder</code>，但共享 Go library 不是 API compatibility 的替代品。
+
 ### 4.3 DRA 组合：从扩展资源到 Workload 共享 claim
 
 DRA 核心在 v1.34 已 GA，v1.37 的变化是把老的 extended-resource 请求、设备状态、设备维护和跨 driver 拓扑组合做得更完整。
@@ -580,6 +600,8 @@ Pod-level resource requests 在 v1.34 已进入 Beta；v1.36 引入 <code>PodLev
 - QoS class、OOM score、<code>memory.min</code>/<code>memory.low</code> 和 cgroup 层级；
 - DRA node allocatable resource 与 Pod-level resource 是否重复计账。
 
+Beta 还扩展了 kubelet PodResources v1 gRPC：<code>PodResources</code> 顶层可返回 <code>cpu_ids</code> 和 <code>memory</code>，让 device plugin/监控组件读取 Pod 级 exclusive assignment，而不是把 container assignment 相加后重复计数。consumer 必须兼容字段缺失和 mixed-version node；开启 gate 不代表旧 PodResources client 会自动理解新层级。
+
 不能因为 release Blog 的 use case 是 AI/ML 就直接在所有 GPU 节点打开。先对单节点、单 NUMA、混合 sidecar、in-place resize 和节点重启做 e2e。
 
 ### 4.5 Memory QoS 与 cgroups v2
@@ -592,6 +614,8 @@ v1.36 将 reservation 与 throttling 分开：
 - <code>TieredReservation</code> 才会按 Guaranteed、Burstable、BestEffort 写入不同强度的保护；
 - v1.37 的 <code>memoryThrottlingFactor</code> 默认是 <code>nil</code>，因此 <code>memory.high</code> 不会仅因升级就被意外设置；需要显式配置才开启 throttling threshold；
 - memory QoS、in-place resize、DRA node allocatable 和 Pod-level managers 会共同作用到 cgroup，必须观测实际文件和 OOM 行为。
+
+Beta 默认开启本身不会改变 cgroup：默认 <code>memoryThrottlingFactor=null</code>、<code>memoryReservationPolicy=None</code>，所以不会写 <code>memory.high/min/low</code>。已有配置若显式保留旧 <code>0.9</code> 则会继续 throttling；关闭 gate 前要移除不兼容的 reservation/throttling 配置。<code>TieredReservation</code> 是节点级策略，无法逐 Pod opt-out，并会把 page cache 一起计入 protected cgroup；混合节点池需要单独容量和 reclaim 测试。
 
 迁移检查：
 
@@ -621,6 +645,12 @@ cgroups v1 仍有兼容路径，但上游已把它放在维护/退场方向。�
 - <code>CompositePodGroup</code> 是默认关闭的 Alpha，用层级 group 表达多级 gang、拓扑和抢占；它依赖 <code>GenericWorkload</code> 与拓扑调度。
 - Job controller 的 <code>WorkloadWithJob</code> 仍是 Alpha/default-off 方向；显式 <code>spec.scheduling</code> 允许 Job 选择 Basic/Gang 等策略，但 controller integration 不等于所有 Job 自动拥有 gang 语义。
 - <code>InPlacePodVerticalScalingSchedulerPreemption</code> 是 Alpha，解决 in-place resize 因节点容量不足而 Deferred 后由 scheduler 触发抢占的问题；必须单独验证 disruption。
+
+### 4.8 Node Lifecycle Conditions 与 resize preemption 的责任边界
+
+v1.37 预留五个 well-known Node condition：<code>DrainInProgress</code>、<code>Drained</code>、<code>MaintenancePlanned</code>、<code>MaintenanceInProgress</code>、<code>GracefulNodeShutdownInProgress</code>。<code>NodeLifecycleConditions</code> 是 Alpha/default-off，但在 v1.37 实际为 no-op：不启用 gate 也能由有权限的 controller 写 condition，没有 Core controller 会因此自动停止调度、驱逐 Pod 或改变 rollout。平台必须继续使用 cordon、drain、taint 和 workload-specific control 执行动作，并为每个 condition 设唯一 writer、稳定 reason 与清理规则。
+
+<code>InPlacePodVerticalScalingSchedulerPreemption</code> 处理另一个窄问题：运行中 Pod 的合法 scale-up 因本节点 headroom 不足进入 <code>Deferred</code> 后，scheduler 可在**同一 Node**抢占低优先级 victim，并把 resize 增量视为已预留以避免 double allocation。它不会把 Pod 迁到别的 Node；即使清空所有 eligible victim 仍放不下，resize 继续 Deferred。该 Alpha gate 要在 API server、scheduler、kubelet 对齐，并结合 PriorityClass、PDB、graceful termination 与 Node <code>spec.podPreemptionPolicy.disableResizePreemption</code> 验证。
 
 ---
 
@@ -869,6 +899,18 @@ v1.37 对 nftables backend 有两类变化：
 
 v1.37 还开始弃用 kube-proxy 的 ipvs mode，后续版本计划关闭默认并最终移除。现有 ipvs 集群应记录 mode、iptables 依赖、CNI 和 cloud load balancer 行为，为 nftables 或其他受支持路径做迁移验证。
 
+### 6.7 Changed Block Tracking Beta：独立 CSI 生态 API
+
+Changed Block Tracking 不是 Kubernetes Core v1.37 API，而是 external-snapshot-metadata v1.0.0 的 Beta 能力。它由 CSI <code>SnapshotMetadata</code> gRPC service、<code>SnapshotMetadataService</code> CRD 和 driver sidecar 组成，当前只覆盖 block volume，不覆盖 file volume 或 network share。升级 Alpha 时必须重新应用 <code>cbt.storage.k8s.io/v1beta1</code> CRD、修改对象和 client/controller；<code>v1alpha1</code> 已被移除且没有 conversion webhook，不能依赖 API server 自动转换。
+
+最低组合为 Kubernetes 1.33、CSI spec 1.10+、<code>registry.k8s.io/sig-storage/csi-snapshot-metadata:v1.0.0</code>，并要求 CSI driver 实现 metadata service。backup 产品调用 <code>GetMetadataAllocated</code>/<code>GetMetadataDelta</code> 前仍要验证 snapshot consistency、stream interruption、iterator resume 和 driver-specific block extent 语义。
+
+### 6.8 Volume bind mount 与 emptyDir mode：Alpha 存储加固
+
+v1.37 新增两个 default-off Alpha gate：<code>VolumeBindMountOptions</code> 让 <code>volumeMount.bindMountOptions</code> 表达 <code>noexec</code>/<code>nosuid</code>/<code>nodev</code>；<code>EmptyDirVolumeMode</code> 让 <code>emptyDir.mode</code> 设置初始 Unix mode，例如共享 <code>/tmp</code> 的 <code>01777</code> sticky bit 或更窄的 <code>0750</code>。前者是 container bind mount flag，不等于 PV <code>mountOptions</code> 的 filesystem/CSI 层选项。
+
+bind mount option 依赖 CRI <code>mount_options</code> 和 runtimeFeatures，scheduler 用 Node Declared Features 避免不兼容节点；若仍到达不支持节点，kubelet 拒绝而不是静默降级。<code>emptyDir.mode</code> 不依赖 runtime，但 API server 开 gate、kubelet 未开时可能被接受后回退 <code>0777</code>；<code>fsGroup</code> 还会覆盖 group permission。两者仅适用于 Linux，默认不变，必须用 version-skew、runtime、admission policy 和实际 mount/cgroup 检查验收。
+
 ---
 
 ## 第七章：AI、Agent 和云原生平台生态
@@ -1000,12 +1042,16 @@ KYAML 在 v1.37 进入 Stable。它是 YAML 的严格子集，所有 KYAML 文�
 
 Kubernetes v1.37 将 <code>NativeHistograms</code> 推进到 Beta，默认开启。Kubernetes metrics 可以同时暴露 classic histogram 和 native histogram 形态，便于在 Prometheus 等支持系统中以更低的 series/cardinality 成本表达延迟分布。
 
+component-base 默认使用 <code>BucketFactor: 1.1</code> 与 <code>MaxBucketNumber: 160</code>，并通过 Protobuf dual exposition 在同一 MetricFamily 中提供 classic bucket 与 native span。普通 text/OpenMetrics scrape 仍只拿 classic bucket；Prometheus 3.x 需要按 job 设置 <code>scrape_native_histograms: true</code>，迁移期同时设置 <code>always_scrape_classic_histograms: true</code>，否则现有依赖 <code>_bucket/_count/_sum</code> 的 dashboard/alert 会突然失去序列。
+
 采用时要注意：
 
 - 监控后端、remote write、聚合规则和告警引擎必须支持 native histogram；
 - 同一指标在迁移期间可能有 classic/native 两种消费路径，告警不要重复计算；
 - 不能只用平均 latency 替代 p95/p99/goodput，尤其是 LLM token streaming；
 - exporter、scrape、recording rule 和 dashboard 要做兼容性回归。
+
+上游给出的“最多约 90% series 减少”和量化误差界限是设计/示例结果，不是每个集群的存储合同。先双采集，对比 classic <code>histogram_quantile(..._bucket...)</code> 与 native <code>histogram_quantile(metric)</code>，再停止 classic ingestion；collector 侧关闭 native scrape 可以即时回退，关闭 Kubernetes feature gate 则需要重启组件。
 
 ### 8.4 Custom Metrics Exporter：HPA 的外部信号供应链
 
@@ -1193,10 +1239,15 @@ v1.37 release notes 记录 client-go 的 context propagation 和 contextual logg
 | DRA Derived Attributes | v1.37 Alpha | <code>DRADerivedAttributes</code> | CEL 跨 driver 配对实验 |
 | DRA Device Compatibility Groups | v1.37 Alpha | <code>DRADeviceCompatibilityGroups</code> | MIG/vGPU 等不可兼容 partition 预检 |
 | Scheduler PreQueueingHint | v1.37 Alpha final | <code>SchedulerPreQueueingHints</code> | 不采用早期 Beta 预告，按 source gate 试验 |
+| Node Lifecycle Conditions | v1.37 Alpha/no-op | <code>NodeLifecycleConditions</code> + five well-known conditions | 只作状态信号；Core controller 尚不消费，不能替代 cordon/drain/taint |
+| Resize scheduler preemption | v1.37 Alpha | <code>InPlacePodVerticalScalingSchedulerPreemption</code> | 只为当前 Node 的 Deferred resize 选 victim；PDB/priority/终止时序需实测 |
+| Volume bind mount options | v1.37 Alpha | <code>VolumeBindMountOptions</code> | 依赖 CRI mount_options 与 Node Declared Features；不支持 image volume/Windows |
+| emptyDir permission mode | v1.37 Alpha | <code>EmptyDirVolumeMode</code> | API/kubelet skew 可回退 0777；fsGroup 会覆盖 group permission |
 | StatefulSet Recreate | v1.37 Alpha | <code>StatefulSetRecreateStrategy</code> | 会删除全部 Pod，先做停机/恢复演练 |
 | localhost nftables NodePort | v1.37 Alpha | <code>KubeProxyNFTablesLocalhostNodePorts</code> | 只给明确依赖 localhost NodePort 的节点池 |
 | Pod checkpoint/restore | v1.37 Alpha | CRI <code>CheckpointPod</code>/<code>RestorePod</code> | runtime 必须实现新 RPC，不能作为通用备份 |
 | Agent Sandbox | ecosystem | Sandbox/SandboxClaim CRD | 不是 Kubernetes Core sandbox 或 microVM |
+| Changed Block Tracking | CSI ecosystem Beta | <code>cbt.storage.k8s.io/v1beta1</code>、external-snapshot-metadata v1.0.0 | 只覆盖 block volume；alpha API 被移除且无 conversion，独立于 Core release |
 | AI Gateway Working Group | proposal/ecosystem | Gateway API extensions | proposal 不等于 stable API |
 | Gateway API Inference Extension | ecosystem extension | InferencePool/InferenceModel/EPP | controller/conformance/版本独立审计 |
 | Headlamp Kubeflow/Volcano/Knative plugins | ecosystem | UI plugins | 只改变观察和操作入口，不改变调度语义 |
@@ -1446,6 +1497,14 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 | 主题 | 官方链接 |
 | --- | --- |
 | v1.37 Release / Garhwal | <https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/> |
+| Workload-Aware Scheduling | <https://kubernetes.io/blog/2026/09/08/kubernetes-v1-37-advancing-workload-aware-scheduling/> |
+| Node Lifecycle Conditions | <https://kubernetes.io/blog/2026/09/09/kubernetes-v1-37-node-lifecycle-conditions/> |
+| In-Place Resize Scheduler Preemption | <https://kubernetes.io/blog/2026/09/10/kubernetes-v1-37-scheduler-preemption-for-in-place-pod-resize-alpha/> |
+| Native Histograms | <https://kubernetes.io/blog/2026/09/11/kubernetes-v1-37-native-histograms-beta/> |
+| Memory QoS Beta | <https://kubernetes.io/blog/2026/09/14/kubernetes-v1-37-memory-qos-graduates-to-beta/> |
+| Changed Block Tracking Beta | <https://kubernetes.io/blog/2026/09/14/csi-changed-block-tracking-beta/> |
+| Pod-Level Resource Managers Beta | <https://kubernetes.io/blog/2026/09/15/kubernetes-v1-37-pod-level-resource-managers-beta/> |
+| Container Storage Hardening | <https://kubernetes.io/blog/2026/09/16/kubernetes-v1-37-hardening-container-storage/> |
 | HPA Scale-to-Zero | <https://kubernetes.io/blog/2026/09/02/kubernetes-v1-37-hpa-scale-to-zero-beta/> |
 | DRA Updates | <https://kubernetes.io/blog/2026/09/03/kubernetes-v1-37-dra-updates/> |
 | KubeletInUserNamespace | <https://kubernetes.io/blog/2026/09/04/kubernetes-v1-37-rootless-beta/> |
@@ -1588,7 +1647,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 | 2026 / Gateway | 2026-04-21 [Gateway API v1.5](https://kubernetes.io/blog/2026/04/21/gateway-api-v1-5/)、03-20 [Ingress2Gateway 1.0](https://kubernetes.io/blog/2026/03/20/ingress2gateway-1-0-release/) | 网络迁移 | Gateway project/tool |
 | 2026 / AI/Agent | 2026-03-20 [Agent Sandbox](https://kubernetes.io/blog/2026/03/20/running-agents-on-kubernetes-with-agent-sandbox/)、03-09 [AI Gateway WG](https://kubernetes.io/blog/2026/03/09/announcing-ai-gateway-wg/) | AI/Agent | 生态/提案 |
 | 2026 / etcd/UI | 2026-07-08 [etcd v3.7.0](https://kubernetes.io/blog/2026/07/08/announcing-etcd-3.7/)、06-01/07-13 [Dashboard→Headlamp](https://kubernetes.io/blog/2026/06/01/dashboard-to-headlamp/) | 存储、UI | 独立项目 |
-| 2026 / v1.37 | 2026-08-26 [Garhwal Release](https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/)；08-27 至 09-04 metrics API、CTB/Pod Certificates、SVM、RangeStream、HPA zero、DRA、rootless | Core | Core Blog/Release |
+| 2026 / v1.37 | 2026-08-26 [Garhwal Release](https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/)；08-27 至 09-16 metrics API、CTB/Pod Certificates、SVM、RangeStream、HPA zero、DRA、rootless、WAS、Node lifecycle、resize preemption、Native Histograms、Memory QoS、Pod-level managers、storage hardening | Core/CSI | Core Blog/Release + CBT ecosystem |
 
 #### A.9.1 历史 Feature Blog 交叉索引
 

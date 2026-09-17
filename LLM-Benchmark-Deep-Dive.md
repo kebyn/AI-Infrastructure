@@ -6,6 +6,8 @@
 >
 > 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.19@0bcd822377da7b5718e674eaf9c870d349424dd1`、LLMPerf `v2.0`、ollama-benchmark `v0.5.3`、vLLM `v0.29.0`、EvalScope `v1.12.0`；审校日期：2026-09-06。
 
+> vLLM `v0.29.1rc0` 是 prerelease，不替代本文 `v0.29.0` 稳定基线；RC 结果只能作为候选升级验证，不能与正式版容量数据混为同一序列。
+
 ---
 
 ## 目录
