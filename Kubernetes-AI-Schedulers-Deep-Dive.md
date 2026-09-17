@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.3@2ade4776eadb571ecfba02f3680c4ef617a07e71`、Grove `v0.1.0-alpha.13@af2df1ffff0ae7a1135554564a6240a3f22f2c35`、KAI-Scheduler `v0.17.1@68dca3c4b8de3d9c433cf95c8f084372903ec84d`、Volcano `v1.15.2@1462fb7`；审校日期：2026-09-06。未发布辅助快照为 Koordinator `main@025aa5923342eb43bb10f29e7ae0cc64988cb540`。Volcano 官网证据固定到 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart 使用 `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`。主线快照只作证据，不扩大稳定版本承诺。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.4@5d738f203bd0d301d4966282b144f01d5bb32437`、Grove `v0.1.0-alpha.13@af2df1ffff0ae7a1135554564a6240a3f22f2c35`、KAI-Scheduler `v0.17.2@b46e4a1168441f97997ba7d1db772891ac6695c2`、Volcano `v1.15.2@1462fb7`；审校日期：2026-09-06。未发布辅助快照为 Koordinator `main@96cef825562c27d4d8e8c177ad998d908f4d05a2`。Volcano 官网证据固定到 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart 使用 `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`。主线快照只作证据，不扩大稳定版本承诺。
 
 ---
 
@@ -514,6 +514,22 @@ LWS 限制修复的是明确的 quota bypass：旧行为允许已 admitted 的 L
 
 升级顺序仍是：先完成 v0.19.0 minor migration，再应用 v0.19.1/v0.19.2 的 gate 与对象修复，最后升级到 v0.19.3 并执行上述资源转换、DRA、MultiKueue、RayService 和 TrainJob 回归。patch release 不会自动迁移错误的 `pods` transformation 配置。
 
+### 4.15 v0.19.4 TAS slicing、MultiKueue 与配额修复
+
+`v0.19.4@5d738f203bd0d301d4966282b144f01d5bb32437` 是 annotated tag 解引用后的正式 patch source；tag object 为 `9176f58965ebaaef97f63540377be5ecd8551d7d`。它继续继承 v0.19.0-v0.19.3 的全部升级前置，并新增两项 gated feature：
+
+| 区域 | v0.19.4 行为 | 升级与验证边界 |
+| --- | --- | --- |
+| TAS grouped slicing | `TASGroupedPodSetSlicing` Alpha gate 允许同一 workload 把 grouped leader PodSets 与 sliced worker PodSets 共置，面向 LeaderWorkerSet 等一主多 worker 形态 | 默认关闭；同时回归 group、slice size、required topology、跨 flavor 和 preemption，不能把 Alpha gate 当成现有 LWS 的默认行为 |
+| MultiKueue client config | `MultiKueueReuseClientConnectionConfigForWorkers` Alpha gate 可让 worker cluster 复用 manager 的 QPS/Burst clientConnection 配置；per-worker REST client 共享一个 rate limiter | 大规模 worker 数量下重新压测 API throttling 和故障隔离；共享 limiter 会改变并发形态，不是提高 QPS 的承诺 |
+| DRA/effective resources | deactivating pending Workload 不再把 RuntimeClass overhead、LimitRange default、由 limit 派生的 request 写回用户 spec；backoff 后 requeue 按 effective resources 重新计费 | 升级前检查已被旧版污染的对象；修复阻止新的 spec mutation/配额漏算，但不会自动还原历史字段 |
+| StatefulSet quota | StatefulSet scale-to-zero 后再扩到不同 replica 数时，Workload Pod count 会刷新，不再按原副本数 admission/charge quota | 回归 `0 -> N`、`N -> 0 -> M`、controller 重启和并发 scale；旧的 admitted Workload 需人工核对 reserved quota |
+| TAS reclaim/hot swap | completed PodSet 通过 `ReclaimablePods` 释放 topology domain；修复 NodeHotSwap 卡住和 overlapping flavor/preemption assignment 重算 | gate 组合和完成时序仍会改变 domain 可用量；需观测 topology assignment、replacement 和 pending reason |
+| 调度/集成 | mixed covered/uncovered resource 会持久化 `NoMatchingFlavor`；TrainJob 不再累积 runtimePatch，且保留 runtime-defined toleration；无 controller owner 的越权 Workload 不再导致 controller crash | 错误 reason、webhook patch 和 namespace RBAC 要分别验收，不能只看最终 Pod Running |
+| CLI/观测 | `kueuectl` 接受 decimal quota、正确筛选 pending Workload、合并分页 JSON/YAML；修复 `CustomMetricLabels` 特定路径 panic | 自动化脚本可依赖有效单文档输出，但升级时仍固定 `KUEUECTL_LIST_REQUEST_LIMIT` 与 client/server minor |
+
+`v0.20.0-rc.0` 是 prerelease，不进入稳定基线。它可以用于迁移预演，但不能替代 v0.19.4 的正式 Release、CRD、Chart 或兼容承诺。
+
 ---
 
 ## 第五章：Grove
@@ -854,11 +870,22 @@ v0.17.0 同时修复 operator 全集群缓存导致的内存增长、DRA device 
 
 这些修复不改变 KAI 的独立 scheduler、PodGroup/Gang、队列公平或 DRA driver 职责。升级前应同时验证 FIPS values、零 gang requirement、controller 限流、共享 ResourceClaim 计数和 successful completion 的 eviction 行为。
 
-### 6.14 v0.20.1 tag-only 边界
+### 6.14 v0.17.2 Gang floor、namespace 与打分修复
 
-截至 2026-09-06，仓库已有 `v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc` tag，但它没有对应的正式 GitHub Release；按本文“最新非 draft、非 prerelease Release”规则，正文稳定基线使用 `v0.17.1@68dca3c4b8de3d9c433cf95c8f084372903ec84d`。不能仅按 tag 排序把 v0.18–v0.20 的 CRD、Chart 或 scheduler 行为纳入兼容承诺。
+`v0.17.2@b46e4a1168441f97997ba7d1db772891ac6695c2` 是 lightweight tag 直接指向的正式 patch source。它不改变 v0.17.0 的 preemption-delay/DRA/FIPS 主能力，集中修复四个会改变调度结果的问题：
 
-历史上 GitHub “latest” 也曾指向旧维护分支 `v0.16.9@724da8388358b7673495a935948ea0a67a86140b`；这同样说明 release channel、维护分支与 tag 序列必须分开审计。需要评估 v0.20.1 时，应等价地把它作为 tag-only 测试快照，独立检查 migration、CRD、镜像与 Helm chart，而不是覆盖本文的 v0.17.1 Release 基线。
+- allocation 和 stale-gang eviction 现在尊重 hierarchical gang floors，不能为了局部可分配或清理旧 gang 而把任一层压到最低成员数以下；升级后应重放 parent/subgroup 不同 floor、partial completion、controller restart 与 eviction。
+- 同名 PodGroup 按 Kubernetes namespace 隔离，避免跨 namespace cache/lookup 误关联。审计脚本和 metrics 也必须以 `namespace/name` 为 identity，不能只按 name 聚合。
+- releasing Pods 不再阻塞 required inter-pod anti-affinity，因此 reclaim/preempt 释放中的旧 Pod 不会让 replacement/victim placement 永久判冲突；仍需验证 terminating grace period 与实际节点资源释放。
+- 不请求 GPU 的 Pod 不再获得 GPU-sharing node score，避免 CPU-only/system Pod 因错误加分挤入稀缺 GPU 节点；节点 taint、affinity 和其他 score plugin 仍可独立影响最终排序。
+
+这些是 correctness 修复，升级前后 placement、victim 和 GPU 节点占用可能变化；不能把变化一概判断为吞吐回归。
+
+### 6.15 v0.20.1 tag-only 边界
+
+截至本轮审校，仓库已有 `v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc` tag，但它没有对应的正式 GitHub Release；按本文“最新非 draft、非 prerelease Release”规则，正文稳定基线使用 `v0.17.2@b46e4a1168441f97997ba7d1db772891ac6695c2`。不能仅按 tag 排序把 v0.18-v0.20 的 CRD、Chart 或 scheduler 行为纳入兼容承诺。
+
+历史上 GitHub “latest” 也曾指向旧维护分支 `v0.16.9@724da8388358b7673495a935948ea0a67a86140b`；这同样说明 release channel、维护分支与 tag 序列必须分开审计。需要评估 v0.20.1 时，应等价地把它作为 tag-only 测试快照，独立检查 migration、CRD、镜像与 Helm chart，而不是覆盖本文的 v0.17.2 Release 基线。
 
 ---
 
@@ -1328,16 +1355,18 @@ Workload API / PodSets
 | 项目 | Release | 提交 |
 |------|---------|------|
 | Koordinator | `v1.8.0` | `989ca85c62abcca92b303aa12fd2ccff2ed30fed` |
-| Kueue | `v0.19.3` | `2ade4776eadb571ecfba02f3680c4ef617a07e71` |
+| Kueue | `v0.19.4` | `5d738f203bd0d301d4966282b144f01d5bb32437` |
 | Grove | `v0.1.0-alpha.13` | `af2df1ffff0ae7a1135554564a6240a3f22f2c35` |
-| KAI-Scheduler | `v0.17.1` | `68dca3c4b8de3d9c433cf95c8f084372903ec84d` |
+| KAI-Scheduler | `v0.17.2` | `b46e4a1168441f97997ba7d1db772891ac6695c2` |
 | Volcano | `v1.15.2` | `1462fb7b4835970708717456e3aed85e697ec2eb` |
 
 除明确标为 Alpha 的 Grove 外，正文按表中稳定 release 审校。生产仍须核对各项目的 Kubernetes compatibility、migration guide、Chart 和镜像 digest。
 
-辅助主线快照（未发布，仅用于审计时的实现/文档对照）：Koordinator `main@025aa5923342eb43bb10f29e7ae0cc64988cb540`。Grove 的 alpha.13 tag 直接指向 `af2df1ffff0ae7a1135554564a6240a3f22f2c35`；没有额外主线能力层纳入稳定承诺。这些分支事实不替代上表的稳定 release。
+辅助主线快照（未发布，仅用于审计时的实现/文档对照）：Koordinator `main@96cef825562c27d4d8e8c177ad998d908f4d05a2`。Grove 的 alpha.13 tag 直接指向 `af2df1ffff0ae7a1135554564a6240a3f22f2c35`；没有额外主线能力层纳入稳定承诺。这些分支事实不替代上表的稳定 release。
 
-KAI 的 tag-only 证据：[`v0.20.1@5922dc7d`](https://github.com/kai-scheduler/KAI-Scheduler/tree/5922dc7d1a4661d3fc43d60943f92a775c892bdc)；审校时它没有对应正式 GitHub Release，不替代上表的 v0.17.1。旧维护分支 [`v0.16.9@724da838`](https://github.com/kai-scheduler/KAI-Scheduler/tree/724da8388358b7673495a935948ea0a67a86140b) 也只作历史分支证据。
+Volcano `v1.16.0-alpha.0`、`.1`、`.2` 均为 prerelease，不替代 `v1.15.2`；Kueue `v0.20.0-rc.0` 同理不替代 `v0.19.4`。Alpha/RC 只用于 CRD、Chart 和升级预演，不能进入稳定选型矩阵。
+
+KAI 的 tag-only 证据：[`v0.20.1@5922dc7d`](https://github.com/kai-scheduler/KAI-Scheduler/tree/5922dc7d1a4661d3fc43d60943f92a775c892bdc)；审校时它没有对应正式 GitHub Release，不替代上表的 v0.17.2。旧维护分支 [`v0.16.9@724da838`](https://github.com/kai-scheduler/KAI-Scheduler/tree/724da8388358b7673495a935948ea0a67a86140b) 也只作历史分支证据。
 
 ### A.2 通用排障命令
 
@@ -1378,7 +1407,8 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kubernetes-sigs/kueue> |
-| v0.19.3 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.3> |
+| v0.19.4 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.4> |
+| v0.19.4 exact source | <https://github.com/kubernetes-sigs/kueue/tree/5d738f203bd0d301d4966282b144f01d5bb32437> |
 | v0.19.0 minor Release（升级前置仍适用） | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.0> |
 | 官方文档 | <https://kueue.sigs.k8s.io/docs/> |
 | Overview | <https://kueue.sigs.k8s.io/docs/overview/> |
@@ -1407,17 +1437,17 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kai-scheduler/KAI-Scheduler> |
-| v0.17.1 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.17.1> |
-| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/68dca3c4b8de3d9c433cf95c8f084372903ec84d/docs/quickstart> |
-| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/68dca3c4b8de3d9c433cf95c8f084372903ec84d/docs/batch> |
-| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/68dca3c4b8de3d9c433cf95c8f084372903ec84d/docs/queues> |
-| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/68dca3c4b8de3d9c433cf95c8f084372903ec84d/docs/fairness> |
-| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/68dca3c4b8de3d9c433cf95c8f084372903ec84d/docs/topology> |
-| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/68dca3c4b8de3d9c433cf95c8f084372903ec84d/docs/gpu-sharing> |
-| Preemption Delay | <https://github.com/kai-scheduler/KAI-Scheduler/blob/68dca3c4b8de3d9c433cf95c8f084372903ec84d/docs/preemption-delay/README.md> |
-| Preemption Delay API | <https://github.com/kai-scheduler/KAI-Scheduler/blob/68dca3c4b8de3d9c433cf95c8f084372903ec84d/pkg/apis/scheduling/v2alpha2/podgroup_types.go> |
-| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/68dca3c4b8de3d9c433cf95c8f084372903ec84d/docs/migrationguides> |
-| segmented elastic PyTorchJob 修复源码 | <https://github.com/kai-scheduler/KAI-Scheduler/blob/68dca3c4b8de3d9c433cf95c8f084372903ec84d/pkg/podgrouper/podgrouper/plugins/kubeflow/pytorch/pytorch_grouper.go> |
+| v0.17.2 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.17.2> |
+| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/b46e4a1168441f97997ba7d1db772891ac6695c2/docs/quickstart> |
+| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/b46e4a1168441f97997ba7d1db772891ac6695c2/docs/batch> |
+| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/b46e4a1168441f97997ba7d1db772891ac6695c2/docs/queues> |
+| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/b46e4a1168441f97997ba7d1db772891ac6695c2/docs/fairness> |
+| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/b46e4a1168441f97997ba7d1db772891ac6695c2/docs/topology> |
+| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/b46e4a1168441f97997ba7d1db772891ac6695c2/docs/gpu-sharing> |
+| Preemption Delay | <https://github.com/kai-scheduler/KAI-Scheduler/blob/b46e4a1168441f97997ba7d1db772891ac6695c2/docs/preemption-delay/README.md> |
+| Preemption Delay API | <https://github.com/kai-scheduler/KAI-Scheduler/blob/b46e4a1168441f97997ba7d1db772891ac6695c2/pkg/apis/scheduling/v2alpha2/podgroup_types.go> |
+| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/b46e4a1168441f97997ba7d1db772891ac6695c2/docs/migrationguides> |
+| segmented elastic PyTorchJob 修复源码 | <https://github.com/kai-scheduler/KAI-Scheduler/blob/b46e4a1168441f97997ba7d1db772891ac6695c2/pkg/podgrouper/podgrouper/plugins/kubeflow/pytorch/pytorch_grouper.go> |
 | CNCF Sandbox 申请 | <https://github.com/cncf/sandbox/issues/372> |
 | CNCF Landscape | <https://landscape.cncf.io/?item=orchestration-management--scheduling-orchestration--kai-scheduler> |
 
