@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a`；ModelExpress 章节固定到其独立稳定版 `v0.5.1@eb5011575dcf56327578634f93a2ec2f7b5416fd`；审校日期：2026-09-06。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
+> 稳定版本基线：`v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a`；ModelExpress 章节固定到其独立稳定版 `v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3`；审校日期：2026-09-06。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 
@@ -1453,9 +1453,24 @@ python -m dynamo.frontend \
 
 ModelExpress 是 Dynamo 生态里的**模型权重生命周期与冷启动加速组件**。它关注的是模型文件、权重、JIT 编译产物如何更快到达新 worker；KVBM、LMCache、FlexKV、HiCache 关注的是请求运行期间产生的 KV block 如何复用、迁移和分层存储。两者都能降低延迟或扩容成本，但服务的对象完全不同。
 
-本节固定到 ModelExpress 独立稳定版 `v0.5.1@eb5011575dcf56327578634f93a2ec2f7b5416fd`。v0.5.0 把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；v0.5.1 在此基础上回补 TensorRT-LLM 一等集成并兼容 protobuf 6 runtime。它不是 Dynamo v1.4.2 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
+本节固定到 ModelExpress 独立稳定版 `v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3`。v0.5.0 把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；v0.5.1 回补 TensorRT-LLM 一等集成并兼容 protobuf 6 runtime；v0.6.0 再把 RL post-training 的 reshard-refit、Prometheus 基础、S3 provider、Helm/CRD/RBAC 和异构 CUDA/XPU source 纳入正式 Release。它不是 Dynamo v1.4.2 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
 
-#### v0.5.1 补丁边界
+#### v0.6.0 稳定增量与升级边界
+
+| 领域 | v0.6.0 行为 | 操作边界 |
+|------|-------------|----------|
+| RL reshard-refit | 不做全量 gather，按 slice 在不同 TP、Megatron/HuggingFace shard layout 之间重分片并原地 refit；包含 Megatron target lowering、HuggingFace zero-copy alias、FSDP/Megatron trainer publisher、RL generator client 与 peer refit strategy | 这是训练权重到推理引擎的更新平面，不是 KV cache 同步；必须固定训练 step、目标 layout、TP/EP rank 和 engine adapter，不能只按模型名匹配 |
+| 正确性与生命周期 | Redis 协调 refit 生命周期，记录 stage 和 training step；coverage gate、per-shard digest 与不可能 wire-rate 检查用于拒绝不完整或异常更新 | digest 提供后续核验材料，不等于端到端模型语义验证；发布说明明确早期 M2N weight-sync 探索已被移除，不能把它写成 v0.6.0 能力 |
+| 传输性能 | strided TP pull 限制 descriptor 数，peer RDMA read 可重叠，三段 refit read 合并批量提交 | source/target 仍需兼容 NIXL、registered memory 和 shard identity；source reader teardown 后 wedge 被列为 known issue，滚动升级要验证重连与回退 |
+| 可观测性 | server 增加 Prometheus 基础以及 per-RPC、storage backend、download、cache、NIXL lifecycle 指标 | 指标用于定位 ModelExpress 控制面和传输面，不可替代 Dynamo Frontend/Router、engine 与 GPU 指标；升级后应重新固定 metric name 和 label cardinality |
+| 模型来源 | S3 成为与 HuggingFace、NGC、GCS 并列的一等 provider；支持 pinned HuggingFace revision，并可在 worker 无共享存储时从 server cache 加载 | S3 provider 与 ModelStreamer 的对象存储路径要按实际 schema 区分；revision 必须写入 source identity 和实验元数据，避免同名模型漂移 |
+| Kubernetes/Helm | chart 可安装 CRD、提供 cluster-wide metadata RBAC，image tag 默认跟随 `appVersion`，不再默认注入 NGC pull secret，并修正实际读取的 log-level 变量 | 旧集群必须先按官方说明更新 CRD；cluster-wide RBAC 会扩大权限面，应审计 ServiceAccount，而不是直接沿用开发 values |
+| 异构 accelerator | NIXL weight source 可以跨 CUDA/XPU peer，延续 v0.5.0 的 `AcceleratorBackend` 抽象 | “可发现异构 source”不代表 tensor layout、dtype、kernel artifact 或运行时 ABI 自动兼容；每种 source-target 组合仍需独立验收 |
+| 安全与传输 | gRPC 可用 Kubernetes ServiceAccount 鉴权；TLS 默认 rustls、OpenSSL 为 opt-in | 不应因启用 cluster-wide metadata RBAC 就省略传输鉴权；证书、ServiceAccount audience 和 namespace 授权需一起验证 |
+
+v0.6.0 同时强化 vLLM、SGLang 与 TensorRT-LLM adapter：包括 vLLM MTP/EP 与 RDMA 后 attention scale 刷新、SGLang TVM-FFI artifact 和 TransferEngine failure fallback、原生 TensorRT-LLM adapter/P2P 示例。它们仍是各 engine 的版本组合能力；Dynamo v1.4.2 固定的 runtime 矩阵不会因为单独升级 ModelExpress 自动前移。
+
+#### v0.5.1 历史补丁边界
 
 | 变化 | v0.5.1 行为 | 不变项 / 操作建议 |
 |------|-------------|-------------------|
@@ -1494,8 +1509,9 @@ ModelExpress 当前实现以 Rust server 和 Python/Rust client 为核心：
 | `modelexpress-server` | gRPC server，负责模型下载、cache registry、LRU eviction、P2P source metadata 协调 |
 | Rust CLI/client | `modelexpress-cli health/download/list/validate/clear`，可用于 init container 或运维操作 |
 | Python client | vLLM、SGLang、TRT-LLM loader/adapters，负责 source 发布、P2P 拉取和 artifact 安装 |
-| metadata backend | Redis、Kubernetes CRD，或特定 P2P 场景下的 `k8s-service` 去中心发现 |
+| metadata backend | Redis、Kubernetes CRD，或特定 P2P 场景下的 `k8s-service` 去中心发现；RL refit 生命周期使用 Redis 协调 |
 | cache directory | 模型文件缓存根目录，可落在本地盘、PVC、RWX 共享卷或临时卷 |
+| metrics endpoint | Prometheus per-RPC、storage、download、cache 与 NIXL lifecycle 指标 |
 
 ModelExpress gRPC 面可以分成两类：
 
@@ -1538,7 +1554,7 @@ flowchart TB
     end
 
     subgraph Storage["model artifact sources"]
-        HF["HuggingFace / NGC / GCS"]
+        HF["HuggingFace / NGC / GCS / S3"]
         PVC["PVC / local NVMe cache"]
         OBJ["S3 / Azure Blob / GCS via ModelStreamer"]
     end
@@ -1588,7 +1604,7 @@ ModelExpress 的模型文件 cache 由 `MODEL_EXPRESS_CACHE_DIRECTORY` 指定，
 | 单副本或单节点 | 本地盘或 RWO PVC | 简单，适合开发或单节点服务 |
 | 多 worker 共享模型文件 | RWX PVC 或共享文件系统 | 多个 worker 可直接读同一份模型文件，但共享存储性能会成为瓶颈 |
 | 多 ModelExpress server，无共享存储 | 每个 server 自己的 RWO/ephemeral cache，加 gRPC streaming | 适合不想依赖 RWX 的集群，但 client/init container 需要配合 |
-| ModelStreamer | object storage 或 PVC/local path | client 侧从 S3、Azure Blob、GCS、本地路径流式加载 |
+| Model provider / ModelStreamer | object storage 或 PVC/local path | v0.6.0 server 可直接使用一等 S3 provider；client 侧 ModelStreamer 仍可从 S3、Azure Blob、GCS、本地路径流式加载 |
 | P2P RDMA receiver | receiver 不一定需要模型落盘 | target 可直接接收 GPU 权重；source 仍通常需要磁盘或预加载来源 |
 
 cache eviction 是 ModelExpress 自己的 registry 驱动逻辑，默认启用 LRU 方向的清理。常见配置包括：
@@ -1617,6 +1633,8 @@ cache eviction 是 ModelExpress 自己的 registry 驱动逻辑，默认启用 L
 | `MODEL_EXPRESS_NO_SHARED_STORAGE` | 无共享存储时走 gRPC streaming |
 | `MODEL_EXPRESS_CACHE_EVICTION_ENABLED` | 启用或关闭模型 cache eviction |
 | `MX_ARTIFACT_TRANSFER` | 启用兼容 JIT artifact transfer |
+
+v0.6.0 的 Helm 默认值发生了部署层变化：新装 chart 的 image tag 跟随 `appVersion`，默认不再假定存在 NGC pull secret，Kubernetes metadata backend 可安装 CRD 并申请 cluster-wide RBAC。升级已有 release 时应先 diff 渲染后的 CRD、ClusterRole/Binding、ServiceAccount 与 imagePullSecrets；不能把新默认值直接覆盖到已有私有镜像和最小权限配置。
 
 #### P2P 权重和 JIT artifact 传输
 
@@ -1824,16 +1842,17 @@ helm install dynamo-platform \
 | SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/sglang/hicache.md> |
 | SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
 | ModelExpress GitHub | <https://github.com/ai-dynamo/modelexpress> |
-| ModelExpress v0.5.1 Release | <https://github.com/ai-dynamo/modelexpress/releases/tag/v0.5.1> |
-| ModelExpress v0.5.1 源码快照 | <https://github.com/ai-dynamo/modelexpress/tree/eb5011575dcf56327578634f93a2ec2f7b5416fd> |
-| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/ARCHITECTURE.md> |
-| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/DEPLOYMENT.md> |
-| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/metadata.md> |
-| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/K8S_SERVICE_BACKEND.md> |
-| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/docs/SGLANG.md> |
-| ModelExpress TensorRT-LLM client | <https://github.com/ai-dynamo/modelexpress/tree/eb5011575dcf56327578634f93a2ec2f7b5416fd/modelexpress_client/python/modelexpress/engines/trtllm> |
-| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/examples/dynamo_model_cache_k8s/README.md> |
-| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/eb5011575dcf56327578634f93a2ec2f7b5416fd/examples/dynamo_p2p_transfer_k8s/README.md> |
+| ModelExpress v0.6.0 Release | <https://github.com/ai-dynamo/modelexpress/releases/tag/v0.6.0> |
+| ModelExpress v0.6.0 源码快照 | <https://github.com/ai-dynamo/modelexpress/tree/e91f650aa6a1847959e7f7da1b39c19e16b312e3> |
+| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/ARCHITECTURE.md> |
+| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/DEPLOYMENT.md> |
+| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/metadata.md> |
+| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/K8S_SERVICE_BACKEND.md> |
+| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/SGLANG.md> |
+| ModelExpress TensorRT-LLM client | <https://github.com/ai-dynamo/modelexpress/tree/e91f650aa6a1847959e7f7da1b39c19e16b312e3/modelexpress_client/python/modelexpress/engines/trtllm> |
+| ModelExpress RL refit | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/modelexpress_client/python/modelexpress/refit/README.md> |
+| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/examples/dynamo_model_cache_k8s/README.md> |
+| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/examples/dynamo_p2p_transfer_k8s/README.md> |
 | Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/kubernetes/kubernetes-operator/dynamo-operator.md> |
 | Kubernetes Installation | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/kubernetes/installation> |
 | Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac#quick-start> |
