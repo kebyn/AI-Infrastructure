@@ -4,7 +4,7 @@
 >
 > 基于 KServe 官方仓库与官网文档整理：<https://github.com/kserve/kserve>
 >
-> 稳定版本基线：`kserve/kserve v0.20.0@1fb781055dd1567164358233e1125142ca6ef1fe`；未发布主线快照：`kserve/kserve master@85991f1693d4713f498702f8e2b350a9ef520db2`、官网 `kserve/website main@71c8b22a05d6be72560b2cc326865930063cd0e8`；审校日期：2026-09-06。主线快照只用于说明未进入 tag 的后续方向，不计入 v0.20.0 兼容承诺；本轮复核稳定 Release 未变化。
+> 稳定版本基线：`kserve/kserve v0.20.0@1fb781055dd1567164358233e1125142ca6ef1fe`；未发布主线快照：`kserve/kserve master@85991f1693d4713f498702f8e2b350a9ef520db2`、官网 `kserve/website main@71c8b22a05d6be72560b2cc326865930063cd0e8`；审校日期：2026-09-17。主线快照只用于说明未进入 tag 的后续方向，不计入 v0.20.0 兼容承诺；本轮复核稳定 Release 未变化。
 
 > 审校窗口内可见 `v0.21.0-rc0` prerelease；它不进入本文稳定基线。RC 可用于 CRD/Chart/API 迁移预演，但不能替代 v0.20.0 的正式 Release、升级支持或兼容承诺。
 

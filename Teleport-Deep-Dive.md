@@ -4,7 +4,7 @@
 >
 > Teleport 仍是主要基线，但本文不把其它产品压缩成一行式竞品列表：The Bastion、Warpgate 按相同维度深入分析，Boundary、Pomerium、Guacamole 作为类别边界清晰的扩展参照。源码、版本和许可证均以固定链接为证据，不把营销页面或未发布主线当成稳定能力。
 >
-> **审校日期：2026-09-06。** Teleport `v18.10.0@ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d` 是主要稳定基线；其余版本和审计 commit 见第一章及附录 B。原有文件路径保持不变，方便已有链接继续指向本文。
+> **审校日期：2026-09-17。** Teleport `v18.10.0@ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d` 是主要稳定基线；其余版本和审计 commit 见第一章及附录 B。原有文件路径保持不变，方便已有链接继续指向本文。
 
 ---
 
@@ -111,7 +111,7 @@ Teleport 的价值不在于取代每个目标系统，而在于把“谁、以�
 
 ### 1.7 Teleport 稳定版本证据
 
-截至 2026-09-06，GitHub `releases/latest` 返回 `v18.10.0`，其 Release 状态为 `draft=false`、`prerelease=false`。该 tag 是 lightweight tag，直接指向 source commit：
+截至 2026-09-17，GitHub `releases/latest` 返回 `v18.10.0`，其 Release 状态为 `draft=false`、`prerelease=false`。该 tag 是 lightweight tag，直接指向 source commit：
 
 ```text
 v18.10.0

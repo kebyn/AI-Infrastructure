@@ -4,7 +4,7 @@
 >
 > 基于 E2B 官方基础设施仓库整理：<https://github.com/e2b-dev/infra>
 >
-> 稳定版本基线：`2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`；SDK 未发布主线快照 `main@3e5a48b00eb133ac1e98697d549574301c605e81`；Agent Sandbox 稳定对照 `v1.0.2@9a85153590e54cb980f3241f9e7a9228449412c9`；审校日期：2026-09-06。正文中的 E2B 产品能力与支持状态仅以 E2B 官方仓库和官方文档为依据；SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
+> 稳定版本基线：`2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`；SDK 未发布主线快照 `main@3e5a48b00eb133ac1e98697d549574301c605e81`；Agent Sandbox 稳定对照 `v1.0.2@9a85153590e54cb980f3241f9e7a9228449412c9`；审校日期：2026-09-17。Infra `2026.30` 是 lightweight tag，所列 commit 是 tag 直接指向的源码；Agent Sandbox `v1.0.2` 是 annotated tag，正文使用 peeled source commit 而非 tag object。SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
 
 ---
 

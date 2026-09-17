@@ -4,7 +4,7 @@
 >
 > 基于 Multica 官方仓库和官方文档整理：<https://github.com/multica-ai/multica>
 >
-> 稳定版本基线：annotated tag `v0.4.44` 解引用后的 `c7f259c70a60bff30011c403fada79ab382f608a`；未发布主线审计快照 `main@7e4758ac1a94e9ff843696333364610bb8d4bbf7`；审校日期：2026-09-06。正文的产品契约、默认参数和部署行为只以 `v0.4.44` 的 peeled source commit 为准；主线快照不扩大稳定兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
+> 稳定版本基线：annotated tag `v0.4.44` 解引用后的 `c7f259c70a60bff30011c403fada79ab382f608a`；未发布主线审计快照 `main@7e4758ac1a94e9ff843696333364610bb8d4bbf7`；审校日期：2026-09-17。正文的产品契约、默认参数和部署行为只以 `v0.4.44` 的 peeled source commit 为准；主线快照不扩大稳定兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
 
 ![Multica v0.4.44 Workspace 概览：成员与 AI Agent 在同一工作区围绕 Issue、Project 与执行记录协作](https://raw.githubusercontent.com/multica-ai/multica/c7f259c70a60bff30011c403fada79ab382f608a/apps/docs/public/images/docs/workspace-overview.webp)
 
@@ -1209,7 +1209,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 | Annotated tag object | `0c740254485dfcb24c4f06cb938a35c20e4f10fe` | 证明 tag 类型；不是源码 commit | 否 |
 | Peeled source commit | `c7f259c70a60bff30011c403fada79ab382f608a` | 正文所有稳定实现与文档证据 | 是 |
 | Unreleased main | `7e4758ac1a94e9ff843696333364610bb8d4bbf7` | 审计时分支头，仅作后续观察 | 否 |
-| 审校日期 | `2026-09-06` | 本文证据截止日 | 不代表未来版本 |
+| 审校日期 | `2026-09-17` | 本文证据截止日 | 不代表未来版本 |
 | Release | [`v0.4.44`](https://github.com/multica-ai/multica/releases/tag/v0.4.44) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
 
 版本升级时应重新解引用 tag，并分别记录 tag object、source commit、Chart、backend/frontend image digest 和 daemon/CLI 版本。
@@ -1428,4 +1428,4 @@ Release 链：[v0.4.41](https://github.com/multica-ai/multica/releases/tag/v0.4.
 - [Multica License](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/LICENSE)
 - [NOTICE](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/NOTICE)
 
-本文固定的是 2026-09-06 的 `v0.4.44`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
+本文固定的是 2026-09-17 的 `v0.4.44`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
