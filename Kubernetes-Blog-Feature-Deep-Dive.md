@@ -2,9 +2,9 @@
 
 > **Kubernetes v1.24—v1.37、Gateway API、AI/Agent 平台、控制面性能、安全与运维的 Blog 历史审计**
 >
-> 本文基于 Kubernetes 官方 Blog 2022 年起（约 v1.24）至 2026-09-06 的年份归档、RSS、sitemap，以及对应的 Release 页面、文档、KEP 和 v1.37.0 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.html) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.html)。
+> 本文基于 Kubernetes 官方 Blog 2022 年起（约 v1.24）至 2026-09-17 的年份归档、RSS、sitemap，以及对应的 Release 页面、文档、KEP 和 v1.37.0 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.html) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.html)。
 >
-> 稳定版本基线：Kubernetes <code>v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-09-06。<code>v1.37.0</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
+> 稳定版本基线：Kubernetes <code>v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-09-17。<code>v1.37.0</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
 
 > **先给结论：** v1.37 的重要变化不是某一个孤立 API，而是把平台的“可管理单位”逐步从单个 Pod 推向 Workload、设备、资源拓扑、控制面状态和工作负载身份。Stable 能力已经可以进入常规生产基线；Beta 仍要逐集群验证默认 gate、组件版本和生态实现；Alpha 以及 Blog 中的生态项目只能作为试验或架构方向，不能自动写入稳定兼容承诺。
 
@@ -20,7 +20,7 @@
 
 ### 1.1 这篇综述读取了什么
 
-RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口是 2022-01-01 至 2026-09-06 已发布的文章，重点选择以下四类：
+RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口是 2022-01-01 至 2026-09-17 已发布的文章，重点选择以下四类：
 
 | 类型 | 纳入方式 | 证据边界 |
 | --- | --- | --- |
@@ -31,7 +31,7 @@ RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口�
 
 RSS XML 的 <code>description</code> 是文章摘要或 HTML 片段，不能代替网页正文；正文以对应官方页面为准。链接、日期和成熟度也应以审校时的 RSS 与 Release 页面为准，未来文章发布不会自动改变本文的历史截止边界。
 
-### 1.2 截至 2026-09-06 的近期文章地图
+### 1.2 截至 2026-09-17 的近期文章地图
 
 下表列出本文的主要证据入口。它不是把 RSS 文章长段复制到仓库，而是把相互关联的文章按平台问题重新组织。
 
@@ -1464,7 +1464,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 ## 结论
 
-截至 2026-09-06，Kubernetes Blog/RSS 展示的核心趋势可以概括为：
+截至 2026-09-17，Kubernetes Blog/RSS 展示的核心趋势可以概括为：
 
 1. **控制面更重视峰值和恢复。** RangeStream、watch cache protection、concurrent decode 和 storage migration 共同处理大规模 API server 的内存、恢复和版本生命周期。
 2. **AI 调度的上游基础开始成形。** Workload/PodGroup、Gang、workload-aware preemption、DRA claim、标准 NUMA 属性和 Pod-level manager 让 Kubernetes 可以表达更多 AI/HPC 资源关系，但许多组合仍默认关闭。
@@ -1488,7 +1488,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 | v1.37 enhancement count | 67 |
 | Stable / Beta / Alpha / deprecation | 16 / 23 / 27 / 1 |
 | RSS feed | <https://kubernetes.io/feed.xml> |
-| 审校日期 | 2026-09-06 |
+| 审校日期 | 2026-09-17 |
 
 <code>v1.37.0</code> 的 tag object 和 source commit 是两个不同的 Git object。本文以及仓库渲染元数据使用 source commit；tag object 仅保留在本表作为 Git ref 复核信息。Blog 中的 Beta/Alpha、Working Group proposal、生态 CRD 和主线实现均不扩大 <code>v1.37.0</code> 的 Stable 兼容承诺。
 
@@ -1611,7 +1611,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 ### A.8 排除项与审计统计
 
-年份归档和 RSS 中的文章先按标题、正文和发布日期去重，再按下表分类。统计是截至 2026-09-06 的审计快照；由于 Blog RSS 只保留近期条目，2022—2025 的候选来自年份归档、sitemap 和文章页面，不把当前 feed 的截断误判为历史文章不存在。
+年份归档和 RSS 中的文章先按标题、正文和发布日期去重，再按下表分类。统计是截至 2026-09-17 的审计快照；由于 Blog RSS 只保留近期条目，2022—2025 的候选来自年份归档、sitemap 和文章页面，不把当前 feed 的截断误判为历史文章不存在。
 
 | 分类 | 处理 | 2022—2026 快照数量/说明 |
 | --- | --- | --- |
