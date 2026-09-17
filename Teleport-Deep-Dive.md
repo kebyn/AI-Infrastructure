@@ -51,7 +51,7 @@
 | The Bastion | `v3.24.01@30c8b522ddd9db2993e22b05b0ee19f961cadf1d` | 2026-07-08 正式 Release；lightweight tag | Apache-2.0；Perl 插件/helper 与 Unix 账号模型属于项目实现，部署仍需按目标系统加固 |
 | Warpgate | `v0.28.6@525c7caf2219d5f5e3913b5732e4cbad5d15cd34` | 2026-09-01 正式 Release；lightweight tag | Apache-2.0；单二进制和 SQLite 是该版本稳定边界，主线新协议不前推 |
 | Boundary | `v0.21.3@8c9715c868537616a11e0ea555b20042e212bdbc` | 2026-04-30 正式 Release；lightweight tag | Business Source License 1.1（MariaDB BSL 文本）；生产使用须复核变更日期和商业条款，不把它写成 Apache OSS |
-| Pomerium | `v0.33.1@01af7466fa3b26b5e5369df49f367737d81ad18e` | 2026-08-18 正式 Release；lightweight tag | Apache-2.0；HTTP/TCP identity-aware proxy 边界，企业托管/高级策略另行核对 |
+| Pomerium | `v0.33.3@76042ed40db3bab9506b689f436716b6df624f23` | 2026-09-09 正式 Release；lightweight tag | Apache-2.0；HTTP/TCP identity-aware proxy 边界，企业托管/高级策略另行核对 |
 | Guacamole | server `1.6.0@1f664e08feae6e7d15d8146b78acab2e6fb470ae`；client `1.6.0@0537c89cd783681b986ff8f8c4e0b97ec6873371` | 审校日未找到 GitHub Release；官方 `1.6.0` annotated tag 可验证但按 tag-only 处理 | Apache-2.0；不把无 Release 的 tag-only 当作厂商稳定兼容承诺，部署前仍应固定并测试 server/client 实际发行包 |
 
 正式 Release、tag-only、RC/prerelease、主线快照和商业/托管能力必须分开。本文没有把 Boundary 的主线功能、Guacamole `1.6.0` tag 后变化、Teleport Enterprise entitlement 或任何产品的 SaaS 行为算进稳定兼容性。
@@ -154,6 +154,8 @@ Boundary 将 controller（身份、scope、policy、target）、worker（靠近�
 ### 2.5 Pomerium：身份感知 HTTP/TCP 代理
 
 Pomerium 在请求到达 HTTP/HTTPS/TCP upstream 前校验 OIDC/JWT claims、device/context 和 route policy，可向应用注入身份 headers。它适合内部 Web、API、SSH-over-TCP 等零信任入口，但不会解析 SSH PTY、数据库 query、Kubernetes object 或 RDP 帧，也不负责签发目标资源证书。IdP、policy store、TLS secret、proxy 实例和 upstream 本身是故障域。
+
+本文固定到 v0.33.3。该补丁修复 outbound connection reload 时 owner/changed-options 识别、MCP `ext_proc` 对 databroker 的重连，以及按 OAuth2 server metadata 协商 token endpoint authentication method；它不扩大 Pomerium 的协议或审计边界。`v0.33.2` 虽有 tag，但 release build 失败且没有发布 binary、package 或 image，v0.33.3 以相同修复取代它；生产资产不能固定到 v0.33.2 tag-only。
 
 ### 2.6 Guacamole：浏览器远程桌面协议网关
 
@@ -1117,9 +1119,10 @@ Teleport OSS 最有价值的能力是把多协议访问统一到同一组 CA、�
 
 #### B.1.4 Pomerium
 
-- Release：<https://github.com/pomerium/pomerium/releases/tag/v0.33.1>
-- Exact source（lightweight tag）：<https://github.com/pomerium/pomerium/tree/01af7466fa3b26b5e5369df49f367737d81ad18e>
-- Apache-2.0 license：<https://github.com/pomerium/pomerium/blob/01af7466fa3b26b5e5369df49f367737d81ad18e/LICENSE>
+- Release：<https://github.com/pomerium/pomerium/releases/tag/v0.33.3>
+- Exact source（lightweight tag）：<https://github.com/pomerium/pomerium/tree/76042ed40db3bab9506b689f436716b6df624f23>
+- Apache-2.0 license：<https://github.com/pomerium/pomerium/blob/76042ed40db3bab9506b689f436716b6df624f23/LICENSE>
+- v0.33.2 未发布产物说明：<https://github.com/pomerium/pomerium/releases/tag/v0.33.3#user-content-note-on-v0332>
 - Architecture and routes：<https://www.pomerium.com/docs>
 - Authentication capabilities：<https://www.pomerium.com/docs/capabilities/authentication>
 

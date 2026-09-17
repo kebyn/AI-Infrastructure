@@ -4,7 +4,7 @@
 >
 > 基于 E2B 官方基础设施仓库整理：<https://github.com/e2b-dev/infra>
 >
-> 稳定版本基线：`2026.29@557445ffddda8d9a27f6f529a3f4d7732cf81a13`；SDK 未发布主线快照 `main@5a56c87e9db0e221b138662805af7743e75f1082`；Agent Sandbox 稳定对照 `v1.0.0@bb72f49d79f009a960eed2ae6c32e1cc082399c5`；审校日期：2026-09-06。正文中的 E2B 产品能力与支持状态仅以 E2B 官方仓库和官方文档为依据；SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
+> 稳定版本基线：`2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`；SDK 未发布主线快照 `main@3e5a48b00eb133ac1e98697d549574301c605e81`；Agent Sandbox 稳定对照 `v1.0.2@9a85153590e54cb980f3241f9e7a9228449412c9`；审校日期：2026-09-06。正文中的 E2B 产品能力与支持状态仅以 E2B 官方仓库和官方文档为依据；SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
 
 ---
 
@@ -30,7 +30,7 @@ E2B 是面向 AI Agent、代码解释器和自动化执行任务的 **Sandbox �
 |--------|------|----------------|
 | AI Agent / Code Interpreter | SDK、CLI、REST API | 创建 sandbox、运行代码、读写文件、暴露端口 |
 | 平台团队 | API、Dashboard、模板构建链路 | 统一管理模板、团队、密钥、配额、指标和日志 |
-| 基础设施团队 | Terraform、Nomad、Orchestrator | 部署 Firecracker 运行节点、对象存储、路由、监控 |
+| 基础设施团队 | Kubernetes distribution、Orchestrator | 部署 Firecracker 运行节点、对象存储、路由、监控 |
 
 ### 1.2 E2B 解决什么问题
 
@@ -44,14 +44,14 @@ E2B 是面向 AI Agent、代码解释器和自动化执行任务的 **Sandbox �
 | 文件和进程 API | 需要给 SDK 暴露稳定的执行、文件、PTY、流式日志接口 | VM 内部运行 envd agent |
 | 端口访问 | 用户进程随机监听端口，需要安全转发 | client-proxy + orchestrator proxy + sandbox URL |
 | 多节点调度 | 节点容量、模板缓存、快照位置会影响启动延迟 | API 做节点发现、placement 和路由表维护 |
-| 私有化 | 需要将数据、模板、网络、认证放入自有环境 | 官方支持 GCP/AWS Terraform，自托管需处理依赖取舍 |
+| 私有化 | 需要将数据、模板、网络、认证放入自有环境 | 2026.30 文档转向 Kubernetes distribution，自托管仍需处理依赖与特权节点取舍 |
 
 ### 1.3 E2B 不是什么
 
 | 不是 | 说明 |
 |------|------|
 | 不是 Kubernetes 模型推理平台 | E2B 运行任意代码 sandbox，不负责模型推理调度，和 KServe/Dynamo/Mooncake 的定位不同 |
-| 不是通用容器编排器 | E2B 自身用 Nomad 调度服务，但它对用户暴露的是 sandbox API，不是容器 API |
+| 不是通用容器编排器 | 2026.30 的部署底座转向 Kubernetes，但 E2B 对用户暴露的是 sandbox API，不是任意 Pod/容器 API |
 | 不是单个二进制服务 | 生产部署至少涉及 API、Orchestrator、Client Proxy、PostgreSQL、Redis、对象存储和负载均衡 |
 | 不是纯 serverless 函数平台 | sandbox 可长时间运行、暂停、恢复、暴露端口并保留文件系统状态 |
 
@@ -74,7 +74,7 @@ E2B 的架构最重要的边界是 **控制面** 和 **数据面** 分离：
 
 | 平面 | 主要组件 | 职责 |
 |------|----------|------|
-| 控制面 | API、Dashboard API、PostgreSQL、Redis、ClickHouse、Nomad/Consul | 鉴权、模板与团队管理、sandbox 生命周期、节点选择、运行态记录、指标查询 |
+| 控制面 | API、Dashboard API、PostgreSQL、Redis、ClickHouse、Kubernetes 管理面 | 鉴权、模板与团队管理、sandbox 生命周期、节点选择、运行态记录、指标查询 |
 | 数据面 | Orchestrator、Firecracker、envd、Client Proxy、Orchestrator Proxy | 创建 VM、恢复快照、网络转发、进程/文件 API、用户流量代理 |
 
 API 决定 **sandbox 在哪里运行**，Orchestrator 决定 **sandbox 如何运行**。用户访问 sandbox 暴露端口时，流量不经过 API，而是从 Client Proxy 转到对应节点的 Orchestrator Proxy。
@@ -84,16 +84,16 @@ flowchart TB
     subgraph Clients["Clients"]
         SDK["SDK / CLI"]
         Browser["Browser / HTTP Client"]
-        Docker["docker push"]
+        Builder["Template / image client"]
     end
 
-    LB["Load Balancer / DNS<br/>api.* | *.domain | docker.*"]
+    LB["Load Balancer / DNS<br/>api.* | *.sandbox.*"]
 
     subgraph Control["Control Plane"]
         API["API<br/>REST + gRPC"]
         DashAPI["Dashboard API"]
         CP["Client Proxy"]
-        DRP["Docker Reverse Proxy"]
+        K8S["Kubernetes discovery / placement"]
     end
 
     subgraph State["State"]
@@ -117,7 +117,7 @@ flowchart TB
 
     SDK -->|REST| LB --> API
     Browser -->|sandbox URL| LB --> CP
-    Docker -->|Registry v2| LB --> DRP
+    Builder -->|image / build request| API
     API -->|Create / Pause / Resume| ORCH
     API -->|TemplateCreate| TM
     CP -->|lookup route| RD
@@ -126,6 +126,7 @@ flowchart TB
     API --> PG
     API --> RD
     API --> CH
+    API --> K8S
     ORCH --> OS
     TM --> OS
     DashAPI --> PG
@@ -134,27 +135,26 @@ flowchart TB
 
 ### 2.2 部署拓扑
 
-官方自托管路径用 Terraform 部署到云上，并用 Nomad/Consul 组织服务。GCP 是官方主要路径，AWS 在官方文档中标为 Beta；Azure 和通用 Linux 机器不是官方完成状态。
+Infra 2026.30 退休仓库中的 Nomad deployment configuration，部署文档转向 Kubernetes distribution。下面表达当前逻辑节点池和依赖边界；具体 workload kind、Chart/manifest 和云 provider 支持仍以固定 release 的分发材料为准。
 
 ```mermaid
 flowchart TB
     LB["Cloud Load Balancer + TLS"]
 
-    subgraph ServerPool["server pool"]
-        NS["Nomad / Consul servers"]
+    subgraph ControlPlane["Kubernetes control plane"]
+        K8S["API Server / scheduler / controllers"]
     end
 
     subgraph ApiPool["api pool"]
         APIJ["api"]
         CPJ["client-proxy"]
         DASHJ["dashboard-api"]
-        ING["ingress / Traefik"]
-        DRPJ["docker-reverse-proxy"]
+        ING["ingress / load balancer"]
         OTel["otel / logs / loki"]
     end
 
-    subgraph ClientPool["client pool"]
-        OJ["orchestrator system job<br/>Firecracker sandboxes"]
+    subgraph ClientPool["sandbox node pool"]
+        OJ["privileged orchestrator<br/>Firecracker sandboxes"]
     end
 
     subgraph BuildPool["build pool"]
@@ -169,17 +169,17 @@ flowchart TB
     APIJ --> OJ
     APIJ --> TJ
     CPJ --> OJ
-    NS -. schedules .-> ApiPool
-    NS -. schedules .-> ClientPool
-    NS -. schedules .-> BuildPool
-    NS -. schedules .-> ClickHousePool
+    K8S -. schedules / discovers .-> ApiPool
+    K8S -. schedules / discovers .-> ClientPool
+    K8S -. schedules / discovers .-> BuildPool
+    K8S -. schedules / discovers .-> ClickHousePool
 ```
 
-生产上通常要分出三类节点：
+生产上通常要分出这些节点池：
 
 | 节点池 | 运行内容 | 原因 |
 |--------|----------|------|
-| server pool | Nomad/Consul server | 调度和服务发现控制面需要稳定 quorum |
+| control-plane pool | Kubernetes control plane | 调度、API 与控制器需要稳定 quorum；托管集群可由云服务承载 |
 | api pool | API、Client Proxy、Dashboard API、Ingress、日志采集 | 承接外部流量和控制面请求 |
 | client pool | Orchestrator、Firecracker sandbox | 需要 KVM、root 权限、网络 namespace、NBD、cgroup、本地模板缓存 |
 | build pool | Template Manager | 模板构建使用同一个 orchestrator 二进制的不同角色，和 sandbox 运行节点隔离更安全 |
@@ -201,7 +201,7 @@ flowchart TB
 | `packages/db` | PostgreSQL migration 和 sqlc queries |
 | `packages/clickhouse` | ClickHouse schema、写入和查询客户端 |
 | `spec` | OpenAPI 规格 |
-| `iac` | Terraform、Nomad jobs、云 provider 模块 |
+| `iac` | Terraform、云 provider 与 Kubernetes 分发相关模块；2026.30 已移除仓库中的旧 Nomad 部署配置 |
 | `tests/integration` | 面向真实部署的集成测试 |
 
 ---
@@ -214,7 +214,7 @@ API 是 E2B 控制面的入口。它面向 SDK/CLI/Dashboard，负责把“创�
 
 | 维度 | 说明 |
 |------|------|
-| 主要职责 | sandbox create/list/kill/pause/resume/connect，模板和构建管理，team/API key/access token，quota，metrics/logs |
+| 主要职责 | sandbox create/list/kill/pause/resume/connect，模板和构建、project/team、API key/JWT、Secrets、quota、metrics/logs 管理 |
 | 外部接口 | REST API，OpenAPI 源位于 `spec/openapi.yml` |
 | 内部接口 | gRPC，用于 client-proxy auto-resume 等内部调用 |
 | 关键状态 | PostgreSQL 存模板、团队、构建、快照等持久对象；Redis 存运行中 sandbox 和路由表 |
@@ -276,11 +276,11 @@ https://<port>-<sandboxID>.<domain>
 
 Client Proxy 通常从 Host 中解析端口和 sandbox ID；在共享 `sandbox.<domain>`、`localhost` 或 IP Host 上，也可以从固定路由 Header 解析目标。随后它查 Redis routing catalog，找到 sandbox 所在 Orchestrator 节点，再把请求转发到该节点的 Orchestrator Proxy。如果 Redis 中找不到运行态记录，Client Proxy 可以通过 API 的 gRPC resume 能力触发自动恢复。两种寻址方式的优先级与安全边界见 4.2.1。
 
-### 3.6 Dashboard API 与 Docker Reverse Proxy
+### 3.6 Dashboard API 与历史 Docker Reverse Proxy
 
 Dashboard API 面向 Web 管理界面，不是 SDK 主路径。它读取 PostgreSQL 和 ClickHouse，用于 team、template、build、admin bootstrap 等管理场景。
 
-Docker Reverse Proxy 是模板自定义镜像链路的一部分。用户用 E2B 凭证推送镜像时，它负责校验凭证、替换为真实 registry 凭据，并把路径改写到云侧 artifact registry。
+Docker Reverse Proxy 曾是模板自定义镜像链路的一部分。Infra 2026.30 已移除这个 deprecated service；新部署和升级清单不得继续把它当作必需组件、探针目标或可用入口。仍依赖其凭证替换/路径改写的旧环境必须先迁移镜像推送流程，再删除服务。
 
 ---
 
@@ -327,7 +327,7 @@ sequenceDiagram
 
 #### 4.1.1 2026.29 原生 Sandbox fork
 
-Infra 2026.29 新增 `POST /sandboxes/{sandboxID}/fork`。它不是复制一条数据库记录：API 先把**运行中**的原 Sandbox 原地短暂停顿并做一次完整内存 checkpoint，再在原节点恢复原实例；随后所有 fork 从这一个不可变 snapshot 并行启动。原 Sandbox 保持自己的 ID、过期时间、execution ID 和并发 reservation，不会因 fork 被替换或延长。
+Infra 2026.29 首次新增 `POST /sandboxes/{sandboxID}/fork`，2026.30 继续保留该契约。它不是复制一条数据库记录：API 先把**运行中**的原 Sandbox 原地短暂停顿并做一次完整内存 checkpoint，再在原节点恢复原实例；随后所有 fork 从这一个不可变 snapshot 并行启动。原 Sandbox 保持自己的 ID、过期时间、execution ID 和并发 reservation，不会因 fork 被替换或延长。
 
 请求体可选 `timeout` 与 `count`。`timeout` 是新 fork 的 TTL，默认 `15s` 且不能超过 Team 的最大运行时长；`count` 默认 `1`、范围 `1..100`，还必须小于 Team 的 Sandbox 并发上限。HTTP `201` 返回与请求数量相同的结果数组，每项恰好包含 `sandbox` 或 `error`，因此部分 fork 可以成功、部分因 reservation/placement/启动失败而失败；非 `201` 表示尚未开始任何 fork，不能把整个请求当作全有或全无事务。
 
@@ -339,6 +339,24 @@ Infra 2026.29 新增 `POST /sandboxes/{sandboxID}/fork`。它不是复制一条�
 | 网络与卷 | 继承 snapshot 中的 egress/ingress、auto-resume、volume mounts 与 auto-pause 配置，不应假设 fork 自动放宽隔离 |
 | 凭证 | secure fork 按新 Sandbox ID 重新生成 envd access token；private ingress 也按新 ID 生成自己的 Traffic Token，不能复用原实例 token |
 | 失败恢复 | checkpoint 前失败不会创建 fork；单个 fork 启动失败只写入该结果项，调用方必须逐项处理和清理成功实例 |
+
+#### 4.1.2 Infra 2026.30 控制面与恢复增量
+
+`2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104` 继承 2026.29 的 fork 与路由契约，同时改变认证、状态存储和自托管部署边界。升级前必须先处理前两项 breaking change：
+
+| 领域 | 2026.30 行为 | 升级与安全边界 |
+| --- | --- | --- |
+| 控制面认证 | 删除 deprecated E2B access-token authentication、管理 endpoint 和 `access_tokens` 表；客户端必须改用 API key 或部署支持的 JWT | 这里删除的是 E2B 控制面 access-token API，不是 Sandbox 的 `envdAccessToken` 或 `trafficAccessToken`；先迁移调用方和 Dashboard，再执行 drop migration |
+| PostgreSQL | 删除 database read-replica support | 不再配置或依赖旧 replica DSN/读路由；外部数据库服务仍可自行提供 HA，但应用只按当前支持的连接契约部署 |
+| workload identity | Sandbox 可通过 `iam.tokens` 声明 workload identity，token 定义在 pause、resume、fork 后保留；准入受 feature gate 控制 | token 定义不是把长期云凭据写入环境变量；需审计 issuer/audience、network transform、feature gate 和目标云 IAM policy |
+| Secrets API | feature-gated `/secrets` create/list/get/update/delete 接入已配置的 secrets-store，响应只返回 metadata 而不回传 secret value | 这是受配置和鉴权约束的控制面能力；未配置 store 或未启用 gate 时不得假设 API 可用，日志与错误也不能泄漏原值 |
+| 日志路由 | 支持 primary/shadow 动态目的地、ClickHouse Sandbox/build log read；无 LaunchDarkly 时可用 `LOGS_READ_CONFIG`，`LOKI_URL` 可选 | shadow 是复制路径而非自动容灾读；切换前要验证重复、延迟、保留期、租户标签和脱敏 |
+| filesystem-only resume | resume/connect 可显式 `memory: false`，从磁盘冷启动但不删除已有 memory snapshot；需 `fs-only-resume-api` gate | 文件系统具有 crash-recovery 语义，未 flush 写可能丢失，进程/连接不会恢复；不支持时必须报错，不能静默退回 memory restore |
+| 集群管理 | 增加 cluster registration、稳定 registration ID、project assignment 查询、可重放 assignment/detachment、鉴权管理操作和 guarded cleanup | 注册与分配操作必须幂等；删除前检查 teardown readiness，并区分 soft-deleted 引用与保留的 template/build history |
+| envd 升级 | resume 时可 opt-in live upgrade，交接 process 和 filesystem watcher 状态；quiesced filesystem-only snapshot 可走 offline rootfs swap | live/offline 路径分别受 gate、版本和失败回退约束；升级结果应进入 telemetry，不能把 binary 替换等同于应用进程无损 |
+| IaC | 仓库退休旧 Nomad deployment configuration，当前部署文档转向 Kubernetes distribution | 2026.29 的 Terraform+Nomad 操作手册仅作历史迁移参考；2026.30 新装不能继续声称 Nomad 是官方稳定主路径 |
+
+`memory: false` 对已经是 filesystem-only 的 snapshot 是 no-op；对包含 memory 的 snapshot 则要求能力开关并强制 cold boot。它不会修改或删除存储的 memory snapshot，失败时也不得降级成普通 memory restore。容量与恢复演练应分别覆盖 full-memory resume、filesystem-only explicit resume、auto-pause fallback 和 CPU model 限制。
 
 ### 4.2 访问 Sandbox 端口
 
@@ -360,7 +378,7 @@ https://<port>-<sandbox-id>.<sandbox-domain>
 
 #### 4.2.1 Host 与 Header 两种寻址方式
 
-Infra 2026.29 的 Client Proxy 支持两种目标寻址形式，Header 路由是常规 Host 编码路由的补充，不是另一套鉴权协议：
+Infra 2026.30 的 Client Proxy 支持两种目标寻址形式，Header 路由是常规 Host 编码路由的补充，不是另一套鉴权协议：
 
 | 寻址方式 | 请求 Host | 目标来源 | 典型用途 |
 | --- | --- | --- | --- |
@@ -426,7 +444,7 @@ E2B 的 ReverseProxy 不主动剥离官方路由 Header，所以 guest 应用可
 
 ##### 两级代理中的实际执行路径
 
-这里的“E2B Router”是逻辑概念，Infra 2026.29 没有名为 Router 的独立服务；路由由 Client Proxy 与每个节点上的 Orchestrator Proxy 两级完成：
+这里的“E2B Router”是逻辑概念，Infra 2026.30 没有名为 Router 的独立服务；路由由 Client Proxy 与每个节点上的 Orchestrator Proxy 两级完成：
 
 ```mermaid
 sequenceDiagram
@@ -463,7 +481,7 @@ Client Proxy 解析目标后不会直接连接 guest。它先用 Sandbox ID 查�
 
 两级代理共用 Go `httputil.ReverseProxy`。Agent Sandbox 的旧 Python Router 才分别实现 FastAPI HTTP endpoint 和专用 WebSocket relay；新快照中的顶层 Go Router 也改用 `httputil.ReverseProxy`，但它仍有不同的 Header、目标发现和鉴权契约：
 
-| 行为 | Infra 2026.29 实现 | 运维含义 |
+| 行为 | Infra 2026.30 实现 | 运维含义 |
 | --- | --- | --- |
 | HTTP body/response | 交给标准 ReverseProxy 转发和流式复制，不先在 E2B 业务代码中完整缓冲 | 文件上传、流式响应和长请求仍受最外层 LB、客户端与 guest 应用限制 |
 | WebSocket/协议升级 | 没有独立的 E2B WebSocket handler，使用 ReverseProxy 的通用 HTTP upgrade 路径 | 不存在 Agent Router 的独立 `1008/1009/1011` relay 状态机；必须让每一层 LB 支持 upgrade |
@@ -507,23 +525,23 @@ Orchestrator Proxy 的限流也不同于 Agent Router：它限制的是某个 Sa
 | catalog/目标 Sandbox 不存在、guest port 未开放、上游连接失败 | `502` |
 | 未分类的路由内部错误 | `500` |
 
-参考 Agent Sandbox Router 时，应只借鉴“静态入口 + Header 选择动态目标”的架构思想，HTTP 契约仍以 E2B 固定源码为准。对照材料升级为 Agent Sandbox 稳定版 `v1.0.0@bb72f49d79f009a960eed2ae6c32e1cc082399c5`；该 annotated tag 的 tag object 是 `317ccfdc84eec781eca3fcc45e699c54b8607d5e`，正文链接使用 peeled source commit。v1.0.0 保留 legacy Python Router，并正式发布顶层 Go Router；后者默认 `allow-all`，可选 TokenReview 或把 `(namespace, name, exp)` 绑定到 HMAC-SHA256 token 的 `scoped-token`。这些都不是 E2B Infra 2026.29 的能力：
+参考 Agent Sandbox Router 时，应只借鉴“静态入口 + Header 选择动态目标”的架构思想，HTTP 契约仍以 E2B 固定源码为准。对照材料升级为 Agent Sandbox 稳定版 `v1.0.2@9a85153590e54cb980f3241f9e7a9228449412c9`；该 annotated tag 的 tag object 是 `468cf30617c01e30098d631a2bdd8d032f8359e4`，正文链接使用 peeled source commit。v1.0.0 首次正式发布顶层 Go Router；v1.0.2 在保留 allow-all、TokenReview 和 HMAC scoped-token v1 迁移路径的同时，加入 Ed25519 scoped-token v2。它们都不是 E2B Infra 2026.30 的能力：
 
-| 维度 | E2B Infra 2026.29 | Agent Sandbox v1.0.0 Go Router（对照，不是 E2B 能力） |
+| 维度 | E2B Infra 2026.30 | Agent Sandbox v1.0.2 Go Router（对照，不是 E2B 能力） |
 | --- | --- | --- |
 | 路由组件 | Client Proxy + Orchestrator Proxy 两级 | Kubernetes 中央 Router Deployment |
 | 路由 Header | `E2b-Sandbox-Id`、`E2b-Sandbox-Port` | `X-Sandbox-ID`、Namespace、Port、Pod-IP、Timeout |
 | 目标发现 | Redis catalog → Orchestrator local map → guest IP | Kubernetes Service DNS 或 Pod IP |
-| Router 认证 | 路由元数据与 Traffic/envd token 分离 | 默认 allow-all；可选 TokenReview 或绑定目标 identity 的 scoped-token |
+| Router 认证 | 路由元数据与 Traffic/envd token 分离 | 默认 allow-all；可选 TokenReview、HMAC scoped-token v1 或 Ed25519 scoped-token v2 |
 | Header 策略 | 路由 Header 跨两级代理保留；没有 Agent 风格 allow/deny list | Go Router 消费 Host/Authorization，并在 scoped-token 模式拒绝 Pod-IP/UID override |
 | WebSocket | 标准 Go ReverseProxy upgrade | Go ReverseProxy upgrade；旧 Python Router 才使用专用双向 relay |
 | 限流/观测 | Sandbox lifecycle 入站连接数 | Router request/latency/upstream/authz 指标，不等同于 E2B lifecycle connection limit |
 
 Agent Sandbox Router 的 `X-Sandbox-Port` 在 Pod 外由中央 Router 解析为目标端口；旧 Python 实现会剥离路由 Header，新 Go 实现则明确删除 `Authorization`、改写 Host 并消费目标 Header。两者都不要求进入 Pod 的容器镜像解析 `X-Sandbox-Port`。这是 Agent Router 自己的容器侧行为，不应反推 E2B guest 也收不到其官方 Header。
 
-新对照快照还修复了旧 Python Router 的 raw escaped path 保真：它优先从 ASGI `scope.raw_path` 和 `query_string` 构造上游 URL，使 `%2E` / `%2E%2E` 不会在代理跳转前被 URL 对象解码、规范化为 `.` / `..`；非 ASCII raw bytes 才回退到已解析 URL。该修复同时用于 HTTP 与 WebSocket，但只属于 Agent Sandbox 的旧 Python Router。E2B Infra 2026.29 使用 Go ReverseProxy 和自己的目标解析链，本文不据此推断或改写 E2B 的 path normalization 契约。
+新对照快照还修复了旧 Python Router 的 raw escaped path 保真：它优先从 ASGI `scope.raw_path` 和 `query_string` 构造上游 URL，使 `%2E` / `%2E%2E` 不会在代理跳转前被 URL 对象解码、规范化为 `.` / `..`；非 ASCII raw bytes 才回退到已解析 URL。该修复同时用于 HTTP 与 WebSocket，但只属于 Agent Sandbox 的旧 Python Router。E2B Infra 2026.30 使用 Go ReverseProxy 和自己的目标解析链，本文不据此推断或改写 E2B 的 path normalization 契约。
 
-Agent Sandbox v1.0.0 还把 browser path-based routing、session-cookie bootstrap、SameSite 与 Origin 校验纳入 Go Router：启用 `--path-routing-prefix` 后可用 `<prefix>/<namespace>/<id>/<port>/...` 服务浏览器、iframe 与 WebSocket；cookie auth 必须配置允许的 Origin，只有在可信 TLS 终止代理之后才考虑 `--authz-trust-forwarded-proto`。这套 URL、cookie 与 CSWSH 防护是 Agent Sandbox Router 的协议，不是 E2B 的 `getHost()`、Traffic Token 或路由 Header。
+Agent Sandbox v1.0.2 继承 browser path-based routing、session-cookie bootstrap、SameSite 与 Origin 校验：启用 `--path-routing-prefix` 后可用 `<prefix>/<namespace>/<id>/<port>/...` 服务浏览器、iframe 与 WebSocket；cookie auth 必须配置允许的 Origin，只有在可信 TLS 终止代理之后才考虑 `--authz-trust-forwarded-proto`。这套 URL、cookie 与 CSWSH 防护是 Agent Sandbox Router 的协议，不是 E2B 的 `getHost()`、Traffic Token 或路由 Header。
 
 #### Agent Sandbox v1.0.0 API 与迁移边界
 
@@ -536,7 +554,25 @@ Agent Sandbox 的 core `agents.x-k8s.io` 与 extension `extensions.agents.x-k8s.
 
 v1.0.0 的 SDK/runtime 对照同时增加 opt-in `sandboxd`（REST filesystem `:8080`、gRPC ProcessService `:9090`）、Go `Files.WriteReader`/`Sandbox.WriteReader` streaming upload、claim 环境变量注入和 Python 非幂等 `/execute` POST 不重试。`FileEntry` schema 也发生 breaking change：Go `ModTime` 改为 `time.Time` 并增加 `Mode`，Python `mod_time` 改名为 `modified: datetime` 并增加 `mode`。这些 SDK、CRD、Router 和 runtime 能力都属于 Agent Sandbox，不属于 E2B。
 
-此前主线观察到的 WarmPool status、ServiceMonitor、PodScheduled image、Pi 示例和 Podman kind 支持已包含在 v1.0.0 对照源码中。v1.0.0 还去掉 controller 对新 Sandbox 写入 `agents.x-k8s.io/pod-name` annotation 的动作；外部脚本应改读 `.metadata.name`，旧对象上的 annotation 只作过渡读取。官方基准称此项减少额外 reconcile/PATCH，但这个性能数据及其 CRD 行为都不能回填成 E2B Infra `2026.29` 的能力。
+此前主线观察到的 WarmPool status、ServiceMonitor、PodScheduled image、Pi 示例和 Podman kind 支持已包含在 v1.0.0 对照源码中。v1.0.0 还去掉 controller 对新 Sandbox 写入 `agents.x-k8s.io/pod-name` annotation 的动作；外部脚本应改读 `.metadata.name`，旧对象上的 annotation 只作过渡读取。官方基准称此项减少额外 reconcile/PATCH，但这个性能数据及其 CRD 行为都不能回填成 E2B Infra 2026.30 的能力。
+
+#### Agent Sandbox v1.0.2 Router、SDK 与 RL 边界
+
+v1.0.2 的两项 breaking change 要在升级 Router 前处理：
+
+1. Go `sandbox-router` 的公开 `authz.Authorizer` 从分别接收 namespace/name 改为 `Authorize(ctx context.Context, r *http.Request, target authz.AuthorizationTarget) error`。自定义实现必须从 `target` 读取 `Namespace`、`SandboxName`、`SandboxUID`、`Port`、`Method` 和规范化后的 upstream `Path`；旧实现无法只靠重新编译兼容。
+2. `sandbox-router/deploy/` 的 raw manifests 从 `default` namespace 移到 `agent-sandbox-system`，并补 `app: sandbox-router` label 以对齐 secure-by-default `SandboxTemplate` NetworkPolicy。GitOps overlay、Service DNS、RBAC subject、NetworkPolicy 和监控选择器都要同步；只改 Deployment namespace 会留下断链对象。
+
+scoped-token v2 使用 Ed25519 签名和 `kid` 选择 verification key，把 token 绑定到 Sandbox UID、namespace/name、port、HTTP method、精确 upstream path 和 expiry。多 key 支持轮换；`--authz-scoped-token-v1-accept-until` 使用排他截止时间承接 HMAC v1 迁移。UID/method/path 绑定意味着重建同名 Sandbox、改端口、改方法或改 path 都不能复用旧 token；不能把 v2 简化成“换了一种 JWT”。
+
+| 领域 | v1.0.2 行为 | 与 E2B 的边界 |
+| --- | --- | --- |
+| Go SDK 直连 | `Options.Connectivity` 可选 `ConnectivityInClusterService` 或 `ConnectivityInClusterPodIP`，集群内 workload 可绕过 API Server port-forward/Router | 这是 Kubernetes Service/Pod IP 信任路径，不对应 E2B Client Proxy/Orchestrator Proxy 两级路由 |
+| Python SDK | HTTP 4xx 不再误判为 transport failure，不会因此拆 port-forward tunnel 或清空缓存 Pod IP；5xx/传输失败仍可失效连接 | 错误分类属于 Agent Sandbox SDK，不改变 E2B SDK 的 transport/retry 契约 |
+| RL fleet | `FleetConfig.adopt_existing=True` 与 `pool_name_format` 可按 image 发现并采用预置 WarmPool；增加 OpenHands adapter 和 fan-out 示例 | adoption 复用 Kubernetes WarmPool，不是 E2B Sandbox fork、template cache 或调度功能 |
+| 观测与探针 | controller-runtime v0.25.0 暴露 client-go REST 指标；MCP server 增加 `/healthz`、`/readyz` | 这些 endpoint/metric name 不应被写进 E2B Infra 的探针合同 |
+
+v1.0.2 仍继承 v1.0.0 的 v1beta1-only CRD 存储迁移要求；补丁升级不取消 `<v0.5.0 -> v0.5.x -> v1.x` 的先行迁移链。WarmPool adoption、OpenHands 和 golden-snapshot 示例是 Agent Sandbox 的 RL/fleet 集成，不是 E2B 2026.30 的 workload identity、filesystem-only resume 或 fork。
 
 `X-Sandbox-Port` 不是 E2B 的兼容 Header。E2B 固定版本不支持 `X-Sandbox-Namespace`、`X-Sandbox-Pod-IP`、`X-Sandbox-Timeout`，也没有 `TRUSTED_PROXY_CIDRS` 或 Router Bearer Token。企业网关若对外暴露 `X-Sandbox-ID`、`X-Sandbox-Port`，必须在请求进入 Client Proxy 前成对转换为 `E2b-Sandbox-Id`、`E2b-Sandbox-Port`，并在可信边界内完成目标授权；不能把其他自定义 Header 原样映射成未经授权的内部寻址能力。
 
@@ -544,16 +580,16 @@ v1.0.0 的 SDK/runtime 对照同时增加 opt-in `sandboxd`（REST filesystem `:
 
 #### 4.2.2 Public 与 Private ingress
 
-Infra 2026.29 的 `network.allowPublicTraffic` 默认值是 `true`。未设置或显式设为 `true` 时，业务端口（非 envd 控制端口）可以匿名访问；显式设为 `false` 时，创建响应会返回 `trafficAccessToken`，每次业务端口请求都必须在 `e2b-traffic-access-token` header 中携带它。
+Infra 2026.30 的 `network.allowPublicTraffic` 默认值是 `true`。未设置或显式设为 `true` 时，业务端口（非 envd 控制端口）可以匿名访问；显式设为 `false` 时，创建响应会返回 `trafficAccessToken`，每次业务端口请求都必须在 `e2b-traffic-access-token` header 中携带它。
 
 | 创建参数 | `trafficAccessToken` | 业务端口请求 | 说明 |
 | --- | --- | --- | --- |
 | 未设置或 `allowPublicTraffic=true` | 通常为 `null`/未定义 | 不需要 Traffic Token | host 仍然只负责寻址 |
 | `allowPublicTraffic=false` | 返回 Sandbox 级 bearer token | 必须发送 `e2b-traffic-access-token` | 缺失或错误均返回 `403` |
 
-私有 ingress 不能只设置 `allowPublicTraffic=false`：Infra 2026.29 还要求创建请求启用 `secure=true`，否则 API 会拒绝创建，因为 envd 控制面必须有独立的 `envdAccessToken`。这两个开关保护不同路径，不能互相替代。
+私有 ingress 不能只设置 `allowPublicTraffic=false`：Infra 2026.30 还要求创建请求启用 `secure=true`，否则 API 会拒绝创建，因为 envd 控制面必须有独立的 `envdAccessToken`。这两个开关保护不同路径，不能互相替代。
 
-下面的示例使用官方 SDK 当前实现说明调用形态；SDK 示例提交固定为 `e2b-dev/e2b@5a56c87e9db0e221b138662805af7743e75f1082`，不改变本文的 Infra 稳定基线。
+下面的示例使用官方 SDK 当前实现说明调用形态；SDK 示例提交固定为 `e2b-dev/e2b@3e5a48b00eb133ac1e98697d549574301c605e81`，不改变本文的 Infra 稳定基线。
 
 ```typescript
 import { Sandbox } from "e2b"
@@ -576,11 +612,11 @@ console.log(response.status)
 
 该 SDK 快照的 Python 实现已把 REST API、envd RPC 和 envd HTTP API 逐步迁到 pyqwest transport，并按 proxy/streaming 维度复用线程安全连接池；同步 Sandbox 也只创建一个普通 envd HTTP client，交给 Filesystem、Commands 和 Pty 共用，流式下载另用带 60 秒 idle-read bound 的 sibling client。这是客户端连接与 transport 重构，不改变上面 `getHost()`、共享 envd URL、官方路由 Header、Traffic Token 或 Infra 端代理契约。
 
-SDK 的 MCP 创建流程也增加了补偿边界：远端 Sandbox 已创建但 `mcp-gateway` 启动失败时，JavaScript 和 Python SDK 会 best-effort `kill()` 已分配实例，再抛出带 stderr 的 `SandboxError` / `SandboxException`；异步 Python 不吞掉 cleanup 中的 `CancelledError`。这避免调用者拿不到 Sandbox 对象时留下运行中实例，但它是 SDK 主线行为，不代表 Infra 2026.29 新增了控制面事务或原子创建语义。
+SDK 的 MCP 创建流程也增加了补偿边界：远端 Sandbox 已创建但 `mcp-gateway` 启动失败时，JavaScript 和 Python SDK 会 best-effort `kill()` 已分配实例，再抛出带 stderr 的 `SandboxError` / `SandboxException`；异步 Python 不吞掉 cleanup 中的 `CancelledError`。这避免调用者拿不到 Sandbox 对象时留下运行中实例，但它是 SDK 主线行为，不代表 Infra 2026.30 新增了控制面事务或原子创建语义。
 
-审校时的 SDK `main@5a56c87e9db0e221b138662805af7743e75f1082` 还包含一组与云端身份和网络回调有关的未发布能力：Sandbox 可声明 IAM workload identity，TypeScript `Secret` 暴露 `iamToken`，Python 对应属性为 `iam_token`；network transform callback 会收到 token placeholder，供受信任的网络变换器在发送请求时填充，而不是把长期凭据写进 Sandbox URL。SDK 同时对 token name 做格式校验，非法名称在客户端被拒绝。Python SDK 的 `http2` transport 参数允许调用方显式选择 HTTP/2，但服务端是否支持仍由 Infra 部署和入口代理决定。
+审校时的 SDK `main@3e5a48b00eb133ac1e98697d549574301c605e81` 包含与 Infra 2026.30 `iam.tokens` 对接的客户端形态：Sandbox 可声明 IAM workload identity，TypeScript `Secret` 暴露 `iamToken`，Python 对应属性为 `iam_token`；network transform callback 会收到 token placeholder，供受信任的网络变换器在发送请求时填充，而不是把长期凭据写进 Sandbox URL。SDK 同时对 token name 做格式校验，非法名称在客户端被拒绝。Python SDK 的 `http2` transport 参数允许调用方显式选择 HTTP/2，但服务端是否支持仍由 Infra 部署和入口代理决定。
 
-这些 IAM、`Secret.iamToken`/`iam_token`、callback token placeholder、token name validation 与 `http2` 变化都只属于未发布 SDK 主线；它们不扩大 E2B Infra `2026.29` 的稳定兼容承诺，也不意味着现有自托管 API 已经提供同名字段。
+服务端 workload identity/`iam.tokens` 已属于 Infra 2026.30 稳定基线，但 `Secret.iamToken`/`iam_token`、callback placeholder、token name validation 与 `http2` 的具体客户端接口仍固定在未发布 SDK 主线，不能倒推为所有已发布 SDK 都能调用。部署还必须同时启用服务端 admission gate 和身份 provider；只升级 SDK 不会自动启用 IAM。
 
 ```python
 import httpx
@@ -654,7 +690,7 @@ sequenceDiagram
 
 #### 4.2.3 浏览器、WebSocket 与 BFF
 
-浏览器地址栏、`iframe`、`img` 和原生浏览器 `WebSocket` 构造器不能为请求附加任意 `e2b-traffic-access-token` header。浏览器 `fetch` 虽然可以设置该 header，但跨域时会触发 CORS 预检；预检请求本身不携带 Traffic Token，而 Infra 2026.29 的 Orchestrator Proxy 会在业务应用之前校验所有非 envd 请求，所以预检可能直接得到 `403`。不能假设只配置 Sandbox 应用的 CORS 就能解决。Node.js、Python 或其他服务端 HTTP/WebSocket 客户端可以显式发送 header。
+浏览器地址栏、`iframe`、`img` 和原生浏览器 `WebSocket` 构造器不能为请求附加任意 `e2b-traffic-access-token` header。浏览器 `fetch` 虽然可以设置该 header，但跨域时会触发 CORS 预检；预检请求本身不携带 Traffic Token，而 Infra 2026.30 的 Orchestrator Proxy 会在业务应用之前校验所有非 envd 请求，所以预检可能直接得到 `403`。不能假设只配置 Sandbox 应用的 CORS 就能解决。Node.js、Python 或其他服务端 HTTP/WebSocket 客户端可以显式发送 header。
 
 推荐让后端/BFF 保存短生命周期的访问上下文并代为访问 E2B，再向浏览器返回经过业务鉴权和响应过滤的数据或建立受控 WebSocket 转发。不要把 Traffic Token 放到 query、fragment、前端 bundle、localStorage 或长期 cookie 中；它是 Sandbox 级 bearer credential，没有用户级 RBAC、scope 或逐端口权限，泄露后可访问该 Sandbox 允许的所有业务端口。
 
@@ -696,16 +732,16 @@ E2B 的启动速度来自多个层次叠加：
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as SDK / CLI / docker push
-    participant DRP as Docker Reverse Proxy
+    participant C as SDK / CLI / image client
+    participant REG as Image Registry
     participant API as API
     participant TM as Template Manager
     participant FC as Firecracker Build VM
     participant OS as Object Storage
 
     opt Custom base image
-        C->>DRP: docker push with E2B credentials
-        DRP->>DRP: validate and rewrite registry path
+        C->>REG: push or reference image with registry credentials
+        REG-->>TM: image layers available during build
     end
     C->>API: register template build
     API->>TM: gRPC TemplateCreate
@@ -753,7 +789,7 @@ PostgreSQL 是持久控制面状态的核心数据库。典型数据包括：
 | teams / users / tiers | 团队、用户、配额和计费层级 |
 | envs / env_builds / aliases | 模板、构建记录、别名和版本 |
 | snapshots | paused sandbox 和 checkpoint 记录 |
-| team_api_keys / access_tokens | API key 和访问 token |
+| team_api_keys / JWT identity config | API key 与受支持 JWT 身份；`access_tokens` 表已在 2026.30 删除 |
 | volumes | 持久卷元数据 |
 | clusters | 多集群/部署集群信息 |
 
@@ -792,7 +828,7 @@ Loki 用于日志聚合。它不是创建 sandbox 的硬依赖，但没有日志
 
 ### 6.5 Consul 与网络 slot
 
-在官方 Nomad/Consul 部署中，Consul 不只是服务发现组件，还可用于网络 slot 分配的协调。Orchestrator 需要为 sandbox 分配不冲突的 IP、namespace 和转发表项。单节点可以使用本地 namespace storage；多节点如果不用 Consul，需要替代的分布式锁或每节点独立 IP 池规划。
+在历史 Nomad/Consul 部署中，Consul 不只是服务发现组件，还可用于网络 slot 分配的协调。Orchestrator 仍需要为 sandbox 分配不冲突的 IP、namespace 和转发表项；迁移到 2026.30 Kubernetes distribution 时必须验证新的协调/存储实现，而不是直接删除 Consul 并假设 Kubernetes 自动补齐所有 network-slot 语义。
 
 ---
 
@@ -830,17 +866,17 @@ E2B 中有多层 token 和凭证：
 | 层级 | 作用 |
 |------|------|
 | Team API Key | SDK/CLI 调用 E2B API |
-| API access token / OAuth credential | 控制面 API 或内部 gRPC 的调用身份，具体 scope 由 API 配置决定 |
+| API key / supported JWT | SDK/CLI 或管理面调用身份；2026.30 不再接受旧 E2B access-token authentication |
 | `envdAccessToken` | `secure=true` 时由 API/Orchestrator 注入 VM，访问 envd 控制面时通过 `X-Access-Token` 校验 |
 | `trafficAccessToken` | `allowPublicTraffic=false` 时由 Orchestrator Proxy 校验 Sandbox 业务端口访问 |
 | Volume token | 访问持久卷或相关资源 |
-| Registry credential | Docker Reverse Proxy 推送模板镜像时使用 |
+| Registry credential | 模板构建/镜像 registry 使用；deprecated Docker Reverse Proxy 已在 2026.30 移除 |
 
-`secure=true` 保护的是 envd 的进程、文件、PTY 等控制 API，以及对应的 envd 端口；它不等于业务端口 ingress 已经私有化。反过来，`allowPublicTraffic=false` 只要求业务端口带 `e2b-traffic-access-token`，不替代 envd token。Infra 2026.29 在私有 ingress 创建时强制同时启用 `secure`，但两种 token 仍由不同代理和不同 header 校验。
+`secure=true` 保护的是 envd 的进程、文件、PTY 等控制 API，以及对应的 envd 端口；它不等于业务端口 ingress 已经私有化。反过来，`allowPublicTraffic=false` 只要求业务端口带 `e2b-traffic-access-token`，不替代 envd token。Infra 2026.30 在私有 ingress 创建时强制同时启用 `secure`，但两种 token 仍由不同代理和不同 header 校验。
 
 Traffic Token 的边界需要明确：它是 Sandbox 级 bearer credential，不携带用户身份，不提供用户级 RBAC、scope、租户切换或逐端口权限。拿到它的调用者可以访问该 Sandbox 所暴露的所有受保护业务端口，因此应只在受信任的服务端保存和转发。
 
-#### 7.2.1 Infra 2026.29 的生成与轮换
+#### 7.2.1 Infra 2026.30 的生成与轮换
 
 固定 release 的实现使用部署级环境变量 `SANDBOX_ACCESS_TOKEN_HASH_SEED` 作为 HMAC-SHA256 key，并以 Sandbox ID 生成确定性 token：
 
@@ -852,9 +888,9 @@ traffic token = HMAC-SHA256(seed, "sandbox-traffic-" + sandboxID)
 
 更换 seed 会改变同一个 Sandbox ID 的派生值，但影响不是原子切换：尚未重建的运行态 Sandbox 可能暂时仍接受旧 token，API 的暂停态恢复校验则会按新 seed 计算，随后恢复的 Sandbox 会接收新 token。轮换必须安排所有 API 实例、Sandbox 生命周期、Orchestrator 下发配置和调用方的协调窗口，不能只滚动重启单个 API 实例。
 
-官方 2026.29 路径由 API 持有 seed、生成 Traffic Token，再把 token 配置下发给 Orchestrator；Orchestrator 不应自行生成第二套 token。若私有化改造让 Orchestrator 也参与生成或重算，API 与 Orchestrator 必须显式共享同一个 seed、算法和 Sandbox ID 规范。
+Infra 2026.30 继续由 API 持有 seed、生成 Traffic Token，再把 token 配置下发给 Orchestrator；Orchestrator 不应自行生成第二套 token。若私有化改造让 Orchestrator 也参与生成或重算，API 与 Orchestrator 必须显式共享同一个 seed、算法和 Sandbox ID 规范。
 
-私有化时常见误区是只保护 API 域名，却忽略 wildcard sandbox 域名、docker registry 域名、Dashboard、Nomad UI、对象存储 bucket 和内部 gRPC 端口。生产上应把外部入口、内部服务网段、节点安全组、防火墙和 TLS 证书统一规划。
+私有化时常见误区是只保护 API 域名，却忽略 wildcard sandbox 域名、镜像 registry 域名、Dashboard、Kubernetes 管理面、对象存储 bucket 和内部 gRPC 端口。生产上应把外部入口、内部服务网段、节点安全组、防火墙和 TLS 证书统一规划；历史 Nomad UI 只适用于尚未迁移的旧环境。
 
 ### 7.3 DNS 与通配域名
 
@@ -865,9 +901,9 @@ traffic token = HMAC-SHA256(seed, "sandbox-traffic-" + sandboxID)
 | `api.<domain>` | API / ingress | SDK 和 CLI 控制面请求 |
 | `*.sandbox.<domain>` 或 `*.domain` | Client Proxy | Host 编码的 Sandbox 端口访问 |
 | `sandbox.<domain>` | Client Proxy | 携带 `E2b-Sandbox-Id`、`E2b-Sandbox-Port` 的共享 Host 访问 |
-| `docker.<domain>` | Docker Reverse Proxy | 模板镜像 push |
+| registry 域名 | 当前镜像 registry/构建链路 | 模板镜像 push；不再指向已移除的 Docker Reverse Proxy |
 | `dashboard.<domain>` | Dashboard UI/API | Web 管理 |
-| `nomad.<domain>` | Nomad UI | 运维入口，必须限制访问 |
+| Kubernetes API/运维入口 | 集群管理面 | 严格限制访问；历史 `nomad.<domain>` 仅用于迁移期旧环境 |
 
 常规 Client Proxy 路由从 Host 解析端口和 Sandbox ID，因此负载均衡、TLS 通配证书和 wildcard DNS 必须覆盖编码域名。共享 Host 路由可以降低高基数通配子域名依赖，但也必须单独配置 `sandbox.<domain>` 的 DNS、TLS、LB 转发，并确保沿途代理保留官方路由 Header；两种入口最终都要到达 Client Proxy。
 
@@ -886,11 +922,11 @@ Orchestrator 的网络子系统会为 sandbox 建立 NAT 和 nftables 规则，�
 
 ---
 
-## 第八章：官方自托管路径
+## 第八章：自托管路径与 2026.30 迁移边界
 
 ### 8.1 前置条件
 
-官方 `self-host.md` 的主路径是 Terraform 云部署。共通前置条件包括：
+2026.30 已把部署文档转向 Kubernetes distribution。下列 Terraform/Packer/GCP/AWS 命令记录的是 2026.29 及更早 Nomad 环境的迁移背景，不能作为 2026.30 新装步骤照抄；新装应以固定 2026.30 release 中的 Kubernetes 文档和清单为准。历史路径的共通前置条件包括：
 
 | 类别 | 要求 |
 |------|------|
@@ -901,7 +937,7 @@ Orchestrator 的网络子系统会为 sandbox 建立 NAT 和 nftables 规则，�
 
 ### 8.2 GCP 路径
 
-GCP 是官方文档中最完整的自托管路径：
+以下 GCP 流程是旧 Terraform+Nomad 环境的历史路径，用于盘点迁移对象：
 
 1. 创建 GCP project，并确认 SSD 和 CPU quota。
 2. 从 `.env.gcp.template` 生成 `.env.prod`、`.env.staging` 或 `.env.dev`。
@@ -916,7 +952,7 @@ GCP 是官方文档中最完整的自托管路径：
 
 ### 8.3 AWS 路径
 
-AWS 路径在官方文档中标为 Beta。主要差异是：
+以下 AWS 流程同样是历史 Beta 路径。主要差异是：
 
 | 步骤 | AWS 关注点 |
 |------|------------|
@@ -927,7 +963,9 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 | Redis | 可选择 managed Redis/ElastiCache |
 | 后续步骤 | 同样需要 build/upload、公有构建物复制、plan/apply、prep-cluster |
 
-### 8.4 Make 命令速查
+### 8.4 历史 Make 命令速查
+
+这些命令只用于识别或维护尚未迁移的旧环境；2026.30 新装不得以本表推断仓库仍交付对应 Nomad jobs。
 
 | 命令 | 用途 |
 |------|------|
@@ -949,9 +987,9 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 
 ### 9.1 官方支持路径与二次工程边界
 
-`e2b-dev/infra` 2026.29 的官方自托管路径是 Terraform + Nomad + 云 provider。仓库 README 将 GCP 标为支持、AWS 标为 Beta，同时把 Azure 和通用 Linux 机器列为未完成。Kubernetes、Ansible 或纯手工部署属于自行维护的二次工程，不能视为该 release 的官方交付路径。
+`e2b-dev/infra` 2026.30 已退休仓库中的 Nomad-based deployment configuration 和相应 pipeline，部署文档转向 Kubernetes distribution。2026.29 及更早的 Terraform+Nomad/GCP/AWS 操作步骤仍可用于理解历史环境和迁移来源，但不再构成 2026.30 新装的官方稳定合同；不能一边引用 2026.30 API/runtime，一边把旧 Nomad jobs 当作同版受支持交付物。
 
-本文后续的组件取舍和 Kubernetes 改造内容是基于官方组件边界给出的工程分析，不构成 E2B 官方支持声明。涉及字段、端口、服务发现或高可用模式时，仍须回到固定 release 的 Terraform、Nomad job 和组件源码验证。
+本文后续的组件取舍和 Kubernetes 改造内容是基于官方组件边界给出的工程分析，不构成任意 Kubernetes 发行形态都受 E2B 官方支持的声明。涉及字段、端口、ServiceAccount、服务发现或高可用模式时，仍须回到 2026.30 固定 release 的部署文档、manifest/schema 和组件源码验证。
 
 ### 9.2 组件必要性
 
@@ -959,8 +997,8 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 |------|------------|------------|------------|
 | PostgreSQL | 必需 | 必需 | 使用 HA PostgreSQL 或云数据库，做好 migration 和备份 |
 | Redis | 可降级 | 必需 | 多节点必须共享 routing catalog |
-| Nomad | 可省 | 官方路径必需 | 不用 Nomad 需替换服务发现和调度 |
-| Consul | 可本地降级 | 视网络 slot 方案而定 | 可用本地独立 IP 池或替代分布式锁 |
+| Kubernetes control plane | 可在单节点开发路径简化 | 当前分发路径核心 | 固定发行清单、权限、CRD/配置与节点前置条件 |
+| Nomad / Consul | 仅历史环境 | 2026.30 新装不再是仓库部署主路径 | 旧环境迁移前盘点调度、发现、网络 slot 和锁语义，不能直接删除 |
 | ClickHouse | 可省 | 推荐 | 没有它会缺少指标和事件分析 |
 | Loki | 可省 | 推荐 | 没有它会影响日志排障 |
 | LaunchDarkly | 可省 | 可省 | 有默认值/离线模式时可不部署 |
@@ -978,7 +1016,7 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 
 ### 9.4 Kubernetes 改造注意事项
 
-官方 infra 的稳定路径不是 Kubernetes。要把 E2B 改造成 Kubernetes 原生部署，至少要自行处理：
+2026.30 文档已转向 Kubernetes distribution，但 Firecracker 节点面的特权要求不会因此消失。评估或定制 Kubernetes 部署时至少要处理：
 
 | 改造点 | 原因 |
 |--------|------|
@@ -995,18 +1033,18 @@ AWS 路径在官方文档中标为 Beta。主要差异是：
 
 ## 第十章：自托管配额与计费架构
 
-本章先给出结论：E2B Infra 2026.29 已经具备 **Team 级规格上限、Sandbox/模板构建并发上限、创建与 fork 并发预留、按 Team/路由的 API 限流，以及带 `execution_id` 的生命周期事件和 ClickHouse 分析数据**。这些能力可以作为自托管配额与计量的基础，但它们还不是一套完整的多层聚合配额、预算控制或财务计费系统。
+本章先给出结论：E2B Infra 2026.30 已经具备 **Team 级规格上限、Sandbox/模板构建并发上限、创建与 fork 并发预留、按 Team/路由的 API 限流，以及带 `execution_id` 的生命周期事件和 ClickHouse 分析数据**。这些能力可以作为自托管配额与计量的基础，但它们还不是一套完整的多层聚合配额、预算控制或财务计费系统。
 
 因此，下文严格使用两个标签：
 
-- **E2B 原生**：能在固定源码 `2026.29@557445ffddda8d9a27f6f529a3f4d7732cf81a13` 中找到实现。
+- **E2B 原生**：能在固定源码 `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104` 中找到实现。
 - **建议自建**：自托管方为组织/项目配额、可靠计量、内部成本分摊或商业账单补充的架构，不声称已经存在于 E2B Infra，也不推导未经源码证明的开源 API。
 
 ### 10.1 配额、限流、预算、计量与计费的边界
 
 这五个概念作用在不同阶段，混在一个“余额”字段里会导致并发超卖、账单不可追溯或 Redis 故障时错误放行。
 
-| 能力 | 回答的问题 | 所在路径 | E2B Infra 2026.29 | 自托管生产建议 |
+| 能力 | 回答的问题 | 所在路径 | E2B Infra 2026.30 | 自托管生产建议 |
 | --- | --- | --- | --- | --- |
 | 配额（quota） | 允许创建多大、同时运行多少、总共占多少资源 | Create/Resume/Build 准入之前 | 有 Team 级单实例规格、最大时长和并发数量 | 增加组织/Team/Project 层级、聚合 vCPU/内存、存储等硬配额 |
 | 限流（rate limit） | 某条 API 在时间窗口内能调用多快 | API middleware | 有按 Team + route 的 Redis 限流 | 按路由风险分组，明确 Redis 故障时的 fail-open/fail-closed 策略 |
@@ -1042,7 +1080,7 @@ E2B 的持久控制面以 `teams.tier` 关联 `tiers`，再通过 `addons` 为�
 
 #### 10.3.1 Sandbox 并发预留
 
-Infra 2026.29 的 Redis reservation Lua 把两个集合放在同一次原子执行中统计：
+Infra 2026.30 的 Redis reservation Lua 把两个集合放在同一次原子执行中统计：
 
 ```text
 effective_concurrency = SCARD(running_storage_index) + ZCARD(pending_creation_zset)
@@ -1216,7 +1254,7 @@ Orchestrator 生命周期事件已经携带 `sandbox_execution_id`；pause/kill 
 
 #### 10.7.1 为什么 ClickHouse 事件不能直接作为唯一账本
 
-Infra 2026.29 的 Orchestrator 在 Create/Resume/Pause/Kill/Checkpoint 等路径中用后台 goroutine 发布 Sandbox Event；Events Service 再扇出到 ClickHouse 或 Redis Stream，ClickHouse delivery 进入内存 batcher 后批量写入。事件有 UUID、版本、时间戳、Team/Sandbox/execution 标识，也有按 Team limit 设置并被上限截断的 TTL。Fork 本身没有单独的账本事件类型：原实例的 checkpoint 沿用原 execution ID，每个成功 fork 通过标准创建路径获得新的 execution ID；计量系统必须逐个记录成功结果，不能用一次 fork API 调用替代多条运行区间。
+Infra 2026.30 的 Orchestrator 在 Create/Resume/Pause/Kill/Checkpoint 等路径中用后台 goroutine 发布 Sandbox Event；Events Service 再扇出到 ClickHouse 或 Redis Stream，ClickHouse delivery 进入内存 batcher 后批量写入。事件有 UUID、版本、时间戳、Team/Sandbox/execution 标识，也有按 Team limit 设置并被上限截断的 TTL。Fork 本身没有单独的账本事件类型：原实例的 checkpoint 沿用原 execution ID，每个成功 fork 通过标准创建路径获得新的 execution ID；计量系统必须逐个记录成功结果，不能用一次 fork API 调用替代多条运行区间。
 
 这套路径适合 Dashboard 查询、使用趋势、审计展示和故障分析，但不能直接充当唯一财务账本：
 
@@ -1373,13 +1411,13 @@ budget_exposure = posted_ledger_amount
 
 | 组件 | 默认端口 | 检查方式 |
 |------|----------|----------|
-| API | HTTP 3000 或 Nomad 分配端口 | `GET /health` |
+| API | HTTP 3000 或发行清单配置端口 | `GET /health` |
 | API gRPC | 5009 / edge 5109 | gRPC health |
 | Client Proxy | proxy 3002，health 3003 | `GET /health` |
-| Orchestrator | gRPC 5008，proxy 5007 | gRPC health、Nomad allocation 状态 |
+| Orchestrator | gRPC 5008，proxy 5007 | gRPC health、Kubernetes workload/node 状态 |
 | Dashboard API | 3010 | `GET /health` |
 | Loki | 3100 | `GET /ready` |
-| Nomad | 4646 | `/v1/status/leader`、`nomad server members` |
+| Kubernetes | 发行环境配置 | API ready、node condition、workload rollout 与事件 |
 | PostgreSQL | 5432 | `SELECT 1`、migration 状态 |
 | Redis | 6379 | `PING`、route key 检查 |
 
@@ -1412,7 +1450,7 @@ budget_exposure = posted_ledger_amount
 | 私有端口返回 `403` | 确认请求使用的是 `trafficAccessToken` 而不是 `envdAccessToken`，检查 token 是否属于同一个 Sandbox、API/Orchestrator 的 `SANDBOX_ACCESS_TOKEN_HASH_SEED` 是否一致；暂停态还要检查恢复前的 API 校验日志 |
 | pause/resume 失败 | snapshot row、对象存储上传、origin node 缓存、dirty block/memory diff |
 | 多节点路由错乱 | Redis routing catalog、节点 ID、服务发现、负载均衡健康检查 |
-| 模板构建失败 | Docker Reverse Proxy、registry 权限、Template Manager 节点、构建阶段日志 |
+| 模板构建失败 | registry 权限、Template Manager 节点、构建阶段日志；不要再排查已移除的 Docker Reverse Proxy |
 | 指标缺失 | ClickHouse schema/migration、OTel collector、orchestrator metrics 写入 |
 | 日志缺失 | Loki URL、Vector/logs collector、API 查询配置 |
 
@@ -1435,7 +1473,7 @@ API 节点和 sandbox 节点的瓶颈不同。API 节点通常受 HTTP/gRPC、�
 
 | 类别 | 检查项 |
 |------|--------|
-| 域名 | `api.*`、sandbox wildcard、`docker.*`、Dashboard、Nomad UI |
+| 域名 | `api.*`、sandbox wildcard/shared host、当前 registry、Dashboard、Kubernetes 管理入口 |
 | TLS | 通配证书、证书续期、内部 gRPC 是否需要 TLS |
 | 认证 | API key、admin token、Dashboard/OIDC、`trafficAccessToken`、`envdAccessToken`、volume token；私有 ingress 不把 token 放入 URL，也不向前端暴露长期 bearer token |
 | 凭据治理 | `SANDBOX_ACCESS_TOKEN_HASH_SEED` 由 Secret Manager/Vault 等部署级密钥系统托管；所有参与创建/恢复的 API 实例使用一致 seed，Orchestrator 只接收该部署下发的 token 配置；轮换前评估既有 Sandbox token 失效影响 |
@@ -1459,7 +1497,7 @@ E2B 适合这些场景：
 | 需要快速启动带完整运行环境的 sandbox | 模板快照恢复比冷启动安装依赖快 |
 | 需要文件、进程、PTY、端口访问 API | envd 和 SDK 提供了上层开发者体验 |
 | 需要暂停/恢复执行环境 | snapshot 能保存运行状态 |
-| 需要私有化运行 Agent runtime | 官方 infra 提供 Terraform/Nomad 自托管路径，但仍需验证所选云 provider 的支持状态 |
+| 需要私有化运行 Agent runtime | 2026.30 部署文档转向 Kubernetes distribution，仍需验证所选发行清单、云 provider 和特权节点支持状态 |
 
 ### 12.2 什么时候要谨慎
 
@@ -1468,8 +1506,8 @@ E2B 适合这些场景：
 | 只需要短生命周期批任务 | Kubernetes Job 或容器队列可能更简单 |
 | 不需要强隔离 | 普通容器或进程池运维成本更低 |
 | 没有 KVM/nested virtualization 条件 | Firecracker 路径会受阻 |
-| 团队不想运维 Nomad/对象存储/Redis/PostgreSQL | E2B 的基础设施复杂度不低 |
-| 希望直接跑在 Kubernetes 且不改代码 | 官方主路径不是 K8s，需要额外工程 |
+| 团队不想运维 Kubernetes/对象存储/Redis/PostgreSQL | E2B 的基础设施复杂度不低 |
+| 希望任意 Kubernetes 集群直接安装 | Firecracker/KVM、特权网络与存储前置仍需按官方分发材料验收 |
 
 ### 12.3 实施建议
 
@@ -1479,67 +1517,76 @@ E2B 适合这些场景：
 2. **再确定私有化边界**：哪些组件必须自建，哪些可以用云服务，是否需要 Dashboard、ClickHouse、Loki、自建认证。
 3. **最后做高可用和安全演练**：节点故障、Redis failover、PostgreSQL 备份恢复、对象存储慢请求、证书续期、出站网络策略。
 
-不要一开始就把 E2B 改造成 Kubernetes、替换认证、替换服务发现、替换存储和上 HA。E2B 的核心难点在 Firecracker runtime、模板快照和流量路由，先把这条主链路跑稳，再逐步替换外围依赖。
+不要一开始就同时替换 E2B 的认证、服务发现、存储和 HA 组件。E2B 的核心难点在 Firecracker runtime、模板快照和流量路由；先按 2026.30 Kubernetes 分发材料跑稳主链路，再逐步定制外围依赖。
 
 ---
 
 ## 附录 A：固定版本与官方来源
 
-本文的服务端兼容边界固定在 E2B Infra `2026.29@557445ffddda8d9a27f6f529a3f4d7732cf81a13`。SDK 链接固定到官方 monorepo 未发布主线快照 `5a56c87e9db0e221b138662805af7743e75f1082`，只用于证明 `getHost()`、`trafficAccessToken`、示例调用形态，以及记录 transport/MCP cleanup/IAM 客户端边界；Host 编码、共享 envd URL、官方路由 Header 注入与 token 属性的观察不改变 Infra 2026.29 的稳定承诺。Agent Sandbox `v1.0.0@bb72f49d79f009a960eed2ae6c32e1cc082399c5` 只作 Kubernetes Sandbox、Router 与迁移契约对照。
+本文的服务端兼容边界固定在 E2B Infra `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`。SDK 链接固定到官方 monorepo 未发布主线快照 `3e5a48b00eb133ac1e98697d549574301c605e81`，只用于证明 `getHost()`、`trafficAccessToken`、示例调用形态，以及记录 transport/MCP cleanup/IAM 客户端边界；Host 编码、共享 envd URL、官方路由 Header 注入与 token 属性的观察不改变 Infra 2026.30 的稳定承诺。Agent Sandbox `v1.0.2@9a85153590e54cb980f3241f9e7a9228449412c9` 只作 Kubernetes Sandbox、Router、SDK/RL 与迁移契约对照。
 
 | 主题 | 官方固定快照 |
 | --- | --- |
-| Infra 2026.29 完整源码 | [e2b-dev/infra@557445f](https://github.com/e2b-dev/infra/tree/557445ffddda8d9a27f6f529a3f4d7732cf81a13) |
-| Infra 2026.29 Release | <https://github.com/e2b-dev/infra/releases/tag/2026.29> |
-| OpenAPI、fork 与网络 schema | [`spec/openapi.yml`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/spec/openapi.yml) |
-| Sandbox fork handler | [`sandbox_fork.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/api/internal/handlers/sandbox_fork.go) |
-| Snapshot resume/fork metadata | [`sandbox_resume.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/api/internal/handlers/sandbox_resume.go) |
-| Fork 集成测试 | [`sandbox_fork_test.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/tests/integration/internal/tests/api/sandboxes/sandbox_fork_test.go) |
-| addon 表与 `team_limits` 基础视图 | [`20251011200438_create_addons_table.sql`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/db/migrations/20251011200438_create_addons_table.sql) |
-| 事件 TTL 与最终 `team_limits` 视图 | [`20260702120000_add_events_ttl_days.sql`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/db/migrations/20260702120000_add_events_ttl_days.sql) |
-| Dashboard 有效 Team limits 响应 | [`dashboard-api/internal/handlers/teams_list.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/dashboard-api/internal/handlers/teams_list.go) |
-| Sandbox 并发 reservation Lua | [`sandbox/reservations/redis/scripts.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/api/internal/sandbox/reservations/redis/scripts.go) |
-| Team/route API rate-limit middleware | [`middleware/ratelimit/ratelimit.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/api/internal/middleware/ratelimit/ratelimit.go) |
-| 每次 Create/Resume/Fork 生成 execution ID | [`api/internal/handlers/sandbox.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/api/internal/handlers/sandbox.go) |
-| Sandbox 生命周期事件类型与字段 | [`shared/pkg/events/sandbox.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/events/sandbox.go) |
-| Orchestrator 后台发布生命周期事件 | [`orchestrator/pkg/server/sandboxes.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/orchestrator/pkg/server/sandboxes.go) |
-| ClickHouse Sandbox Event schema | [`20250725223340_add_sandbox_events_local.sql`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/clickhouse/migrations/20250725223340_add_sandbox_events_local.sql) |
-| ClickHouse 事件 TTL schema | [`20260702120000_add_sandbox_events_ttl_days.sql`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/clickhouse/migrations/20260702120000_add_sandbox_events_ttl_days.sql) |
-| ClickHouse 生命周期事件批处理写入 | [`clickhouse/pkg/events/delivery.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/clickhouse/pkg/events/delivery.go) |
-| API Orchestrator 发布 execution 规格与运行时长 | [`api/internal/orchestrator/analytics.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/api/internal/orchestrator/analytics.go) |
-| HMAC token 生成 | [`sandbox_envd_secret.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/api/internal/sandbox/sandbox_envd_secret.go) |
-| Host/Header 路由名称、门控、优先级与校验 | [`shared/pkg/proxy/host.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/proxy/host.go) |
-| 共享域名、IP、缺失字段和冲突 Header 测试 | [`shared/pkg/proxy/host_test.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/proxy/host_test.go) |
-| Sandbox ID 小写字母与数字校验 | [`shared/pkg/id/id.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/id/id.go) |
-| 路由解析错误到 HTTP 400 的映射 | [`shared/pkg/proxy/handler.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/proxy/handler.go) |
-| Client Proxy 到 Orchestrator Proxy 的 Header 转发 | [`shared/pkg/proxy/pool/client.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/proxy/pool/client.go) |
-| 共享 HTTP server timeout 与连接指标 | [`shared/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/proxy/proxy.go) |
-| lifecycle 隔离的 ReverseProxy 连接池 | [`shared/pkg/proxy/pool/pool.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/proxy/pool/pool.go) |
-| Header/Host 改写、重试与并发限制测试 | [`shared/pkg/proxy/proxy_test.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/proxy/proxy_test.go) |
-| Sandbox lifecycle 连接限流器 | [`shared/pkg/connlimit/limiter.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/connlimit/limiter.go) |
-| Sandbox 入站连接上限 feature flag | [`shared/pkg/featureflags/flags.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/shared/pkg/featureflags/flags.go) |
-| Client Proxy 路由与暂停态 token 转发 | [`client-proxy/internal/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/client-proxy/internal/proxy/proxy.go) |
-| API 自动恢复前鉴权 | [`api/internal/handlers/proxy_grpc.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/api/internal/handlers/proxy_grpc.go) |
-| Orchestrator Proxy 运行态鉴权 | [`orchestrator/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/orchestrator/pkg/proxy/proxy.go) |
-| Traffic Token 集成与自动恢复测试 | [`traffic_access_token_test.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/tests/integration/internal/tests/proxies/traffic_access_token_test.go) |
-| GCP Cloud Armor 路由 Header preview 限流 | [`iac/provider-gcp/nomad-cluster/network/main.tf`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/iac/provider-gcp/nomad-cluster/network/main.tf) |
-| envd loopback 端口扫描与 `socat` 转发 | [`envd/internal/port/forward.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/envd/internal/port/forward.go) |
-| envd `1s` 扫描周期与转发器启动 | [`envd/main.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/packages/envd/main.go) |
-| guest 各类监听地址可达性集成测试 | [`localhost_bind_test.go`](https://github.com/e2b-dev/infra/blob/557445ffddda8d9a27f6f529a3f4d7732cf81a13/tests/integration/internal/tests/envd/localhost_bind_test.go) |
-| Agent Sandbox v1.0.0 exact source | [`agent-sandbox` v1.0.0@bb72f49](https://github.com/kubernetes-sigs/agent-sandbox/tree/bb72f49d79f009a960eed2ae6c32e1cc082399c5) |
-| Agent Sandbox v1.0.0 migration guide | [`docs/api-migration-guide.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/bb72f49d79f009a960eed2ae6c32e1cc082399c5/docs/api-migration-guide.md) |
-| Agent Sandbox Go Router 对照说明 | [`sandbox-router/README.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/bb72f49d79f009a960eed2ae6c32e1cc082399c5/sandbox-router/README.md) |
-| Agent Sandbox path routing 与 browser session | [`proxy/pathroute.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/bb72f49d79f009a960eed2ae6c32e1cc082399c5/sandbox-router/proxy/pathroute.go)、[`proxy/browsersession.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/bb72f49d79f009a960eed2ae6c32e1cc082399c5/sandbox-router/proxy/browsersession.go) |
-| Agent Sandbox Go Router Header/target 解析 | [`proxy/headers.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/bb72f49d79f009a960eed2ae6c32e1cc082399c5/sandbox-router/proxy/headers.go) |
-| Agent Sandbox Go Router 代理与鉴权边界 | [`proxy/proxy.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/bb72f49d79f009a960eed2ae6c32e1cc082399c5/sandbox-router/proxy/proxy.go) |
-| Agent Sandbox `sandboxd` 用户指南 | [`packages/sandboxd/USER_GUIDE.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/bb72f49d79f009a960eed2ae6c32e1cc082399c5/packages/sandboxd/USER_GUIDE.md) |
-| Agent Sandbox legacy Python Router | [`sandbox_router.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/bb72f49d79f009a960eed2ae6c32e1cc082399c5/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py) |
-| TypeScript SDK 共享 envd URL 与 `getHost()` 边界 | [`packages/js-sdk/src/connectionConfig.ts`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/js-sdk/src/connectionConfig.ts) |
-| TypeScript Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/js-sdk/src/sandbox/index.ts) |
-| TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/js-sdk/tests/sandbox/network.test.ts) |
-| Python SDK 共享 envd URL 与 `get_host()` 边界 | [`packages/python-sdk/e2b/connection_config.py`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/python-sdk/e2b/connection_config.py) |
-| Python pyqwest transport 与共享 envd client | [`packages/python-sdk/e2b/api/client_sync/__init__.py`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/python-sdk/e2b/api/client_sync/__init__.py) |
-| Python envd RPC transport 边界 | [`packages/python-sdk/e2b/envd/client_shared.py`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/python-sdk/e2b/envd/client_shared.py) |
-| Python Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/python-sdk/e2b/sandbox_sync/main.py`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/python-sdk/e2b/sandbox_sync/main.py) |
-| Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/python-sdk/e2b/sandbox/main.py) |
-| Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/5a56c87e9db0e221b138662805af7743e75f1082/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |
+| Infra 2026.30 完整源码 | [e2b-dev/infra@f32ee8a](https://github.com/e2b-dev/infra/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104) |
+| Infra 2026.30 Release | <https://github.com/e2b-dev/infra/releases/tag/2026.30> |
+| 删除 control-plane access-token 表 | [`20260823120000_drop_access_tokens.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20260823120000_drop_access_tokens.sql) |
+| Secrets metadata API | [`handlers/secrets.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/secrets.go) |
+| Filesystem-only resume | [`handlers/sandbox_resume.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_resume.go) |
+| 动态日志读取/路由入口 | [`handlers/logstore.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/logstore.go) |
+| envd live upgrade handover | [`process/upgrade.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/services/process/upgrade.go) |
+| 集群注册与 team assignment | [`register_team_cluster.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/pkg/dashboard/sql_queries/clusters/register_team_cluster.sql) |
+| OpenAPI、fork 与网络 schema | [`spec/openapi.yml`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/spec/openapi.yml) |
+| Sandbox fork handler | [`sandbox_fork.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_fork.go) |
+| Snapshot resume/fork metadata | [`sandbox_resume.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_resume.go) |
+| Fork 集成测试 | [`sandbox_fork_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/api/sandboxes/sandbox_fork_test.go) |
+| addon 表与 `team_limits` 基础视图 | [`20251011200438_create_addons_table.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20251011200438_create_addons_table.sql) |
+| 事件 TTL 与最终 `team_limits` 视图 | [`20260702120000_add_events_ttl_days.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20260702120000_add_events_ttl_days.sql) |
+| Dashboard 有效 Team limits 响应 | [`dashboard-api/internal/handlers/teams_list.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/dashboard-api/internal/handlers/teams_list.go) |
+| Sandbox 并发 reservation Lua | [`sandbox/reservations/redis/scripts.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/sandbox/reservations/redis/scripts.go) |
+| Team/route API rate-limit middleware | [`middleware/ratelimit/ratelimit.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/middleware/ratelimit/ratelimit.go) |
+| 每次 Create/Resume/Fork 生成 execution ID | [`api/internal/handlers/sandbox.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox.go) |
+| Sandbox 生命周期事件类型与字段 | [`shared/pkg/events/sandbox.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/events/sandbox.go) |
+| Orchestrator 后台发布生命周期事件 | [`orchestrator/pkg/server/sandboxes.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/orchestrator/pkg/server/sandboxes.go) |
+| ClickHouse Sandbox Event schema | [`20250725223340_add_sandbox_events_local.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/migrations/20250725223340_add_sandbox_events_local.sql) |
+| ClickHouse 事件 TTL schema | [`20260702120000_add_sandbox_events_ttl_days.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/migrations/20260702120000_add_sandbox_events_ttl_days.sql) |
+| ClickHouse 生命周期事件批处理写入 | [`clickhouse/pkg/events/delivery.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/pkg/events/delivery.go) |
+| API Orchestrator 发布 execution 规格与运行时长 | [`api/internal/orchestrator/analytics.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/orchestrator/analytics.go) |
+| HMAC token 生成 | [`sandbox_envd_secret.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/sandbox/sandbox_envd_secret.go) |
+| Host/Header 路由名称、门控、优先级与校验 | [`shared/pkg/proxy/host.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/host.go) |
+| 共享域名、IP、缺失字段和冲突 Header 测试 | [`shared/pkg/proxy/host_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/host_test.go) |
+| Sandbox ID 小写字母与数字校验 | [`shared/pkg/id/id.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/id/id.go) |
+| 路由解析错误到 HTTP 400 的映射 | [`shared/pkg/proxy/handler.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/handler.go) |
+| Client Proxy 到 Orchestrator Proxy 的 Header 转发 | [`shared/pkg/proxy/pool/client.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/pool/client.go) |
+| 共享 HTTP server timeout 与连接指标 | [`shared/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/proxy.go) |
+| lifecycle 隔离的 ReverseProxy 连接池 | [`shared/pkg/proxy/pool/pool.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/pool/pool.go) |
+| Header/Host 改写、重试与并发限制测试 | [`shared/pkg/proxy/proxy_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/proxy_test.go) |
+| Sandbox lifecycle 连接限流器 | [`shared/pkg/connlimit/limiter.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/connlimit/limiter.go) |
+| Sandbox 入站连接上限 feature flag | [`shared/pkg/featureflags/flags.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/featureflags/flags.go) |
+| Client Proxy 路由与暂停态 token 转发 | [`client-proxy/internal/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/client-proxy/internal/proxy/proxy.go) |
+| API 自动恢复前鉴权 | [`api/internal/handlers/proxy_grpc.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/proxy_grpc.go) |
+| Orchestrator Proxy 运行态鉴权 | [`orchestrator/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/orchestrator/pkg/proxy/proxy.go) |
+| Traffic Token 集成与自动恢复测试 | [`traffic_access_token_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/proxies/traffic_access_token_test.go) |
+| envd loopback 端口扫描与 `socat` 转发 | [`envd/internal/port/forward.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/port/forward.go) |
+| envd `1s` 扫描周期与转发器启动 | [`envd/main.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/main.go) |
+| guest 各类监听地址可达性集成测试 | [`localhost_bind_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/envd/localhost_bind_test.go) |
+| Agent Sandbox v1.0.2 exact source | [`agent-sandbox` v1.0.2@9a85153](https://github.com/kubernetes-sigs/agent-sandbox/tree/9a85153590e54cb980f3241f9e7a9228449412c9) |
+| Agent Sandbox v1.0.0 migration guide（v1.0.2 继承） | [`docs/api-migration-guide.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/docs/api-migration-guide.md) |
+| Agent Sandbox `Authorizer` target interface | [`authz/authorizer.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/sandbox-router/authz/authorizer.go) |
+| Agent Sandbox scoped-token v2 | [`authz/scopedtoken_v2.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/sandbox-router/authz/scopedtoken_v2.go) |
+| Agent Sandbox Router namespace manifest | [`deploy/deployment.yaml`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/sandbox-router/deploy/deployment.yaml) |
+| Agent Sandbox RL fleet adoption | [`examples/agent-sandbox-rl/agent_sandbox_rl/fleet.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/examples/agent-sandbox-rl/agent_sandbox_rl/fleet.py) |
+| Agent Sandbox Go Router 对照说明 | [`sandbox-router/README.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/sandbox-router/README.md) |
+| Agent Sandbox path routing 与 browser session | [`proxy/pathroute.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/sandbox-router/proxy/pathroute.go)、[`proxy/browsersession.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/sandbox-router/proxy/browsersession.go) |
+| Agent Sandbox Go Router Header/target 解析 | [`proxy/headers.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/sandbox-router/proxy/headers.go) |
+| Agent Sandbox Go Router 代理与鉴权边界 | [`proxy/proxy.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/sandbox-router/proxy/proxy.go) |
+| Agent Sandbox `sandboxd` 用户指南 | [`packages/sandboxd/USER_GUIDE.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/packages/sandboxd/USER_GUIDE.md) |
+| Agent Sandbox legacy Python Router | [`sandbox_router.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/9a85153590e54cb980f3241f9e7a9228449412c9/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py) |
+| TypeScript SDK 共享 envd URL 与 `getHost()` 边界 | [`packages/js-sdk/src/connectionConfig.ts`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/js-sdk/src/connectionConfig.ts) |
+| TypeScript Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/js-sdk/src/sandbox/index.ts) |
+| TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/js-sdk/tests/sandbox/network.test.ts) |
+| Python SDK 共享 envd URL 与 `get_host()` 边界 | [`packages/python-sdk/e2b/connection_config.py`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/python-sdk/e2b/connection_config.py) |
+| Python pyqwest transport 与共享 envd client | [`packages/python-sdk/e2b/api/client_sync/__init__.py`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/python-sdk/e2b/api/client_sync/__init__.py) |
+| Python envd RPC transport 边界 | [`packages/python-sdk/e2b/envd/client_shared.py`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/python-sdk/e2b/envd/client_shared.py) |
+| Python Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/python-sdk/e2b/sandbox_sync/main.py`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/python-sdk/e2b/sandbox_sync/main.py) |
+| Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/python-sdk/e2b/sandbox/main.py) |
+| Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/3e5a48b00eb133ac1e98697d549574301c605e81/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |
