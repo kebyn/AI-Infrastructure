@@ -4,7 +4,7 @@
 
 ---
 
-> 稳定目标版本：Volcano `v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb`；官方文档快照 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-09-17。网站分支只用于文档证据；Chart commit 由正式 chart tag 固定，不把其后主线内容写成 v1.15.2 能力。
+> 稳定目标版本：Volcano `v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb`；官方文档快照 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；Helm Chart `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`；审校日期：2026-09-17。网站分支只用于文档证据；Chart commit 由正式 chart tag 固定，不把其后主线内容写成 v1.15.2 能力。
 
 > 审校窗口内的 `v1.16.0-alpha.0`、`.1`、`.2` 均为 prerelease，只用于后续升级预演，不替代 v1.15.2 正式目标、Chart 或兼容承诺。
 
@@ -676,7 +676,7 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 |---|---|---|
 | Volcano | `v1.15.2` annotated tag object | `f0917e48403c4ffa2d8a022f05f1f5097fbe9c10`（仅 ref 元数据） |
 | Volcano | `v1.15.2` peeled source commit | `1462fb7b4835970708717456e3aed85e697ec2eb` |
-| Volcano Website | `master` | `aee652b985d25e33f59f6112e857627784b741ca`（未发布文档快照） |
+| Volcano Website | `master` | `f5258704d7ef5bda28f31ba51950cdea9adbe921`（未发布文档快照） |
 | Volcano Helm Charts | `volcano-1.15.2` tag | `c2050e3debe58dbcdf9bb75b667799eec9409513` |
 
 ### A.2 Release notes
@@ -701,8 +701,8 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 | Cloud Native Colocation | <https://volcano.sh/docs/keyfeatures/cloudnativecolocation/> |
 | Queue Resource Management | <https://volcano.sh/docs/keyfeatures/queueresourcemanagement/> |
 | v1.15.0 Capacity Plugin Guide | <https://volcano.sh/docs/userguide/user_guide_how_to_use_capacity_plugin/> |
-| v1.15.0 Cloud Native Colocation 文档快照 | <https://github.com/volcano-sh/website/blob/aee652b985d25e33f59f6112e857627784b741ca/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md> |
-| v1.15.0 Queue Resource Management 文档快照 | <https://github.com/volcano-sh/website/blob/aee652b985d25e33f59f6112e857627784b741ca/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md> |
+| v1.15.0 Cloud Native Colocation 文档快照 | <https://github.com/volcano-sh/website/blob/f5258704d7ef5bda28f31ba51950cdea9adbe921/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md> |
+| v1.15.0 Queue Resource Management 文档快照 | <https://github.com/volcano-sh/website/blob/f5258704d7ef5bda28f31ba51950cdea9adbe921/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md> |
 | v1.8.2 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.8.2/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
 | v1.10.0 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.10.0/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
 | v1.11.0 scheduler 默认配置 | <https://github.com/volcano-sh/volcano/blob/v1.11.0/installer/helm/chart/volcano/config/volcano-scheduler.conf> |
