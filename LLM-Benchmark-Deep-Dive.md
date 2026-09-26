@@ -4,9 +4,9 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.12.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.19@0bcd822377da7b5718e674eaf9c870d349424dd1`、LLMPerf `v2.0`、ollama-benchmark `v0.5.3`、vLLM `v0.29.0`、EvalScope `v1.12.0`；审校日期：2026-09-17。
+> 稳定版本基线：AIPerf `v0.13.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.20@94602c9c2b7cbdb8efd5c52802dac6a1c180089e`、LLMPerf `v2.0`、ollama-benchmark `v0.5.4`、vLLM `v0.30.0`、EvalScope `v1.12.0`；审校日期：2026-09-17。
 
-> vLLM `v0.29.1rc0` 是 prerelease，不替代本文 `v0.29.0` 稳定基线；RC 结果只能作为候选升级验证，不能与正式版容量数据混为同一序列。
+> vLLM `v0.30.1rc0` 是 prerelease，不替代本文 `v0.30.0` 稳定基线；RC 结果只能作为候选升级验证，不能与正式版容量数据混为同一序列。
 
 ---
 
@@ -224,7 +224,23 @@ Adaptive scale 不是离线 sweep 的同义词：它在单次 run 内用窗口�
 
 本版最低 Python 从 3.10 提升到 3.11，属于升级前必须检查的 breaking change。release 分支还纳入 ffmpeg CVE-2026-8461 修复、ShareGPT 批量编码超时修复、共享前缀 block 合成修复和 multi-run detailed aggregation JSONL fallback 修复；重放旧结果前应先确认依赖环境与 artifact schema。
 
-### 5.4 典型命令
+### 5.4 v0.13.0 稳定增量
+
+`v0.13.0` 把执行面扩展到 Kubernetes、把 speculative 与流式指标口径收紧，并继续处理依赖安全：
+
+| 变化 | 工程含义 |
+|------|----------|
+| Kubernetes native execution（beta） | AIPerf 可在 Kubernetes 上以原生资源执行压测，并随行一整套 prerequisite stack；官方标注 beta，生产采用前应验证 RBAC、镜像与集群配额边界 |
+| Spec-decode 指标 | per-request acceptance metrics 标准化；vLLM adapter 对齐上游 #48915 review 后的 wire format |
+| Endpoint 与控制钩子 | 新增 `audio_transcription` endpoint type；`reset_kv_cache` 与 `server_profiler` 控制钩子；`AIPERF_ENDPOINT_FORCE_CONTENT_PARTS` 环境变量 |
+| Workload 口径 | cache-bust 扩展到所有 structured workload；无条件 warmup prefix 被移除，改用 `WARMUP_ISOLATION_*` 目标；DAG branch 支持 per-round；新增 tracelab dataset；`PromptCorpus.RANDOM` 与 vLLM bench 对齐 |
+| 指标修正 | `--per-chunk-usage` 修正捆绑首个流式 chunk 造成的 TPS/user 虚高；timing 改为高分辨率 rate-loop pacing |
+| 路由 | session-affinity header 默认发送 |
+| 依赖 | ffmpeg 升至 `8.1.2`（CVE-2026-8461 / GHSA-qff7-4q6c-m8h6，按最小 codec allowlist 重建）；aiohttp 最低 `3.14.3` |
+
+三个必须迁移的口径变化：控制钩子超时不再继承 6 小时的 `endpoint.timeout`；telemetry 字段 `dcgm_url` 更名 `telemetry_source_url`；LCB dataset load 不再传 `trust_remote_code`。旧结果与 v0.13.0 结果之间的 TPS/user、warmup 行为和 telemetry 字段不能直接拼接为同一序列；升级前先重放一次固定 workload 建立对照。
+
+### 5.5 典型命令
 
 ```bash
 aiperf profile \
@@ -237,7 +253,7 @@ aiperf profile \
   --request-count 200
 ```
 
-### 5.5 适用场景
+### 5.6 适用场景
 
 | 场景 | 价值 |
 |------|------|
@@ -247,7 +263,7 @@ aiperf profile \
 | 多模态压测 | 图像、视频、音频端点都可覆盖 |
 | 观测闭环 | 可以把 client 侧指标与 GPU/server metrics 对齐 |
 
-### 5.6 限制
+### 5.7 限制
 
 | 限制 | 说明 |
 |------|------|
@@ -546,7 +562,7 @@ genai-bench benchmark \
 
 ### 9.1 定位
 
-SGLang Bench 指 SGLang 仓库内置的 online serving benchmark。v0.5.19 的 Bench Serving Guide 仍保留 `python -m sglang.bench_serving` 兼容入口，但该模块只是会发出 `FutureWarning` 的包装，实现位于 `sglang.benchmark.serving`；新自动化脚本应优先使用：
+SGLang Bench 指 SGLang 仓库内置的 online serving benchmark。v0.5.20 的 Bench Serving Guide 仍保留 `python -m sglang.bench_serving` 兼容入口，但该模块只是会发出 `FutureWarning` 的包装，实现位于 `sglang.benchmark.serving`；新自动化脚本应优先使用：
 
 ```bash
 python3 -m sglang.benchmark.serving
@@ -590,7 +606,7 @@ python3 -m sglang.benchmark.serving
 | `random` | 随机文本长度，适合固定 ISL/OSL 基准 | `--random-input-len`、`--random-output-len`、`--random-range-ratio` |
 | `random-ids` | 随机 token id，长度控制更直接但文本可能无意义 | 同 `random` |
 | `generated-shared-prefix` | 合成长共享 system prompt + 短问题，用于 prefix/KV cache 压测 | `--gsp-num-groups`、`--gsp-prompts-per-group`、`--gsp-system-prompt-len`、`--gsp-question-len`、`--gsp-output-len` |
-| `image` | 构造 VLM 图像请求；支持固定 preset/尺寸和 `random:min_hxmin_w-max_hxmax_w` 随机边界，v0.5.19 延续并扩展多模态 processor 路径 | `--image-count`、`--image-resolution`、`--image-format`、`--image-content` |
+| `image` | 构造 VLM 图像请求；支持固定 preset/尺寸和 `random:min_hxmin_w-max_hxmax_w` 随机边界，v0.5.20 延续并扩展多模态 processor 路径 | `--image-count`、`--image-resolution`、`--image-format`、`--image-content` |
 | `mmmu` | MMMU Math split，多模态评测式请求 | 依赖 `datasets`、`pillow`、`pybase64` |
 | `mooncake` | 用 Mooncake trace 评估大规模 KVCache 共享 | `--mooncake-workload`、`--mooncake-slowdown-factor`、`--mooncake-num-rounds`、`--use-trace-timestamps` |
 | `agentic-trace` | agentic multi-turn trace | `--dataset-offset`、`--agentic-max-turns` |
@@ -639,9 +655,9 @@ SGLang Bench 控制台会输出：
 | Accept length | SGLang speculative decoding 可用时报告接受长度 |
 | Retokenized counts | 用指定 tokenizer 重新计数生成文本，辅助发现服务端 usage 口径差异 |
 
-v0.5.19 延续 v0.5.16 引入的 `spec_accept_length`、`spec_cap_length`、`spec_block_accept_length` 和 `spec_cap_lens_histogram` 请求结果字段；OpenAI chat 非流式路径可从响应 `meta_info` 读取这些值，SGLang native 流式路径当前只回填 `spec_accept_length`。控制台和汇总 JSON 的 `accept_length` 仍来自 `/server_info` 中的 `avg_spec_accept_length`，不能把逐请求承载字段误写成已经完整聚合的新报表指标。vLLM Kimi 风格响应的 `reasoning` fallback 也继续用于避免 retokenized output 漏算 reasoning 文本。
+v0.5.20 延续 v0.5.16 引入的 `spec_accept_length`、`spec_cap_length`、`spec_block_accept_length` 和 `spec_cap_lens_histogram` 请求结果字段；OpenAI chat 非流式路径可从响应 `meta_info` 读取这些值，SGLang native 流式路径当前只回填 `spec_accept_length`。控制台和汇总 JSON 的 `accept_length` 仍来自 `/server_info` 中的 `avg_spec_accept_length`，不能把逐请求承载字段误写成已经完整聚合的新报表指标。vLLM Kimi 风格响应的 `reasoning` fallback 也继续用于避免 retokenized output 漏算 reasoning 文本。
 
-v0.5.19 延续 benchmark 可复现性修复：随机文本只从按 token ID 排序后的 tokenizer vocabulary 采样，避免不同 tokenizer 版本的字典迭代顺序破坏相同 `--seed`；图像数据集在 processor 初始化后重新设置 Python 和 NumPy seed，避免初始化过程消耗全局随机状态。SGLang native stream 的 JSON 解析改为直接对 SSE bytes 使用 `orjson`，这是降低单 asyncio 客户端解析开销的实现优化，不代表服务端 TTFT/ITL 本身变快。
+v0.5.20 延续 benchmark 可复现性修复：随机文本只从按 token ID 排序后的 tokenizer vocabulary 采样，避免不同 tokenizer 版本的字典迭代顺序破坏相同 `--seed`；图像数据集在 processor 初始化后重新设置 Python 和 NumPy seed，避免初始化过程消耗全局随机状态。SGLang native stream 的 JSON 解析改为直接对 SSE bytes 使用 `orjson`，这是降低单 asyncio 客户端解析开销的实现优化，不代表服务端 TTFT/ITL 本身变快。
 
 如果指定 `--output-file`，每次 run 会追加一个 JSON 对象；开启 `--output-details` 后还会包含 `input_lens`、`output_lens`、`ttfts`、逐请求 `itls`、`generated_texts` 和 `errors`。它适合接入 CI 或自行汇总，但不像 GuideLLM/EvalScope 那样内置完整 HTML 报告和 SLO sweep。
 
@@ -770,7 +786,7 @@ python3 -m sglang.benchmark.serving \
 | 不适合 | 多团队标准报告、Kubernetes 原生容量平台、自动 SLO/goodput 搜索、复杂 dashboard 交付 |
 | 横评风险 | 必须统一 endpoint、chat template、tokenizer、输出长度、streaming、warmup、cache 状态，否则容易把工具默认差异误判为 serving 性能差异 |
 | 客户端瓶颈 | 高并发时压测机 CPU、文件描述符、端口、网络和 Python event loop 可能先到瓶颈；大规模压测要用更强客户端或分布式压测工具 |
-| 兼容性 | v0.5.19 延续指南路径 `docs/docs/developer_guide/bench_serving.mdx`；指南仍展示 `sglang.bench_serving`，但源码已将其标为 deprecated，CI 应迁到 `sglang.benchmark.serving` |
+| 兼容性 | v0.5.20 延续指南路径 `docs/docs/developer_guide/bench_serving.mdx`；指南仍展示 `sglang.bench_serving`，但源码已将其标为 deprecated，CI 应迁到 `sglang.benchmark.serving` |
 | 一批请求探测 | `one_batch_server` 直连 worker 时可按 internal states 跳过超过 max-running 或 token-capacity 的组合；若目标是 PD router，拿不到 worker internal states，脚本会告警并关闭这层 skip guard，不能把它当成 router 后端的容量保护 |
 
 ### 9.8 v0.5.18 运行与升级边界
@@ -789,7 +805,7 @@ SGLang `v0.5.18` 的 benchmark 调用形态基本延续上一版，但 serving �
 
 ### 9.9 v0.5.19 服务能力与压测边界
 
-SGLang `v0.5.19@0bcd822377da7b5718e674eaf9c870d349424dd1` 在 serving、kernel、缓存和 Rust server 路径上有一组会直接影响容量评估的变化。它们不改变本章的指标定义，但会改变可达到的工作点和首次编译成本：
+SGLang `v0.5.19` 在 serving、kernel、缓存和 Rust server 路径上有一组会直接影响容量评估的变化。它们不改变本章的指标定义，但会改变可达到的工作点和首次编译成本：
 
 | 领域 | v0.5.19 变化 | 压测/运维影响 |
 | --- | --- | --- |
@@ -811,6 +827,32 @@ SGLang `v0.5.19@0bcd822377da7b5718e674eaf9c870d349424dd1` 在 serving、kernel�
 6. **横向可比性**：新模型、多模态 processor、L3 状态、不同 GPU 架构和新 kernel 不能与旧文本基准直接横比。跨版本比较必须固定 tokenizer、输入/输出长度分布、sampling、streaming、warmup、cache 状态、硬件和依赖 lockfile。
 
 这些变化提升了 SGLang 的服务覆盖和优化空间，但没有自动改变 TTFT、ITL、TPOT、accept length、goodput 或 open-loop 到达率的定义；指标仍按第二章口径计算，并在结果中区分 client-observed 与 server-reported latency。
+
+### 9.10 v0.5.20 服务能力与压测边界
+
+SGLang `v0.5.20` 是 annotated tag，正文使用解引用后的 source commit `94602c9c2b7cbdb8efd5c52802dac6a1c180089e`（tag object `d158602ff1d2cb953196c95158c488d503d2470c` 仅作类型证据）。该版本包含一组直接改变部署前提与口径的破坏性变化：
+
+| 领域 | v0.5.20 变化 | 压测/运维影响 |
+| --- | --- | --- |
+| CUDA 12 lane 退役 | 不再提供 `-cu129`/`-cu12` wheel 与镜像，v0.5.19 是最后一个 CUDA 12 版本 | CUDA 12 环境必须留在 v0.5.19 或整体迁移 CUDA 13；跨 CUDA lane 的吞吐对比要单独标注，不能并成一条曲线 |
+| Prefill context parallelism | `SGLANG_ENABLE_CP_V2` gate、v1 runtime 与通用 v1 CLI 选项被移除，CP API 改为无版本命名；`--enable-prefill-cp` 在 HIP/NPU/MUSA 上直接被拒绝 | 使用旧 CP 参数的脚本会在启动失败；AMD/NPU 路径的 CP 结果不适用于本版结论 |
+| Responses store | `/v1/responses` 默认不在内存保留结果；检索、`previous_response_id` 与后台请求需要 `--enable-response-store`，未启用时返回 400；PD 部署不能启用该 store，`background=true` + `store=false` 组合被拒绝 | Responses API 的多轮/后台用例必须先确认 store 配置；压测中 400 响应要区分“能力未启用”与“过载拒绝” |
+| Sampling mask | mask 容量移到 `--sampling-mask-max-tokens`（默认 4096）；旧环境变量 `SGLANG_DISAGGREGATION_SAMPLING_MASK_MAX_TOKENS` 在启动时被拒绝；PD 下需双侧设置 `SGLANG_ENABLE_DISAGG_SAMPLING_MASK=1` | RL rollout 的 mask 行为与容量上限必须写入 manifest；默认 4096 可能低于既有 workload 需求 |
+| 删除的 backend | `cutlass_mla` attention backend、非 Marlin `gptq` 量化、AWQ AOT dequantize kernel 与 Dual Chunk FlashAttention 被移除；GPTQ 统一走 `gptq_marlin` | 依赖被删 backend 的量化模型结果不可延续；升级前用目标量化格式做 smoke test |
+| 配置层 | 17 个 deprecated CLI flag 被移除且 `get_global_server_args` 会直接 raise；配置层（含 `ServerArgs`）改为 `msgspec.Struct`，`dataclasses.asdict` 不再可用 | 自动化里拼接 CLI 参数或用 asdict 导出配置的脚本必须迁移；这是硬失败不是告警 |
+| DCP backend 默认 | `--dcp-comm-backend` 按平台解析（Blackwell 单节点/MNNVL 用 `fi_a2a`，其余 `a2a`）；恢复旧行为需显式传 `ag_rs` | 默认通信 backend 变化会改变 DCP 的 TPOT/带宽分布；对比实验要固定 backend |
+| SWA pool | 尺寸不足的 SWA pool 现在启动时抛 `ValueError`，而不是在 warmup 阶段挂起 | 旧配置可能从“慢”变成“起不来”；显存规划要按新校验重算 |
+| gRPC | `GetIsReady` 被 `WatchEngineState` stream 取代 | 依赖就绪探测的客户端需要迁移 |
+| 性能与模型 | Blackwell DSv4 TRT-LLM CSA/HCA kernel、`--schedule-policy hrrn`、Gumbel-max sampler、unified radix tree 的 SWA branching cache、DCP `fi_a2a`、GLM-5.3-Flash 等新模型；CPU 镜像转 Ubuntu 26.04（GCC 15.2），ROCm 10 成为默认 AMD lane | 新 kernel/调度策略改变工作点；ROCm 7.0 镜像退役，AMD 基线要重建 |
+| 依赖 | `sgl-kernel` 0.4.7、`sgl-deep-gemm` 0.2.0、FlashInfer `0.6.18`（替代 in-tree MNNVL CuTe DSL port） | 按版本/硬件隔离 `SGLANG_CACHE_DIR`；旧编译缓存不可复用为 steady-state 证据 |
+
+#### v0.5.20 benchmark 运行建议
+
+1. **迁移检查**：先清点 CLI 参数与配置导出路径——17 个移除的 deprecated flag、`msgspec.Struct` 配置层和 CP v1 选项都会让旧脚本硬失败。
+2. **CUDA lane 记录**：报告必须写明 CUDA 13（或停留在 v0.5.19 的 CUDA 12）；跨 lane 结果只做参考不做回归基线。
+3. **Responses 场景**：需要 store 的多轮/后台用例显式启用 `--enable-response-store` 并记录 PD 不可用边界；把 400 与过载拒绝分开统计。
+4. **调度与采样**：`hrrn`、sampling mask 容量与 Gumbel-max sampler 都会改变延迟分布；切换前先用默认策略跑对照。
+5. **缓存与依赖**：`SGLANG_CACHE_DIR` 按新依赖栈（sgl-kernel 0.4.7、FlashInfer 0.6.18）重建，首次运行单独记录编译时间。
 
 ---
 
@@ -899,9 +941,13 @@ llm_benchmark run --custombenchmark=path/to/custombenchmarkmodels.yml
 
 ### 11.3 v0.5.3 安全补丁边界
 
-`v0.5.3@a6a2e419abb83fdc2f8a4d766c26567a008dbc96` 不改变 workload、模型选择或 tokens/s 计算；该 Release 只把 `requests` 提升到 `2.33.0`、`urllib3` 提升到 `2.7.0` 以修复依赖漏洞。已有 v0.5.2 结果不应因这个补丁被解释为性能变化，但生产镜像仍需按最终依赖树和 SBOM 复核，而不是只检查这两个直接 pin。
+`v0.5.3` 不改变 workload、模型选择或 tokens/s 计算；该 Release 只把 `requests` 提升到 `2.33.0`、`urllib3` 提升到 `2.7.0` 以修复依赖漏洞。已有 v0.5.2 结果不应因这个补丁被解释为性能变化，但生产镜像仍需按最终依赖树和 SBOM 复核，而不是只检查这两个直接 pin。
 
-### 11.4 适用场景与限制
+### 11.4 v0.5.4 模型卸载边界
+
+`v0.5.4@9e441efe48756928e453ff26694d6e5af1a9c71d`（lightweight tag）只有一项行为变化：每个模型的 benchmark 循环结束后无条件调用 `stop_model(ollamabin, model_name)`。此前模型可能停留在内存中，后续模型的显存/内存占用与吞吐会被前一个模型污染。多模型顺序扫描的对比必须注明所用版本：v0.5.4 之前的“后续模型变慢”可能是残留占用而不是模型本身差异；该修复不改变单模型 workload 与 tokens/s 计算口径。
+
+### 11.5 适用场景与限制
 
 | 类型 | 说明 |
 |------|------|
@@ -915,7 +961,7 @@ llm_benchmark run --custombenchmark=path/to/custombenchmarkmodels.yml
 
 ### 12.1 定位
 
-vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。本文固定到 `v0.29.0@98dff2a81d747d1dba01a47f939f48c3526d4206`；该 lightweight tag 直接指向所列 commit。默认 benchmark 仍通过 Python CLI 使用：
+vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。本文固定到 `v0.30.0@ced6857afa0ea7b2e3f0846a62e1394e90f15607`；该 lightweight tag 直接指向所列 commit。默认 benchmark 仍通过 Python CLI 使用：
 
 ```bash
 vllm bench serve
@@ -1034,7 +1080,24 @@ v0.29.0 的 benchmark 入口仍沿用上文，但默认被测 server 的执行�
 
 v0.29.0 还加入 per-request speculative acceptance stats 和 queue admission controls。前者只有显式 `--per-request-spec-decode-metrics` 才进入 OpenAI API 响应，后者会把过载从长排队改为准入拒绝；容量报告应同时呈现 accepted、rejected、failed 与 latency，不能只比较完成请求的 P99。
 
-### 12.7 适用场景与限制
+### 12.7 v0.30.0 服务端前提与破坏性变化
+
+v0.30.0 的 benchmark 入口（`vllm bench serve/latency/throughput`）不变，但服务端新增了会直接改变启动路径、采样与内存层级的能力，并清理了 v0.29 的 deprecated 项：
+
+| 领域 | v0.30.0 行为 | 压测与升级影响 |
+|------|--------------|----------------|
+| Fast Start | 新增 per-GPU weight-cache daemon，持久化 post-quantized、TP-sharded 权重；engine 经 CUDA IPC 映射（`--load-format ipc_cache`），覆盖 FP4 checkpoint 与多节点 TP | “首次启动/加载时间”类指标出现冷/热两档；weight cache 命中与未命中必须分开记录，不能把 warm start 写成模型加载性能 |
+| Watermarking | Gumbel-max 水印生成与检测（keyed PRF、per-request opt-out、示例检测 endpoint、spec-decoding 双 key 兼容） | 水印路径影响采样与延迟；容量对比要记录水印开关状态 |
+| HiSparse | sparse-MLA decode 的 host-resident tier：KV 页按需溢出到 pinned host memory、per-request GPU hot buffer、`HiSparseConnector`、Prometheus counters、TP rank 共享 host cache | 引入新的内存层级后，相同 `gpu_memory_utilization` 对应的工作点不同；host cache 命中率与 PCIe/NVLink 带宽要入报告 |
+| Model Runner V2 | dual-batch overlap 扩展到 eager 模式与 FULL CUDA graph；MTP、EAGLE3/DFlash/DSpark 支持 pipeline parallelism；在线 acceptance estimator 自适应验证 | spec-decode + PP 组合的结果不能与旧 runner 直接横比 |
+| Scale-out endpoints | plain `vllm serve` 上改为 opt-in：`--enable-scale-out` 取代 `VLLM_ENABLE_SCALE_OUT_ENDPOINTS`（`vllm launch render` 与 `--tokens-only` 始终注册） | 依赖默认暴露 scale-out endpoint 的脚本要显式补参数 |
+| breaking 清理 | GPTQ `g_idx` 激活排序移除（相关 Marlin/GPTQ/CPU/RDNA3 kernel 删除）；v0.29 deprecated 项移除（`VLLM_PREFIX_CACHE_RETENTION_INTERVAL`、`VLLM_MM_HASHER_ALGORITHM` 等改用配置字段）；Mamba `all` cache mode deprecated 回退 MRV1；`python -m vllm.entrypoints.grpc_server` deprecated 改用 `vllm serve --grpc` | 环境变量与启动脚本必须先做 smoke test；YaRN 对齐 Transformers 后部分模型派生 `max_model_len` 下降（如 TeleChat3-36B-Thinking 131072→32768），长上下文基线要重新确认 |
+| Attention/DCP | attention 实现必须显式声明 DCP 支持；DCP 搭配 ROCm standard attention、Triton、FlexAttention 或 TurboQuant 会在 backend 选择时失败 | PD/DCP 组合的 capability matrix 要按新校验重建 |
+| 依赖与镜像 | CUTLASS 4.7.1、Transformers 5.16.1、DeepGEMM 固定到 vllm fork 2.8.0、FlashMLA V4.1 pin；CUDA 13.0 成为默认镜像（保留 CUDA 12.9 与 Ubuntu 24.04 变体）；音频重采样默认从 PyAV 改为 torchaudio | 按版本重建依赖锁定；多模态音频输入的解码路径变化要单独验证 |
+
+指标定义（TTFT、ITL、TPOT、goodput、到达率）不变，但 Fast Start、HiSparse 与 MRV2 扩展让“相同参数”下的服务端工作点与前版不同；跨版本比较必须在 manifest 中固定 runner、weight-cache、水印、内存层级与依赖版本。
+
+### 12.8 适用场景与限制
 
 | 类型 | 说明 |
 |------|------|
@@ -1410,26 +1473,26 @@ python3 -m sglang.benchmark.serving \
 
 | 工具 | Release | 提交 |
 |------|---------|------|
-| AIPerf | `v0.12.0` | `be53bf2953d30e46c500e6a80fc1f8b6f84bc718` |
+| AIPerf | `v0.13.0` | `794f8bb75f8582f22e412d7e650fc71ca2a3d21a` |
 | GuideLLM | `v0.7.4` | `291a6e609c3eb52d6eadcedecc7a056e396cd5eb` |
 | inference-perf | `v0.7.0` | `5804ea6b7ebd2bfceff29cf113311ed3af95146e` |
 | genai-bench | `v0.0.5` | `4f873e03719c947a101647c6646954d5ebc3d35b` |
-| SGLang Bench | `v0.5.19` | `0bcd822377da7b5718e674eaf9c870d349424dd1` |
+| SGLang Bench | `v0.5.20` | `94602c9c2b7cbdb8efd5c52802dac6a1c180089e` |
 | LLMPerf | `v2.0` | `1eac866f91773bff401f96e74c1cf20c38778329` |
-| ollama-benchmark | `v0.5.3` | `a6a2e419abb83fdc2f8a4d766c26567a008dbc96` |
-| vLLM Bench | `v0.29.0` | `98dff2a81d747d1dba01a47f939f48c3526d4206` |
+| ollama-benchmark | `v0.5.4` | `9e441efe48756928e453ff26694d6e5af1a9c71d` |
+| vLLM Bench | `v0.30.0` | `ced6857afa0ea7b2e3f0846a62e1394e90f15607` |
 | EvalScope | `v1.12.0` | `f09e55de5d5f0a0953cd90aa7b0382b45859c4f5` |
 
 ### A.2 关键参考
 
 | 主题 | 链接 |
 |------|------|
-| AIPerf v0.12.0 Release | <https://github.com/ai-dynamo/aiperf/releases/tag/v0.12.0> |
-| AIPerf README | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/README.md> |
-| AIPerf AgentX | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/docs/tutorials/agentx-mvp.md> |
-| AIPerf Anthropic Messages | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/docs/tutorials/anthropic-messages-endpoint.md> |
-| AIPerf Adaptive Scale | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/docs/tutorials/adaptive-scale.md> |
-| AIPerf Metrics | <https://github.com/ai-dynamo/aiperf/blob/be53bf2953d30e46c500e6a80fc1f8b6f84bc718/docs/metrics-reference.md> |
+| AIPerf v0.13.0 Release | <https://github.com/ai-dynamo/aiperf/releases/tag/v0.13.0> |
+| AIPerf README | <https://github.com/ai-dynamo/aiperf/blob/794f8bb75f8582f22e412d7e650fc71ca2a3d21a/README.md> |
+| AIPerf AgentX | <https://github.com/ai-dynamo/aiperf/blob/794f8bb75f8582f22e412d7e650fc71ca2a3d21a/docs/tutorials/agentx-mvp.md> |
+| AIPerf Anthropic Messages | <https://github.com/ai-dynamo/aiperf/blob/794f8bb75f8582f22e412d7e650fc71ca2a3d21a/docs/tutorials/anthropic-messages-endpoint.md> |
+| AIPerf Adaptive Scale | <https://github.com/ai-dynamo/aiperf/blob/794f8bb75f8582f22e412d7e650fc71ca2a3d21a/docs/tutorials/adaptive-scale.md> |
+| AIPerf Metrics | <https://github.com/ai-dynamo/aiperf/blob/794f8bb75f8582f22e412d7e650fc71ca2a3d21a/docs/metrics-reference.md> |
 | GuideLLM v0.7.4 Release | <https://github.com/vllm-project/guidellm/releases/tag/v0.7.4> |
 | GuideLLM README | <https://github.com/vllm-project/guidellm/blob/291a6e609c3eb52d6eadcedecc7a056e396cd5eb/README.md> |
 | GuideLLM Synthetic Visual Data | <https://github.com/vllm-project/guidellm/blob/291a6e609c3eb52d6eadcedecc7a056e396cd5eb/docs/guides/multimodal/synthetic_vision.md> |
@@ -1446,17 +1509,17 @@ python3 -m sglang.benchmark.serving \
 | genai-bench Tasks | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/task-definition.md> |
 | genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/metrics-definition.md> |
 | genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/user-guide/scenario-definition.md> |
-| SGLang v0.5.19 Release | <https://github.com/sgl-project/sglang/releases/tag/v0.5.19> |
-| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/0bcd822377da7b5718e674eaf9c870d349424dd1/docs/docs/developer_guide/bench_serving.mdx> |
-| SGLang deprecated entry wrapper | <https://github.com/sgl-project/sglang/blob/0bcd822377da7b5718e674eaf9c870d349424dd1/python/sglang/bench_serving.py> |
-| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/0bcd822377da7b5718e674eaf9c870d349424dd1/python/sglang/benchmark/serving.py> |
+| SGLang v0.5.20 Release | <https://github.com/sgl-project/sglang/releases/tag/v0.5.20> |
+| SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/docs/docs/developer_guide/bench_serving.mdx> |
+| SGLang deprecated entry wrapper | <https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/python/sglang/bench_serving.py> |
+| SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/python/sglang/benchmark/serving.py> |
 | LLMPerf README | <https://github.com/ray-project/llmperf/blob/v2.0/README.md> |
-| ollama-benchmark v0.5.3 Release | <https://github.com/aidatatools/ollama-benchmark/releases/tag/v0.5.3> |
-| ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/v0.5.3/README.md> |
-| vLLM v0.29.0 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.29.0> |
-| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/98dff2a81d747d1dba01a47f939f48c3526d4206/benchmarks> |
-| vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/98dff2a81d747d1dba01a47f939f48c3526d4206/docs/benchmarking/cli.md> |
-| vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/98dff2a81d747d1dba01a47f939f48c3526d4206/rust/src/bench/README.md> |
+| ollama-benchmark v0.5.4 Release | <https://github.com/aidatatools/ollama-benchmark/releases/tag/v0.5.4> |
+| ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/v0.5.4/README.md> |
+| vLLM v0.30.0 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.30.0> |
+| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/ced6857afa0ea7b2e3f0846a62e1394e90f15607/benchmarks> |
+| vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/ced6857afa0ea7b2e3f0846a62e1394e90f15607/docs/benchmarking/cli.md> |
+| vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/ced6857afa0ea7b2e3f0846a62e1394e90f15607/rust/src/bench/README.md> |
 | EvalScope v1.12.0 Release | <https://github.com/modelscope/evalscope/releases/tag/v1.12.0> |
 | EvalScope README | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/README_zh.md> |
 | EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/quick_start.md> |
