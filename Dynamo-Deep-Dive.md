@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615`；ModelExpress 章节固定到其独立稳定版 `v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3`；审校日期：2026-09-17。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
+> 稳定版本基线：`v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615`；ModelExpress 章节固定到其独立稳定版 `v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3`；审校日期：2026-09-26。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 

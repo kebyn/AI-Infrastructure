@@ -4,7 +4,7 @@
 >
 > 基于 Kubernetes 官方 Scheduling、Preemption and Eviction 文档、调度配置参考与 v1.37.1 源码整理
 >
-> 版本基线：Kubernetes `v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308`；审校日期：2026-09-17。`v1.37.1` 为 annotated tag，正文使用解引用后的 source commit，不使用 tag object。AI 调度器对照同步至 Kueue `v0.19.6`、Grove `v0.1.0-alpha.13` 与 KAI-Scheduler `v0.18.0`。
+> 版本基线：Kubernetes `v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308`；审校日期：2026-09-26。`v1.37.1` 为 annotated tag，正文使用解引用后的 source commit，不使用 tag object。AI 调度器对照同步至 Kueue `v0.19.6`、Grove `v0.1.0-alpha.13` 与 KAI-Scheduler `v0.18.0`。
 
 ---
 
@@ -1531,7 +1531,7 @@ kubectl describe podgroup -n <namespace> <podgroup>
 | DRAWorkloadResourceClaims | v1.37 Beta，默认关闭 |
 | SchedulerPreQueueingHints | v1.37 Alpha，默认关闭 |
 | OpportunisticBatching | v1.35 Beta，v1.37.0 默认开启 |
-| 审校日期 | 2026-09-17 |
+| 审校日期 | 2026-09-26 |
 
 `v1.37.1` 是 annotated tag：tag object 为 `d2b770f4c94636a992534a8d3156b6b2d8e82ac3`，解引用后的源码 commit 为 `f78e722310e50bcaca9276be22276d9e91d91308`。本文页头和站点元数据使用后者；保留 tag object 仅用于复核 Git ref，不把它当作 source commit。
 

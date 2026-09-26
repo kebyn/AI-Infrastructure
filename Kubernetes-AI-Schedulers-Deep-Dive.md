@@ -4,7 +4,7 @@
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.6@f0e95cea51b5591e0177fbe0fa06a299f36db548`、Grove `v0.1.0-alpha.13@af2df1ffff0ae7a1135554564a6240a3f22f2c35`、KAI-Scheduler `v0.18.0@2df9a1ffca535d602d57023074b824606e312797`、Volcano `v1.15.2@1462fb7`；审校日期：2026-09-17。未发布辅助快照为 Koordinator `main@618b581b32668e317b0d18523d46cf9f55b549d8`。Volcano 官网证据固定到 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart 使用 `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`。主线快照只作证据，不扩大稳定版本承诺。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.19.6@f0e95cea51b5591e0177fbe0fa06a299f36db548`、Grove `v0.1.0-alpha.13@af2df1ffff0ae7a1135554564a6240a3f22f2c35`、KAI-Scheduler `v0.18.0@2df9a1ffca535d602d57023074b824606e312797`、Volcano `v1.15.2@1462fb7`；审校日期：2026-09-26。未发布辅助快照为 Koordinator `main@618b581b32668e317b0d18523d46cf9f55b549d8`。Volcano 官网证据固定到 `master@aee652b985d25e33f59f6112e857627784b741ca`；Helm Chart 使用 `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`。主线快照只作证据，不扩大稳定版本承诺。
 
 ---
 

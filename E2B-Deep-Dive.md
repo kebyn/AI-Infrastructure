@@ -4,7 +4,7 @@
 >
 > 基于 E2B 官方基础设施仓库整理：<https://github.com/e2b-dev/infra>
 >
-> 稳定版本基线：`2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`；SDK 未发布主线快照 `main@ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b`；Agent Sandbox 稳定对照 `v1.0.4@810726d89c71da77cdc82668bca1b00f5cd21ed8`；审校日期：2026-09-17。Infra `2026.30` 是 lightweight tag，所列 commit 是 tag 直接指向的源码；Agent Sandbox `v1.0.4` 是 annotated tag，正文使用 peeled source commit 而非 tag object。SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
+> 稳定版本基线：`2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`；SDK 未发布主线快照 `main@ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b`；Agent Sandbox 稳定对照 `v1.0.4@810726d89c71da77cdc82668bca1b00f5cd21ed8`；审校日期：2026-09-26。Infra `2026.30` 是 lightweight tag，所列 commit 是 tag 直接指向的源码；Agent Sandbox `v1.0.4` 是 annotated tag，正文使用 peeled source commit 而非 tag object。SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
 
 ---
 
@@ -576,7 +576,7 @@ v1.0.2 仍继承 v1.0.0 的 v1beta1-only CRD 存储迁移要求；补丁升级�
 
 #### Agent Sandbox v1.0.3/v1.0.4 工具链与运行时增量
 
-v1.0.3（2026-09-17 发布）与 v1.0.4（2026-09-24 发布）继续沿用 v1beta1-only CRD 与迁移链，重点在 TLS、进程治理、可观测性与 RL fleet 隔离：
+v1.0.3（2026-09-26 发布）与 v1.0.4（2026-09-24 发布）继续沿用 v1beta1-only CRD 与迁移链，重点在 TLS、进程治理、可观测性与 RL fleet 隔离：
 
 | 领域 | v1.0.3/v1.0.4 行为 | 与 E2B 的边界 |
 |------|---------------------|----------------|

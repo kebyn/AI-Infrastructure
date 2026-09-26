@@ -16,14 +16,15 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in serve_docs.DOCS:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-09-17", doc["meta"])
+                self.assertIn("2026-09-26", doc["meta"])
+                self.assertNotIn("2026-09-17", doc["meta"])
                 self.assertNotIn("2026-09-06", doc["meta"])
                 self.assertNotIn("2026-09-01", doc["meta"])
                 self.assertNotIn("2026-08-22", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-09-17", markdown_text)
+                self.assertIn("审校日期：2026-09-26", markdown_text)
+                self.assertNotIn("审校日期：2026-09-17", markdown_text)
                 self.assertNotIn("审校日期：2026-09-06", markdown_text)
-                self.assertNotIn("审校日期：2026-09-01", markdown_text)
                 self.assertNotIn("审校日期：2026-08-22", markdown_text)
 
     def test_readme_tracks_current_audit_summary(self):
@@ -32,40 +33,41 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         for required_text in (
-            "2026-09-17",
+            "2026-09-26",
             "新稳定基线",
             "推理与压测",
             "Sandbox、访问与协作",
             "Kubernetes 调度补丁",
             "稳定版未变化",
             "稳定对照与未发布快照",
-            "v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
+            "v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615",
             "v18.10.0@ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
             "v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3",
             "2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104",
-            "v1.0.2@9a85153590e54cb980f3241f9e7a9228449412c9",
-            "v0.4.44@c7f259c70a60bff30011c403fada79ab382f608a",
-            "v0.19.4@5d738f203bd0d301d4966282b144f01d5bb32437",
-            "v0.17.2@b46e4a1168441f97997ba7d1db772891ac6695c2",
+            "v1.0.4@810726d89c71da77cdc82668bca1b00f5cd21ed8",
+            "v0.29.1@54f93c807be2c161a94c0df764242849125161a8",
+            "v0.5.3@ff8b285497809e084915016c40c2bc5e5991ffbc",
+            "v0.19.6@f0e95cea51b5591e0177fbe0fa06a299f36db548",
+            "v0.18.0@2df9a1ffca535d602d57023074b824606e312797",
             "v0.7.4@291a6e609c3eb52d6eadcedecc7a056e396cd5eb",
             "v0.7.0@5804ea6b7ebd2bfceff29cf113311ed3af95146e",
-            "v0.5.3@a6a2e419abb83fdc2f8a4d766c26567a008dbc96",
-            "v0.5.19@0bcd822377da7b5718e674eaf9c870d349424dd1",
-            "v26.7.0@10ee5b3638b89e11e949412aafa5ba99279c3721",
+            "v0.5.4@9e441efe48756928e453ff26694d6e5af1a9c71d",
+            "v0.5.20@94602c9c2b7cbdb8efd5c52802dac6a1c180089e",
+            "v26.7.1@dbacf43d4938816fefe62690ab868a640a195282",
             "v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e",
-            "v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc",
-            "v0.29.0@98dff2a81d747d1dba01a47f939f48c3526d4206",
+            "v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308",
+            "v0.30.0@ced6857afa0ea7b2e3f0846a62e1394e90f15607",
             "v1.12.0@f09e55de5d5f0a0953cd90aa7b0382b45859c4f5",
             "v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a",
             "v0.1.0-alpha.13@af2df1ffff0ae7a1135554564a6240a3f22f2c35",
             "v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb",
             "v0.33.3@76042ed40db3bab9506b689f436716b6df624f23",
-            "main@3e5a48b00eb133ac1e98697d549574301c605e81",
-            "main@7e4758ac1a94e9ff843696333364610bb8d4bbf7",
-            "master@85991f1693d4713f498702f8e2b350a9ef520db2",
+            "main@ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b",
+            "main@12f8f3f31111564e5e1b9aac3f7f916e8bba4039",
+            "master@bb22cc477a6bd317bb2c7e357a85efcab8c7462a",
             "main@71c8b22a05d6be72560b2cc326865930063cd0e8",
-            "main@96cef825562c27d4d8e8c177ad998d908f4d05a2",
-            "master@aee652b985d25e33f59f6112e857627784b741ca",
+            "main@618b581b32668e317b0d18523d46cf9f55b549d8",
+            "master@f5258704d7ef5bda28f31ba51950cdea9adbe921",
             "volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513",
             "spec.kvCacheOffloading",
             "rollout strategy",
@@ -80,7 +82,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "Teleport Community Edition License",
             "Session/Identity Lock",
             "v0.21.0-rc0",
-            "v0.29.1rc0",
+            "v0.30.1rc0",
+            "v0.20.0-rc.1",
             "v1.16.0-alpha.*",
         ):
             with self.subTest(required_text=required_text):
@@ -91,6 +94,22 @@ class RenderDocLayoutTest(unittest.TestCase):
             "审校截止日为 **2026-08-22**",
             "审校截止日为 **2026-09-01**",
             "审校截止日为 **2026-09-06**",
+            "审校截止日为 **2026-09-17**",
+            "v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
+            "v1.0.2@9a85153590e54cb980f3241f9e7a9228449412c9",
+            "v0.4.44@c7f259c70a60bff30011c403fada79ab382f608a",
+            "v0.19.4@5d738f203bd0d301d4966282b144f01d5bb32437",
+            "v0.17.2@b46e4a1168441f97997ba7d1db772891ac6695c2",
+            "v0.5.3@a6a2e419abb83fdc2f8a4d766c26567a008dbc96",
+            "v0.5.19@0bcd822377da7b5718e674eaf9c870d349424dd1",
+            "v26.7.0@10ee5b3638b89e11e949412aafa5ba99279c3721",
+            "v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc",
+            "v0.29.0@98dff2a81d747d1dba01a47f939f48c3526d4206",
+            "main@3e5a48b00eb133ac1e98697d549574301c605e81",
+            "main@7e4758ac1a94e9ff843696333364610bb8d4bbf7",
+            "master@85991f1693d4713f498702f8e2b350a9ef520db2",
+            "main@96cef825562c27d4d8e8c177ad998d908f4d05a2",
+            "master@aee652b985d25e33f59f6112e857627784b741ca",
             "v0.4.24@ad23d1da3e94093924e06e9adf2745e9c312c7ce",
             "8 个正文主稳定基线发生变化",
             "v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
@@ -121,7 +140,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["hero"], "Self-hosted 基础设施访问平台对比")
         self.assertEqual(
             doc["meta"],
-            "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.28.6 · Boundary v0.21.3 · Pomerium v0.33.3 · Guacamole 1.6.0 tag-only · 2026-09-17",
+            "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.1 · Boundary v0.21.3 · Pomerium v0.33.3 · Guacamole 1.6.0 tag-only · 2026-09-26",
         )
         for summary_term in (
             "六个平台",
@@ -139,7 +158,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "https://github.com/gravitational/teleport/tree/"
             "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
             "https://github.com/ovh/the-bastion/releases/tag/v3.24.01",
-            "https://github.com/warp-tech/warpgate/releases/tag/v0.28.6",
+            "https://github.com/warp-tech/warpgate/releases/tag/v0.29.1",
             "https://developer.hashicorp.com/boundary/docs/concepts",
             "https://www.pomerium.com/docs",
             "https://guacamole.apache.org/doc/gug/",
@@ -149,8 +168,9 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
         for required_text in (
-            "审校日期：2026-09-17",
+            "审校日期：2026-09-26",
             "v18.10.0",
+            "v0.29.1@54f93c807be2c161a94c0df764242849125161a8",
             "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
             "lightweight tag",
             "GNU AGPL-3.0",
@@ -230,7 +250,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertEqual(
             doc["meta"],
-            "Kubernetes v1.36/v1.37 · Kubernetes Blog RSS · 2026-09-17",
+            "Kubernetes v1.36/v1.37 · Kubernetes Blog RSS · 2026-09-26",
         )
         for summary_term in (
             "Workload/Gang",
@@ -254,15 +274,15 @@ class RenderDocLayoutTest(unittest.TestCase):
             "https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/",
             "https://kubernetes.io/docs/",
             "https://kep.k8s.io/5966",
-            "f54c212e3a2f75d674b717a9b29052b20b60aefc",
+            "f78e722310e50bcaca9276be22276d9e91d91308",
         ):
             with self.subTest(source_link=source_link):
                 self.assertIn(source_link, doc["footer"])
 
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
         for required_text in (
-            "审校日期：2026-09-17",
-            "v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc",
+            "审校日期：2026-09-26",
+            "v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308",
             "2026-09-02",
             "2026-09-03",
             "2026-09-04",
@@ -273,6 +293,12 @@ class RenderDocLayoutTest(unittest.TestCase):
             "2026-09-14",
             "2026-09-15",
             "2026-09-16",
+            "2026-09-21",
+            "2026-09-22",
+            "PersistentVolumeClaimUnusedSinceTime",
+            "NoPodsUsingPVC",
+            "sig-apps-spotlight",
+            "KEP-4443",
             "HPA",
             "Scale-to-Zero",
             "DRA",
@@ -312,7 +338,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn('<div class="mermaid">', html)
         self.assertNotIn('class="language-mermaid"', html)
         self.assertIn("Kubernetes Blog 新特性深度综述", html)
-        self.assertIn("f54c212e3a2f75d674b717a9b29052b20b60aefc", html)
+        self.assertIn("f78e722310e50bcaca9276be22276d9e91d91308", html)
 
     def test_benchmark_snapshot_uses_current_stable_releases(self):
         doc = next(
@@ -323,26 +349,26 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         for release in (
-            "AIPerf v0.12.0",
+            "AIPerf v0.13.0",
             "GuideLLM v0.7.4",
             "inference-perf v0.7.0",
-            "SGLang v0.5.19",
-            "vLLM v0.29.0",
+            "SGLang v0.5.20",
+            "vLLM v0.30.0",
             "EvalScope v1.12.0",
         ):
             self.assertIn(release, doc["meta"])
         self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
-        self.assertIn("0bcd822377da7b5718e674eaf9c870d349424dd1", doc["footer"])
-        self.assertIn("98dff2a81d747d1dba01a47f939f48c3526d4206", doc["footer"])
+        self.assertIn("94602c9c2b7cbdb8efd5c52802dac6a1c180089e", doc["footer"])
+        self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", doc["footer"])
         for exact_commit in (
-            "be53bf2953d30e46c500e6a80fc1f8b6f84bc718",
+            "794f8bb75f8582f22e412d7e650fc71ca2a3d21a",
             "291a6e609c3eb52d6eadcedecc7a056e396cd5eb",
             "5804ea6b7ebd2bfceff29cf113311ed3af95146e",
             "f09e55de5d5f0a0953cd90aa7b0382b45859c4f5",
             "4f873e03719c947a101647c6646954d5ebc3d35b",
-            "0bcd822377da7b5718e674eaf9c870d349424dd1",
-            "98dff2a81d747d1dba01a47f939f48c3526d4206",
-            "a6a2e419abb83fdc2f8a4d766c26567a008dbc96",
+            "94602c9c2b7cbdb8efd5c52802dac6a1c180089e",
+            "ced6857afa0ea7b2e3f0846a62e1394e90f15607",
+            "9e441efe48756928e453ff26694d6e5af1a9c71d",
         ):
             self.assertIn(exact_commit, markdown_text)
         self.assertIn("text-to-speech", markdown_text)
@@ -351,6 +377,10 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("spec_cap_lens_histogram", markdown_text)
         self.assertIn("vllm-bench", markdown_text)
         self.assertNotIn("fdebc938f7f4d16fe6b9f55dcd9a767cf0899ea1", markdown_text)
+        self.assertNotIn("be53bf2953d30e46c500e6a80fc1f8b6f84bc718", markdown_text)
+        self.assertNotIn("0bcd822377da7b5718e674eaf9c870d349424dd1", markdown_text)
+        self.assertNotIn("98dff2a81d747d1dba01a47f939f48c3526d4206", markdown_text)
+        self.assertNotIn("a6a2e419abb83fdc2f8a4d766c26567a008dbc96", markdown_text)
         self.assertNotIn("568afb3a13806beb53bb2e6bd518269357b237c0", markdown_text)
         self.assertNotIn(
             "0e723bb8c984564cddf7274d19aab4eb7714f919", markdown_text
@@ -411,7 +441,25 @@ class RenderDocLayoutTest(unittest.TestCase):
             "PD Handoff Latency",
             "reasoning output 可作为首个有效输出",
             "requests` 提升到 `2.33.0",
-            "v0.29.1rc0",
+            "v0.30.1rc0",
+            "audio_transcription",
+            "--per-chunk-usage",
+            "telemetry_source_url",
+            "WARMUP_ISOLATION_",
+            "Kubernetes native execution（beta）",
+            "CUDA 12 lane",
+            "--sampling-mask-max-tokens",
+            "msgspec.Struct",
+            "--enable-response-store",
+            "gptq_marlin",
+            "WatchEngineState",
+            "tag object `d158602ff1d2cb953196c95158c488d503d2470c`",
+            "--load-format ipc_cache",
+            "--enable-scale-out",
+            "HiSparseConnector",
+            "`g_idx`",
+            "torchaudio",
+            "stop_model(ollamabin, model_name)",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -437,56 +485,63 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn('<div class="mermaid">', html)
         self.assertNotIn('class="language-mermaid"', html)
-        self.assertIn("0bcd822377da7b5718e674eaf9c870d349424dd1", html)
-        self.assertIn("98dff2a81d747d1dba01a47f939f48c3526d4206", html)
+        self.assertIn("94602c9c2b7cbdb8efd5c52802dac6a1c180089e", html)
+        self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", html)
 
     def test_refreshed_stable_release_commits_are_pinned(self):
         docs_dir = Path(__file__).resolve().parent
         expected_commits = {
             "E2B-Deep-Dive.md": (
                 "f32ee8a2a50052f32e3632ceb451111a98dd5104",
-                "9a85153590e54cb980f3241f9e7a9228449412c9",
+                "ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b",
+                "810726d89c71da77cdc82668bca1b00f5cd21ed8",
             ),
             "Teleport-Deep-Dive.md": (
                 "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
                 "76042ed40db3bab9506b689f436716b6df624f23",
             ),
             "Multica-Deep-Dive.md": (
-                "c7f259c70a60bff30011c403fada79ab382f608a",
+                "ff8b285497809e084915016c40c2bc5e5991ffbc",
+                "12f8f3f31111564e5e1b9aac3f7f916e8bba4039",
             ),
             "NVIDIA-GPU-Operator-Deep-Dive.md": (
-                "10ee5b3638b89e11e949412aafa5ba99279c3721",
+                "dbacf43d4938816fefe62690ab868a640a195282",
             ),
             "HAMi-Deep-Dive.md": (
                 "4707fb02c91c545bc7343ce26dba4c32919f9a3e",
             ),
             "Dynamo-Deep-Dive.md": (
-                "2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
+                "b83b1d9304ebfc624709ac46db32b1b6f1ff1615",
                 "e91f650aa6a1847959e7f7da1b39c19e16b312e3",
             ),
             "Mooncake-Deep-Dive.md": (
                 "719735896c86b56fabec6cf3e825fb2ea640597a",
             ),
             "Kubernetes-Native-Scheduler-Deep-Dive.md": (
-                "f54c212e3a2f75d674b717a9b29052b20b60aefc",
+                "f78e722310e50bcaca9276be22276d9e91d91308",
+            ),
+            "Kubernetes-Blog-Feature-Deep-Dive.md": (
+                "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
             "Kubernetes-AI-Schedulers-Deep-Dive.md": (
-                "5d738f203bd0d301d4966282b144f01d5bb32437",
+                "f0e95cea51b5591e0177fbe0fa06a299f36db548",
                 "af2df1ffff0ae7a1135554564a6240a3f22f2c35",
-                "b46e4a1168441f97997ba7d1db772891ac6695c2",
+                "2df9a1ffca535d602d57023074b824606e312797",
                 "1462fb7b4835970708717456e3aed85e697ec2eb",
+                "618b581b32668e317b0d18523d46cf9f55b549d8",
             ),
             "LLM-Benchmark-Deep-Dive.md": (
-                "be53bf2953d30e46c500e6a80fc1f8b6f84bc718",
+                "794f8bb75f8582f22e412d7e650fc71ca2a3d21a",
                 "291a6e609c3eb52d6eadcedecc7a056e396cd5eb",
                 "5804ea6b7ebd2bfceff29cf113311ed3af95146e",
                 "f09e55de5d5f0a0953cd90aa7b0382b45859c4f5",
-                "0bcd822377da7b5718e674eaf9c870d349424dd1",
-                "98dff2a81d747d1dba01a47f939f48c3526d4206",
-                "a6a2e419abb83fdc2f8a4d766c26567a008dbc96",
+                "94602c9c2b7cbdb8efd5c52802dac6a1c180089e",
+                "ced6857afa0ea7b2e3f0846a62e1394e90f15607",
+                "9e441efe48756928e453ff26694d6e5af1a9c71d",
             ),
             "KServe-Deep-Dive.md": (
-                "1fb781055dd1567164358233e1125142ca6ef1fe",
+                "d1482554fc4f66dd41aee70e01f5174e24f265bd",
+                "bb22cc477a6bd317bb2c7e357a85efcab8c7462a",
             ),
             "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
                 "1462fb7b4835970708717456e3aed85e697ec2eb",
@@ -502,24 +557,24 @@ class RenderDocLayoutTest(unittest.TestCase):
         docs_dir = Path(__file__).resolve().parent
         cases = {
             "Kubernetes-Native-Scheduler-Deep-Dive.md": (
-                "157e582fcc3ebba3c22b16721f49d6890f784c1f",
-                "f54c212e3a2f75d674b717a9b29052b20b60aefc",
+                "d2b770f4c94636a992534a8d3156b6b2d8e82ac3",
+                "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
             "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
                 "f0917e48403c4ffa2d8a022f05f1f5097fbe9c10",
                 "1462fb7b4835970708717456e3aed85e697ec2eb",
             ),
             "E2B-Deep-Dive.md": (
-                "468cf30617c01e30098d631a2bdd8d032f8359e4",
-                "9a85153590e54cb980f3241f9e7a9228449412c9",
+                "51849efaec0186dd6394d4037424f2cb49bef56e",
+                "810726d89c71da77cdc82668bca1b00f5cd21ed8",
             ),
             "Multica-Deep-Dive.md": (
-                "0c740254485dfcb24c4f06cb938a35c20e4f10fe",
-                "c7f259c70a60bff30011c403fada79ab382f608a",
+                "207e227163d97889651d614d191f094732c18744",
+                "ff8b285497809e084915016c40c2bc5e5991ffbc",
             ),
             "Kubernetes-AI-Schedulers-Deep-Dive.md": (
-                "9176f58965ebaaef97f63540377be5ecd8551d7d",
-                "5d738f203bd0d301d4966282b144f01d5bb32437",
+                "e28d01afc0aae90ec5ad8f0bc00ee6ab9294b11b",
+                "f0e95cea51b5591e0177fbe0fa06a299f36db548",
             ),
         }
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
@@ -536,19 +591,19 @@ class RenderDocLayoutTest(unittest.TestCase):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
         expected = {
             "Mooncake-Deep-Dive.md": ("v0.3.13.post1", "v0.3.12.post1"),
-            "Dynamo-Deep-Dive.md": ("Dynamo v1.4.2", "Dynamo v1.4.0"),
+            "Dynamo-Deep-Dive.md": ("Dynamo v1.5.0", "Dynamo v1.4.2"),
             "Teleport-Deep-Dive.md": ("Teleport v18.10.0", "Teleport v19"),
             "E2B-Deep-Dive.md": ("E2B Infra 2026.30", "E2B Infra 2026.29"),
-            "Multica-Deep-Dive.md": ("Multica v0.4.44", "Multica v0.4.40"),
-            "LLM-Benchmark-Deep-Dive.md": ("vLLM v0.29.0", "vLLM v0.28.0"),
+            "Multica-Deep-Dive.md": ("Multica v0.5.3", "Multica v0.4.44"),
+            "LLM-Benchmark-Deep-Dive.md": ("vLLM v0.30.0", "vLLM v0.29.0"),
             "Kubernetes-AI-Schedulers-Deep-Dive.md": (
+                "Kueue v0.19.6",
                 "Kueue v0.19.4",
-                "Kueue v0.19.3",
             ),
-            "KServe-Deep-Dive.md": ("master@85991f1", "master@003f717"),
+            "KServe-Deep-Dive.md": ("KServe v0.21.0", "KServe v0.20.0"),
             "Kubernetes-Native-Scheduler-Deep-Dive.md": (
+                "Kubernetes v1.37.1",
                 "Kubernetes v1.37.0",
-                "Kubernetes v1.36.4",
             ),
             "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
                 "v1.8.2 → v1.15.2",
@@ -596,7 +651,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc",
             "tag，但它没有对应的正式 GitHub Release",
             "不能仅按 tag 排序",
-            "不替代上表的 v0.17.2",
+            "不替代上表的 v0.18.0",
             "hierarchical gang floors",
             "同名 PodGroup 按 Kubernetes namespace 隔离",
             "releasing Pods 不再阻塞 required inter-pod anti-affinity",
@@ -609,7 +664,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             encoding="utf-8"
         )
         for required_text in (
-            "v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
+            "v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615",
             "nixl==1.3.2",
             "EFA Installer `1.49.0`",
             "EFA Installer `1.50`",
@@ -666,10 +721,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             for doc in serve_docs.DOCS
             if Path(doc["src"]).name == "Dynamo-Deep-Dive.md"
         )
-        self.assertIn("Dynamo v1.4.2", dynamo_doc["meta"])
-        self.assertIn("source@2ecbdfd", dynamo_doc["meta"])
+        self.assertIn("Dynamo v1.5.0", dynamo_doc["meta"])
+        self.assertIn("source@b83b1d9", dynamo_doc["meta"])
         self.assertIn(
-            "2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a", dynamo_doc["footer"]
+            "b83b1d9304ebfc624709ac46db32b1b6f1ff1615", dynamo_doc["footer"]
         )
         self.assertNotIn(
             "a49702e4432e7fa43cbc88175bddb31604340f19", dynamo_text
@@ -699,15 +754,15 @@ class RenderDocLayoutTest(unittest.TestCase):
             == "Volcano-Upgrade-Compatibility-Deep-Dive.md"
         )
 
-        self.assertIn("KAI-Scheduler v0.17.2", ai_doc["meta"])
+        self.assertIn("KAI-Scheduler v0.18.0", ai_doc["meta"])
         self.assertIn("prerelease 边界", ai_doc["summary"])
-        self.assertIn("Kueue v0.19.4", ai_doc["meta"])
+        self.assertIn("Kueue v0.19.6", ai_doc["meta"])
         self.assertIn("Grove alpha.13", ai_doc["meta"])
         self.assertIn("Volcano v1.15.2", ai_doc["meta"])
         self.assertIn("v1.8.2 → v1.15.2", volcano_doc["meta"])
         for revision in (
             "1462fb7b4835970708717456e3aed85e697ec2eb",
-            "aee652b985d25e33f59f6112e857627784b741ca",
+            "f5258704d7ef5bda28f31ba51950cdea9adbe921",
             "c2050e3debe58dbcdf9bb75b667799eec9409513",
         ):
             self.assertIn(revision, volcano_text)
@@ -725,8 +780,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         ):
             self.assertIn(required_text, volcano_text)
 
-        self.assertIn("KAI-Scheduler v0.17.2", native_text)
-        self.assertIn("Kueue v0.19.4", native_text)
+        self.assertIn("KAI-Scheduler v0.18.0", native_text)
+        self.assertIn("Kueue v0.19.6", native_text)
         self.assertIn("Volcano v1.15.2", native_text)
         self.assertIn("preemption delay", native_text)
         self.assertIn("DRADeviceCompatibilityGroups", native_text)
@@ -738,7 +793,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("保留其他 controller 已写入的 scheduling gate", ai_text)
 
         for required_text in (
-            "5d738f203bd0d301d4966282b144f01d5bb32437",
+            "f0e95cea51b5591e0177fbe0fa06a299f36db548",
+            "e28d01afc0aae90ec5ad8f0bc00ee6ab9294b11b",
             "TASCacheTopologyTree",
             "SchedulerLibraryIntegration",
             "PrioritizePreemptorWorkloads",
@@ -765,7 +821,16 @@ class RenderDocLayoutTest(unittest.TestCase):
             "RuntimeClass overhead",
             "StatefulSet scale-to-zero",
             "ReclaimablePods",
-            "v0.20.0-rc.0",
+            "v0.20.0-rc.1",
+            "TASPartialSlices",
+            "Spark 接受的 Java 格式",
+            "384Mi",
+            "Load` 方法签名改为返回",
+            "TASLeaderPodSetFeasibility",
+            "NvFractions GPU sharing",
+            "gpu-compute.mode",
+            "global.fipsMode",
+            "gpujoborder",
         ):
             with self.subTest(document="Kueue", required_text=required_text):
                 self.assertIn(required_text, ai_text)
@@ -802,7 +867,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "3e5a48b00eb133ac1e98697d549574301c605e81/"
+            "ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -838,8 +903,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "按 Sandbox lifecycle 计数",
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
-            "Agent Sandbox v1.0.2 Go Router（对照，不是 E2B 能力）",
-            "9a85153590e54cb980f3241f9e7a9228449412c9",
+            "Agent Sandbox v1.0.4 Go Router（对照，不是 E2B 能力）",
+            "810726d89c71da77cdc82668bca1b00f5cd21ed8",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -898,7 +963,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "3e5a48b00eb133ac1e98697d549574301c605e81/"
+            "ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -913,7 +978,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "9a85153590e54cb980f3241f9e7a9228449412c9/"
+            "810726d89c71da77cdc82668bca1b00f5cd21ed8/"
         )
         for source_path in (
             "clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py",
@@ -963,7 +1028,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "ConnectivityInClusterService",
             "FleetConfig.adopt_existing=True",
             "Infra `2026.30` 是 lightweight tag",
-            "Agent Sandbox `v1.0.2` 是 annotated tag",
+            "Agent Sandbox `v1.0.4` 是 annotated tag",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -1103,7 +1168,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("participant QS as Quota Service", html)
         self.assertNotIn('class="language-mermaid"', html)
 
-    def test_kserve_v0_20_separates_release_and_unreleased_main(self):
+    def test_kserve_v0_21_separates_release_and_unreleased_main(self):
         doc = next(
             doc
             for doc in serve_docs.DOCS
@@ -1111,31 +1176,32 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
-        self.assertIn("KServe v0.20.0", doc["meta"])
-        self.assertIn("master@85991f1", doc["meta"])
+        self.assertIn("KServe v0.21.0", doc["meta"])
+        self.assertIn("master@bb22cc4", doc["meta"])
         self.assertIn("website@71c8b22", doc["meta"])
         for revision in (
-            "1fb781055dd1567164358233e1125142ca6ef1fe",
-            "85991f1693d4713f498702f8e2b350a9ef520db2",
+            "d1482554fc4f66dd41aee70e01f5174e24f265bd",
+            "bb22cc477a6bd317bb2c7e357a85efcab8c7462a",
             "71c8b22a05d6be72560b2cc326865930063cd0e8",
         ):
             self.assertIn(revision, markdown_text)
 
-        self.assertIn("v0.20.0 v1alpha2 稳定 API", markdown_text)
-        self.assertIn("字段路径是 `spec.kvCacheOffloading`", markdown_text)
+        self.assertIn("v0.21.0 v1alpha2 稳定 API", markdown_text)
+        self.assertIn("示例使用顶层 `spec.kvCacheOffloading`", markdown_text)
         self.assertIn("`spec.router.route.group` / `weight`", markdown_text)
-        self.assertIn("`v0.20.0` tag 尚无 `pkg/tls`", markdown_text)
-        self.assertIn("`v0.21.0-rc0` prerelease", markdown_text)
-        for unreleased_feature in (
-            "Controller TLS profile",
-            "Tokenizer 与 llm-d-router 后续兼容",
-            "Python 3.13 与 transformer CA bundle",
-            "LLMISVC rollout 与模板校验",
-            "KEDA true scale-to-zero",
-            "InferenceService canary readiness",
-            "OCI fetch",
+        self.assertIn("把上一轮全部“未发布 master”观察项正式纳入 release", markdown_text)
+        self.assertIn("已被 `v0.21.0` 正式 Release 取代", markdown_text)
+        for stable_feature in (
+            "KV cache offloading",
+            "LLMISVC traffic splitting 与 rollout",
+            "路由与运行能力",
+            "存储与模型源",
+            "弹性与 TLS",
+            "运行时与依赖",
+            "AgentGateway 集成指南",
+            "主线快照",
         ):
-            self.assertIn(unreleased_feature, markdown_text)
+            self.assertIn(stable_feature, markdown_text)
         for required_text in (
             "`spec.rolloutStrategy.maxUnavailable` / `maxSurge`",
             "多节点 workload 若 `maxUnavailable=0`",
@@ -1145,19 +1211,21 @@ class RenderDocLayoutTest(unittest.TestCase):
             "idle count 严格小于",
             "`oci+fetch://`",
             "`ms://` ModelScope storage provider",
-            "依赖树继续包含针对已披露依赖漏洞的安全修复",
-            "weighted `InferencePool` 后端选择",
+            "依赖树的安全修复与 Gateway API Inference Extension 的 weighted `InferencePool` 后端选择测试随 release 固化",
             "versioned docs",
             "当前实现明确不支持 LLMInferenceService fetch",
             "P/D engine 的 NixlConnector",
             "LoRA adapter 的 LocalModelCache",
             "controller TLS 证书热重载",
-            "不能用于承诺 v0.20.0",
-            "不属于 v0.20.0",
+            "KEDA v2.20.2",
+            "Envoy AI Gateway v1.1.0、llm-d 0.10",
+            "DRA `resourceClaims` 进入 ServingRuntime",
+            "UDS tokenizer sidecar 被 vLLM render deployment 取代",
+            "已在本版迁移到 `v1alpha2`",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
-        self.assertIn("不把它扩展为 v0.20.0 的兼容承诺", markdown_text)
+        self.assertIn("不把它扩展为 v0.21.0 的兼容承诺", markdown_text)
         self.assertNotIn(
             "b15ac29c6443340e2f4389a8e376f65fbcf8c6ec", markdown_text
         )
@@ -1177,7 +1245,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Multica 深度技术文档")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.4.44 · source@c7f259c · main@7e4758a · 2026-09-17",
+            "Multica v0.5.3 · source@ff8b285 · main@12f8f3f · 2026-09-26",
         )
         for summary_term in (
             "Issue 四类 lifecycle",
@@ -1196,7 +1264,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 self.assertIn(summary_term, doc["summary"])
         self.assertIn(
             "https://github.com/multica-ai/multica/tree/"
-            "c7f259c70a60bff30011c403fada79ab382f608a",
+            "ff8b285497809e084915016c40c2bc5e5991ffbc",
             doc["footer"],
         )
         self.assertIn("https://multica.ai/docs", doc["footer"])
@@ -1212,7 +1280,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Multica 深度技术文档", html)
         self.assertIn('/Multica-Deep-Dive.html', html)
-        self.assertIn("Multica v0.4.44", html)
+        self.assertIn("Multica v0.5.3", html)
         self.assertIn("无 Sandbox", html)
 
     def test_multica_execution_and_security_contract_is_documented(self):
@@ -1224,9 +1292,12 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         for required_text in (
-            "v0.4.44",
-            "c7f259c70a60bff30011c403fada79ab382f608a",
-            "审校日期：2026-09-17",
+            "v0.5.3",
+            "ff8b285497809e084915016c40c2bc5e5991ffbc",
+            "12f8f3f31111564e5e1b9aac3f7f916e8bba4039",
+            "207e227163d97889651d614d191f094732c18744",
+            "审校日期：2026-09-26",
+            "MULTICA_IMAGE_TAG=v0.5.3",
             "没有强制的 Issue 状态转换图",
             "Task 完成不等于 Issue 完成",
             "Task 与目标 Runtime 固定绑定且不会自动迁移",
@@ -1340,7 +1411,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path("/data/Multica-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
-        stable_commit = "c7f259c70a60bff30011c403fada79ab382f608a"
+        stable_commit = "ff8b285497809e084915016c40c2bc5e5991ffbc"
         product_image = (
             "https://raw.githubusercontent.com/multica-ai/multica/"
             f"{stable_commit}/apps/docs/public/images/docs/workspace-overview.webp"
@@ -1360,9 +1431,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             markdown_text,
             r"https://raw\.githubusercontent\.com/multica-ai/multica/(?:main|master)/",
         )
-        self.assertIn("`v0.4.44` 是本轮审校采用的最新正式 release", markdown_text)
+        self.assertIn("`v0.5.3` 是本轮审校采用的最新正式 release", markdown_text)
         self.assertIn("未发布主线和 tag-only 证据不反推为稳定能力", markdown_text)
         self.assertNotIn("0dfaac266eed3b7ac710de33d8207e4f71cfb20b", markdown_text)
+        self.assertNotIn("c7f259c70a60bff30011c403fada79ab382f608a", markdown_text)
 
     def test_render_multica_doc_includes_toc_mermaid_and_product_image(self):
         doc = next(
@@ -1390,7 +1462,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("stateDiagram-v2", html)
         self.assertIn(
             "https://raw.githubusercontent.com/multica-ai/multica/"
-            "c7f259c70a60bff30011c403fada79ab382f608a/"
+            "ff8b285497809e084915016c40c2bc5e5991ffbc/"
             "apps/docs/public/images/docs/workspace-overview.webp",
             html,
         )
@@ -1417,11 +1489,14 @@ class RenderDocLayoutTest(unittest.TestCase):
             "hostPaths.kubeletRootDir",
             "NRI_MANAGEMENT_CDI_DEVICE_NAMESPACES",
             "595.91.07",
-            "v0.12.0",
-            "v1.20.0",
-            "v0.20.0",
-            "v0.15.0",
-            "4.6.0-1",
+            "615.71.09",
+            "NVIDIA_GPU_MEMORY_LIMIT",
+            "v0.12.1",
+            "v1.20.1",
+            "v0.20.1",
+            "v0.15.1",
+            "4.6.1-1",
+            "v0.19.3",
         ):
             with self.subTest(document="GPU Operator", required_text=required_text):
                 self.assertIn(required_text, gpu_text)
@@ -1486,15 +1561,15 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertEqual(doc["href"], "/NVIDIA-GPU-Operator-Deep-Dive.html")
         self.assertEqual(doc["title"], "NVIDIA GPU Operator 深度技术文档")
-        self.assertIn("v26.7.0", doc["meta"])
-        self.assertIn("10ee5b3", doc["meta"])
+        self.assertIn("v26.7.1", doc["meta"])
+        self.assertIn("dbacf43", doc["meta"])
         self.assertIn(
             "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/overview.html",
             doc["footer"],
         )
         self.assertIn(
             "https://github.com/NVIDIA/gpu-operator/tree/"
-            "10ee5b3638b89e11e949412aafa5ba99279c3721",
+            "dbacf43d4938816fefe62690ab868a640a195282",
             doc["footer"],
         )
 
@@ -1510,7 +1585,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("NVIDIA GPU Operator 深度技术文档", html)
         self.assertIn('/NVIDIA-GPU-Operator-Deep-Dive.html', html)
-        self.assertIn("GPU Operator v26.7.0", html)
+        self.assertIn("GPU Operator v26.7.1", html)
 
     def test_render_nvidia_gpu_operator_doc_includes_toc_and_mermaid(self):
         doc = next(
@@ -1566,14 +1641,14 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertEqual(doc["href"], "/Kubernetes-Native-Scheduler-Deep-Dive.html")
         self.assertEqual(doc["title"], "Kubernetes 原生调度器深度技术文档")
-        self.assertIn("v1.37.0", doc["meta"])
-        self.assertIn("f54c212", doc["meta"])
+        self.assertIn("v1.37.1", doc["meta"])
+        self.assertIn("f78e722", doc["meta"])
         self.assertIn(
             "https://kubernetes.io/docs/concepts/scheduling-eviction/",
             doc["footer"],
         )
         self.assertIn(
-            "https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc",
+            "https://github.com/kubernetes/kubernetes/tree/f78e722310e50bcaca9276be22276d9e91d91308",
             doc["footer"],
         )
 
@@ -1589,7 +1664,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Kubernetes 原生调度器深度技术文档", html)
         self.assertIn('/Kubernetes-Native-Scheduler-Deep-Dive.html', html)
-        self.assertIn("Kubernetes v1.37.0", html)
+        self.assertIn("Kubernetes v1.37.1", html)
         self.assertIn("v1.37 DRA 扩展", html)
         self.assertIn("Workload/PodGroup v1beta1", html)
 
@@ -1629,8 +1704,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             html,
         )
         self.assertIn(
-            '<a href="#8-8-v1-37-0-feature-maturity-矩阵">'
-            "8.8 v1.37.0 feature maturity 矩阵</a>",
+            '<a href="#8-8-v1-37-1-feature-maturity-矩阵">'
+            "8.8 v1.37.1 feature maturity 矩阵</a>",
             html,
         )
         self.assertIn(

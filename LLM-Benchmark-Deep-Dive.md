@@ -4,7 +4,7 @@
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.13.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.20@94602c9c2b7cbdb8efd5c52802dac6a1c180089e`、LLMPerf `v2.0`、ollama-benchmark `v0.5.4`、vLLM `v0.30.0`、EvalScope `v1.12.0`；审校日期：2026-09-17。
+> 稳定版本基线：AIPerf `v0.13.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.20@94602c9c2b7cbdb8efd5c52802dac6a1c180089e`、LLMPerf `v2.0`、ollama-benchmark `v0.5.4`、vLLM `v0.30.0`、EvalScope `v1.12.0`；审校日期：2026-09-26。
 
 > vLLM `v0.30.1rc0` 是 prerelease，不替代本文 `v0.30.0` 稳定基线；RC 结果只能作为候选升级验证，不能与正式版容量数据混为同一序列。
 
