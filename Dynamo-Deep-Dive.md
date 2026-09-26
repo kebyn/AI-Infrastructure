@@ -4,7 +4,7 @@
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a`；ModelExpress 章节固定到其独立稳定版 `v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3`；审校日期：2026-09-17。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
+> 稳定版本基线：`v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615`；ModelExpress 章节固定到其独立稳定版 `v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3`；审校日期：2026-09-17。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 
@@ -168,6 +168,23 @@ Frontend image 继续包含 Gateway API Inference Extension 的 EPP；v1.4.0 同
 | v1.4.2 Enterprise | NGC 新增带 `-enterprise` 后缀的精选 artifact，可在有效 NVIDIA AI Enterprise 订阅下获得支持 | 官方说明其与开源对应 artifact 没有功能或二进制差异；support entitlement、发布位置和命名不能被写成社区 artifact 的功能差异 |
 
 v1.4.2 的 runtime 矩阵仍固定 SGLang `v0.5.16`、TensorRT-LLM `v1.3.0rc22`、vLLM `v0.26.0` 与 UCX `v1.21.0`；NIXL 则按镜像/后端分别为 vLLM/Frontend `v1.3.2`、TensorRT-LLM `v1.3.1`、SGLang `v1.3.0`。EFA Installer `1.50` 也只属于 EFA image variants，不能扩写为所有 runtime 的统一依赖。
+
+### 1.8 v1.5.0 minor 增量与迁移
+
+`v1.5.0` 是新的 minor 基线（658 个合并 PR）。Router、Frontend 与 Kubernetes 面都出现结构性变化，同时带一组必须在升级前清点的破坏性迁移：
+
+| 领域 | v1.5.0 稳定行为 | 升级与兼容边界 |
+|------|------------------|----------------|
+| Router 可插拔选择 | worker selection 改为原生 `WorkerScorer`/`WorkerPicker` 策略 + `worker_selection` YAML catalog；`WorkerFilter` 可组合；session affinity 支持 hard/soft（`--router-session-affinity-mode`，默认 hard） | 自定义 selection 逻辑应迁移到新 policy 接口；affinity 默认值变化会影响会话粘性分布 |
+| 分层 KV 索引 | SGLang HiCache 可消费 Mooncake shared-cache events（热路径无 HTTP）；vLLM storage KV events 进入带 locality gating 的 Disk tier；短请求可条件性绕过 disaggregation | KV 层级与命中行为随配置改变，容量报告要记录 tier 拓扑与事件来源 |
+| Frontend 协议 | guided tool calls 默认增量流式（`DYN_ENABLE_GUIDED_TOOL_STREAMING=0` 可退回）；Qwen3 进入 v2 unified tool-call parser；Kimi K3 原生处理；tokenizer 后端可插拔（如 `--tokenizer basetenkenizer`）；可选启用 SGLang 原生 `/generate` 直通 | 流式 chunk 形态与旧客户端不逐字节兼容；tokenizer 后端切换会改变计数口径 |
+| Kubernetes | CRD storage version 升至 `nvidia.com/v1beta1`（v1alpha1 admission webhook 端点移除）；Rust EPP 成为默认且随 Frontend 镜像分发，Go EPP 移除、`eppConfig` deprecated；Snapshot standalone operator v0.1.0（`PodSnapshot`/`PodSnapshotContent`），`DynamoCheckpoint` CRD 移除、`checkpointRef` 改指 `PodSnapshot` | 自定义 webhook 配置必须改指 v1beta1 路径；升级 operator 前需先装 Snapshot chart；EPP 迁移要按 Rust EPP 契约重写 manifest |
+| 工具链 | `AIConfigurator` 更名 `AISimulate`：`python -m dynamo.replay` CLI 无 shim 移除，迁往 `aisimulate predict --stack dynamo --config <file>`；Replay 返回单一 `ReplayReport`，`--report-jsonl` 更名 `--per-request-jsonl` 且 per-request capture 改为 opt-in | 依赖旧 replay/AIConfigurator 的流水线会硬失败；报告消费方要按新 schema 迁移 |
+| KVBM | 重申 deprecated，官方目标 v1.6.0 移除；KVCR 尚处早期、明确不替代 KVBM | 仍按第五章边界执行退出计划，不得新增 KVBM 依赖 |
+| 默认值变化 | liveness probe `failureThreshold` 1→3（runtime ≥1.5.0）；embedding tokenization 移到 worker 并默认加 special token（`DYN_EMBEDDING_TOKENIZATION_ADD_SPECIAL_TOKENS=false` 退出）；over-context 请求改为 pre-stream 非 200 拒绝；worker canary 健康检查默认开启（`DYN_HEALTH_CHECK_ENABLED=false` 退出）；`DYN_USE_KV_EVENTS` 更名 `DYN_ROUTER_USE_KV_EVENTS`（保留别名） | 每项默认值翻转都可能改变既有基线；升级清单应逐项记录 opt-out 决策 |
+| runtime 矩阵 | SGLang `v0.5.18`（CUDA 13.0）、TensorRT-LLM `v1.3.0rc25`（CUDA 13.1）、vLLM `v0.28.0`（CUDA 13.0）；NIXL SGLang `v1.4.0`、TensorRT-LLM `v1.3.1`、vLLM `v1.3.2`；UCX `v1.21.0` | 矩阵只描述官方镜像组合；自组环境必须自行验证 backend 与 NIXL 版本匹配 |
+
+已知问题里与压测/回归直接相关的两项：SGLang sidecar 每个 generate 请求返回 500（`'GenerateReqInput' object has no attribute 'batch_size'`，上游已在 SGLang v0.5.19 修复）；SGLang worker 带 `--dcp-size` 在真实 completion 请求上崩溃（官方建议 v1.5.0 不要设置 `--dcp-size`，修复目标 v1.6.0）。另外 2026-09-16/17 还出现两条 `v1.4.1-*-post.1` 变体构建 tag（k-exaone、solar-open2），它们是特定模型变体镜像，不是主线 release，不进入本文基线。
 
 ---
 
@@ -539,7 +556,7 @@ KV-aware routing 让系统“知道缓存在哪里并用它做调度”。KVBM �
 
 Dynamo KV Block Manager 是统一的 KV block 内存层和 write-through cache。官方组件文档把它描述为跨 GPU、pinned host memory、远端 RDMA memory、本地/分布式 SSD、远端文件/对象/云存储的统一 memory API。
 
-> **v1.4.0 状态边界：** KVBM 架构和既有代码仍保留，本文也保留其机制说明用于理解历史部署，但 v1.4.0 已将 KVBM 标为 deprecated。新的生产系统不应据此新增 KVBM 依赖，应优先评估后端原生 KV offload、LMCache、FlexKV 或 SGLang HiCache，并为既有 KVBM 部署制定退出计划。
+> **v1.5.0 状态边界：** KVBM 架构和既有代码仍保留，本文也保留其机制说明用于理解历史部署，但 v1.4.0 已将其标为 deprecated，v1.5.0 重申该状态并把移除目标定为 v1.6.0。新的生产系统不应据此新增 KVBM 依赖，应优先评估后端原生 KV offload、LMCache、FlexKV 或 SGLang HiCache，并为既有 KVBM 部署制定退出计划。
 
 它主要解决四类问题：
 
@@ -1824,11 +1841,12 @@ helm install dynamo-platform \
 |------|------|
 | GitHub 仓库 | <https://github.com/ai-dynamo/dynamo> |
 | 官方文档 | <https://docs.nvidia.com/dynamo/> |
-| v1.4.2 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.2> |
-| v1.4.2 exact source | <https://github.com/ai-dynamo/dynamo/tree/2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a> |
+| v1.5.0 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.5.0> |
+| v1.5.0 exact source | <https://github.com/ai-dynamo/dynamo/tree/b83b1d9304ebfc624709ac46db32b1b6f1ff1615> |
+| v1.4.2 Release（补丁层） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.2> |
 | v1.4.1 Release（classify/pooling 与修复层） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.1> |
 | v1.4.0 Release（架构增量与继承边界） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.0> |
-| README | <https://github.com/ai-dynamo/dynamo/blob/2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a/README.md> |
+| README | <https://github.com/ai-dynamo/dynamo/blob/b83b1d9304ebfc624709ac46db32b1b6f1ff1615/README.md> |
 | Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/architecture-flow.md> |
 | Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/disaggregated-serving.md> |
 | Router Design | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/router/router-design.md> |
