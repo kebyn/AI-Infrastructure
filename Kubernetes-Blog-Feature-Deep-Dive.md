@@ -2,9 +2,9 @@
 
 > **Kubernetes v1.24—v1.37、Gateway API、AI/Agent 平台、控制面性能、安全与运维的 Blog 历史审计**
 >
-> 本文基于 Kubernetes 官方 Blog 2022 年起（约 v1.24）至 2026-09-17 的年份归档、RSS、sitemap，以及对应的 Release 页面、文档、KEP 和 v1.37.0 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.html) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.html)。
+> 本文基于 Kubernetes 官方 Blog 2022 年起（约 v1.24）至 2026-09-17 的年份归档、RSS、sitemap，以及对应的 Release 页面、文档、KEP 和 v1.37.1 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-Native-Scheduler-Deep-Dive.html) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Schedulers-Deep-Dive.html)。
 >
-> 稳定版本基线：Kubernetes <code>v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-09-17。<code>v1.37.0</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
+> 稳定版本基线：Kubernetes <code>v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-09-17。<code>v1.37.1</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
 
 > **先给结论：** v1.37 的重要变化不是某一个孤立 API，而是把平台的“可管理单位”逐步从单个 Pod 推向 Workload、设备、资源拓扑、控制面状态和工作负载身份。Stable 能力已经可以进入常规生产基线；Beta 仍要逐集群验证默认 gate、组件版本和生态实现；Alpha 以及 Blog 中的生态项目只能作为试验或架构方向，不能自动写入稳定兼容承诺。
 
@@ -37,6 +37,8 @@ RSS XML 的 <code>description</code> 是文章摘要或 HTML 片段，不能代�
 
 | RSS 日期 | 官方文章 | 本文归类 | 主要结论 |
 | --- | --- | --- | --- |
+| 2026-09-22 | [Spotlight on SIG Apps](https://kubernetes.io/blog/2026/09/22/sig-apps-spotlight/) | 社区 / 观点 | SIG Apps 访谈：workload 韧性、Node Lifecycle WG 与 JobSet/LWS/Agent Sandbox 的 AI 工作负载方向；文中提及 KEP-4443（PodFailurePolicyRule 可选 `Name` 字段）拟以 1.38 为目标，当前未实现、无 gate |
+| 2026-09-21 | [PVC Last-Used-Time Beta](https://kubernetes.io/blog/2026/09/21/kubernetes-v1-37-pvc-last-used-time/) | v1.37 / 存储 | `PersistentVolumeClaimUnusedSinceTime` 升 Beta/default-on；PVC 保护控制器维护 `Unused` condition（`NoPodsUsingPVC`/`PodUsingPVC`），终止态 Pod 不计入使用，供孤儿 PVC 清理与成本回收 |
 | 2026-09-16 | [Hardening Container Storage](https://kubernetes.io/blog/2026/09/16/kubernetes-v1-37-hardening-container-storage/) | v1.37 / 存储安全 | `VolumeBindMountOptions` 与 `EmptyDirVolumeMode` 均为 Alpha/default-off；分别控制容器 bind mount flags 与 `emptyDir` 初始 mode |
 | 2026-09-15 | [Pod-Level Resource Managers Beta](https://kubernetes.io/blog/2026/09/15/kubernetes-v1-37-pod-level-resource-managers-beta/) | v1.37 / 节点资源 | kubelet CPU/Memory/Topology Manager 可消费 Pod 级预算；Beta 但默认关闭，PodResources API 增加 Pod 顶层 CPU/memory assignment |
 | 2026-09-14 | [Memory QoS Beta](https://kubernetes.io/blog/2026/09/14/kubernetes-v1-37-memory-qos-graduates-to-beta/) | v1.37 / cgroups v2 | gate 默认开但配置默认不写 `memory.high/min/low`；throttling 与 tiered reservation 仍需显式开启 |
@@ -68,7 +70,7 @@ RSS XML 的 <code>description</code> 是文章摘要或 HTML 片段，不能代�
 | 2026-03-18 | [Securing Production Debugging](https://kubernetes.io/blog/2026/03/18/securing-production-debugging-in-kubernetes/) | 安全/运维 | 以临时凭据、最小 RBAC、审计和 JIT 流程约束 `exec`、`port-forward` 与节点调试；不是新 Core API |
 | 2026-03-17 | [Image Promoter rewrite](https://kubernetes.io/blog/2026/03/17/image-promoter-rewrite/) | 项目维护 | 解释 Kubernetes 发布镜像推广基础设施重写；不改变集群 API 或 workload 行为，列作维护证据 |
 
-RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以帮助理解生态方向，但本文不会把 Headlamp 插件、AI Gateway proposal、Agent Sandbox CRD 或某个 Gateway controller 的实现误写成 Kubernetes <code>v1.37.0</code> 的 Core API。
+RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以帮助理解生态方向，但本文不会把 Headlamp 插件、AI Gateway proposal、Agent Sandbox CRD 或某个 Gateway controller 的实现误写成 Kubernetes <code>v1.37.1</code> 的 Core API。
 
 ### 1.3 成熟度的读法
 
@@ -91,7 +93,7 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 
 纳入规则是：标题或正文明确对应 Kubernetes minor release，或者介绍 API、feature gate、组件行为、迁移、弃用、性能、安全和运维能力；Gateway API、etcd、AI Gateway、Inference Extension、Agent Sandbox、Headlamp 等直接影响 Kubernetes 平台组合的生态专题另列，不把它们冒充 Core。人物访谈、社区 spotlight、维护者故事、无实现的路线图和一般教程不进入特性正文，在 [附录 A.8 排除项](#a-8-排除项与审计统计) 统计。
 
-表中“当前边界”均以 `v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc` 为准；“仍稳定”指 Core API 或行为可作为 v1.37 兼容基线，不表示 CSI、CRI、CNI、DRA driver 或生态 controller 已自动支持。
+表中“当前边界”均以 `v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308` 为准；“仍稳定”指 Core API 或行为可作为 v1.37 兼容基线，不表示 CSI、CRI、CNI、DRA driver 或生态 controller 已自动支持。
 
 ### v1.24（2022-05-03）
 
@@ -222,7 +224,7 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | v1.36 | [Declarative Validation GA](https://kubernetes.io/blog/2026/05/05/kubernetes-v1-36-declarative-validation-ga/)（2026-05-05） | Declarative Validation | Stable/default-on | 将 API 约束生成代码化并保留 validation warning | v1.37 稳定；旧客户端 apply/patch 要做兼容回归 |
 | v1.36 | 2026-05-06 至 05-13 | Sharded list/watch、DRA、Workload-aware scheduling | Alpha/Beta，按 gate 分层 | 把过滤、设备状态和调度单位从 Pod 推向 controller/Workload | v1.37 Workload/DRA 仍有 default-off 组合，不能按 Blog 预告整体开启；[Release notes](https://github.com/kubernetes/kubernetes/blob/release-1.36/CHANGELOG/CHANGELOG-1.36.md) |
 
-### v1.37（2026-08-26 至 2026-09-16）
+### v1.37（2026-08-26 至 2026-09-22）
 
 | Kubernetes 版本 | Blog/发布日期 | 特性 | 成熟度/当时默认 | 演进作用 | 当前边界与证据 |
 | --- | --- | --- | --- | --- | --- |
@@ -237,6 +239,7 @@ RSS 里还有大量社区 spotlight、项目维护和教程文章。它们可以
 | CSI 生态 | 2026-09-14 | Changed Block Tracking v1.0.0 | Beta，独立项目版本 | block-volume backup 可读取 allocated/delta metadata stream | CRD `v1alpha1` 被移除且无 conversion；需 Kubernetes 1.33+、CSI 1.10+；[Blog](https://kubernetes.io/blog/2026/09/14/csi-changed-block-tracking-beta/) |
 | v1.37 | 2026-09-14 至 09-15 | Memory QoS、Pod-Level Resource Managers | Beta；前者 default-on、后者 default-off | cgroups v2 保护与 Pod 级 NUMA/CPU/memory assignment 进入生产试验层 | 默认配置不启用 throttling/reservation；PodResources consumer 需更新；[Blogs](https://kubernetes.io/blog/2026/09/15/kubernetes-v1-37-pod-level-resource-managers-beta/) |
 | v1.37 | 2026-09-16 | bind mount options、`emptyDir.mode` | Alpha/default-off | 在 Pod API 表达 `noexec/nosuid/nodev` 与 sticky/private directory mode | Linux/runtime/node-feature/version-skew 边界不同，默认行为不变；[Blog](https://kubernetes.io/blog/2026/09/16/kubernetes-v1-37-hardening-container-storage/) |
+| v1.37 | 2026-09-21 | PVC last-used-time（KEP-5541） | Beta/default-on | PVC `Unused` condition 标记无活跃 Pod 引用的卷，`lastTransitionTime` 可用于识别长期闲置卷 | 终止态 Pod（Succeeded/Failed）不算使用；condition 只报告状态，不自动删除或回收 PVC；[Blog](https://kubernetes.io/blog/2026/09/21/kubernetes-v1-37-pvc-last-used-time/) |
 
 ## 跨版本能力演进矩阵
 
@@ -344,7 +347,7 @@ v1.37 的 <code>EtcdRangeStream</code> 把读取路径改为 server-streaming RP
 3. 兼容旧 etcd 的 fallback 有利于渐进升级，但混合状态下性能不一致，容量测试不能只在 fallback 路径完成。
 4. 通过 <code>MaxRequestBytes</code>、对象大小和大规模 Pod/CRD 数据集进行压测，才能判断实际峰值，而不是只验证 RPC 成功。
 
-证据：[RangeStream Blog](https://kubernetes.io/blog/2026/09/01/kubernetes-v1-37-etcd-range-stream/)、[KEP-5966](https://kep.k8s.io/5966)、[v1.37 source](https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc)。
+证据：[RangeStream Blog](https://kubernetes.io/blog/2026/09/01/kubernetes-v1-37-etcd-range-stream/)、[KEP-5966](https://kep.k8s.io/5966)、[v1.37 source](https://github.com/kubernetes/kubernetes/tree/f78e722310e50bcaca9276be22276d9e91d91308)。
 
 ### 3.2 Resilient Watch Cache Initialization：把恢复风暴变成有界拒绝
 
@@ -1169,7 +1172,7 @@ v1.37 release notes 记录 client-go 的 context propagation 和 contextual logg
 
 ### etcd v3.7.0 与 RangeStream 的关系
 
-[Announcing etcd v3.7.0](https://kubernetes.io/blog/2026/07/08/announcing-etcd-3.7/) 是 etcd 项目自己的正式 release；[v3.7.0-beta.0](https://kubernetes.io/blog/2026/05/20/etcd-370-beta/) 只属于 prerelease 证据。Kubernetes v1.37 的 `EtcdRangeStream` 依赖 etcd 3.7 的 server-streaming RPC，但 etcd release 不会自动升级 kube-apiserver，也不改变 Kubernetes API 版本。生产记录应分别保存 Kubernetes `v1.37.0@f54c212e...`、etcd `v3.7.0`、容器镜像 digest 和 gate，旧 etcd 的 `Unimplemented` fallback 仍需容量测试。
+[Announcing etcd v3.7.0](https://kubernetes.io/blog/2026/07/08/announcing-etcd-3.7/) 是 etcd 项目自己的正式 release；[v3.7.0-beta.0](https://kubernetes.io/blog/2026/05/20/etcd-370-beta/) 只属于 prerelease 证据。Kubernetes v1.37 的 `EtcdRangeStream` 依赖 etcd 3.7 的 server-streaming RPC，但 etcd release 不会自动升级 kube-apiserver，也不改变 Kubernetes API 版本。生产记录应分别保存 Kubernetes `v1.37.1@f78e7223...`、etcd `v3.7.0`、容器镜像 digest 和 gate，旧 etcd 的 `Unimplemented` fallback 仍需容量测试。
 
 ### Securing Production Debugging（2026-03-18）
 
@@ -1383,7 +1386,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 ### 11.1 版本和对象盘点
 
 - [ ] 记录 control plane、kubelet、etcd、CRI、CNI、CSI、device plugin/DRA driver、metrics-server、Gateway controller 的精确版本和镜像 digest。
-- [ ] 固定 Kubernetes v1.37.0 source <code>f54c212e3a2f75d674b717a9b29052b20b60aefc</code>，并阅读 [CHANGELOG-1.37](https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/CHANGELOG/CHANGELOG-1.37.md) 的 urgent upgrade notes。
+- [ ] 固定 Kubernetes v1.37.1 source <code>f78e722310e50bcaca9276be22276d9e91d91308</code>，并阅读 [CHANGELOG-1.37](https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/CHANGELOG/CHANGELOG-1.37.md) 的 urgent upgrade notes。
 - [ ] 盘点所有 <code>Workload</code>/<code>PodGroup</code> 的 API version；从 v1.36 升级前导出并清理不再 served 的 <code>scheduling.k8s.io/v1alpha2</code> 对象。
 - [ ] 盘点 HPA、外部/对象指标、metrics adapter、Gateway routes、Ingress annotations、StatefulSet strategies、DRA ResourceClaim/Template 和 CRD <code>.status.storedVersions</code>。
 - [ ] 记录现有 feature gate，不用“当前 API 能创建”推断“相关 controller/scheduler/kubelet 行为已启用”。
@@ -1482,15 +1485,17 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 | 项目 | 快照 |
 | --- | --- |
-| Kubernetes stable release | <code>v1.37.0</code> |
-| Annotated tag object | <code>157e582fcc3ebba3c22b16721f49d6890f784c1f</code> |
-| Tag 解引用后的 exact source commit | <code>f54c212e3a2f75d674b717a9b29052b20b60aefc</code> |
+| Kubernetes stable release | <code>v1.37.1</code> |
+| Annotated tag object | <code>d2b770f4c94636a992534a8d3156b6b2d8e82ac3</code> |
+| Tag 解引用后的 exact source commit | <code>f78e722310e50bcaca9276be22276d9e91d91308</code> |
 | v1.37 enhancement count | 67 |
 | Stable / Beta / Alpha / deprecation | 16 / 23 / 27 / 1 |
 | RSS feed | <https://kubernetes.io/feed.xml> |
 | 审校日期 | 2026-09-17 |
 
-<code>v1.37.0</code> 的 tag object 和 source commit 是两个不同的 Git object。本文以及仓库渲染元数据使用 source commit；tag object 仅保留在本表作为 Git ref 复核信息。Blog 中的 Beta/Alpha、Working Group proposal、生态 CRD 和主线实现均不扩大 <code>v1.37.0</code> 的 Stable 兼容承诺。
+<code>v1.37.1</code> 的 tag object 和 source commit 是两个不同的 Git object。本文以及仓库渲染元数据使用 source commit；tag object 仅保留在本表作为 Git ref 复核信息。Blog 中的 Beta/Alpha、Working Group proposal、生态 CRD 和主线实现均不扩大 <code>v1.37.1</code> 的 Stable 兼容承诺。
+
+上表的 67 项 enhancement 与 16/23/27/1 成熟度计数是 v1.37.0 minor 的历史事实。`v1.37.1` 是 patch release：仅含构建工具链升级（Go 1.26.8）、1 个 Failing Test 修复与 4 个 Bug fix，其中两个与 DRA/调度相关——无 `spec.deviceSelector` 的 DeviceTaintRule 误匹配全部设备、ResourceClaim 请求计数溢出导致 kube-scheduler crash；不新增 feature gate，也不改变任何成熟度。
 
 ### A.2 Kubernetes v1.37 官方文章
 
@@ -1583,19 +1588,19 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 ### A.6 v1.37 exact source and API references
 
-| 主题 | v1.37.0 exact source |
+| 主题 | v1.37.1 exact source |
 | --- | --- |
-| Kubernetes v1.37.0 source | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc> |
-| Release notes | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/CHANGELOG/CHANGELOG-1.37.md> |
-| Feature gates and final defaults | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/features/kube_features.go> |
-| Workload/PodGroup v1beta1 types | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/api/scheduling/v1beta1/types.go> |
-| DRA resource v1 types | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/api/resource/v1/types.go> |
-| DRA scheduler plugin | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/framework/plugins/dynamicresources/dynamicresources.go> |
-| Workload/PodGroup scheduling cycle | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/scheduler/schedule_one_podgroup.go> |
-| DRA kubelet manager | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/kubelet/cm/dra/manager.go> |
-| StatefulSet controller | <https://github.com/kubernetes/kubernetes/blob/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/controller/statefulset/stateful_set_control.go> |
-| kube-proxy nftables | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc/pkg/proxy/nftables> |
-| API server storage | <https://github.com/kubernetes/kubernetes/tree/f54c212e3a2f75d674b717a9b29052b20b60aefc/staging/src/k8s.io/apiserver/pkg/storage> |
+| Kubernetes v1.37.1 source | <https://github.com/kubernetes/kubernetes/tree/f78e722310e50bcaca9276be22276d9e91d91308> |
+| Release notes | <https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/CHANGELOG/CHANGELOG-1.37.md> |
+| Feature gates and final defaults | <https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/pkg/features/kube_features.go> |
+| Workload/PodGroup v1beta1 types | <https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/staging/src/k8s.io/api/scheduling/v1beta1/types.go> |
+| DRA resource v1 types | <https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/staging/src/k8s.io/api/resource/v1/types.go> |
+| DRA scheduler plugin | <https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/pkg/scheduler/framework/plugins/dynamicresources/dynamicresources.go> |
+| Workload/PodGroup scheduling cycle | <https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/pkg/scheduler/schedule_one_podgroup.go> |
+| DRA kubelet manager | <https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/pkg/kubelet/cm/dra/manager.go> |
+| StatefulSet controller | <https://github.com/kubernetes/kubernetes/blob/f78e722310e50bcaca9276be22276d9e91d91308/pkg/controller/statefulset/stateful_set_control.go> |
+| kube-proxy nftables | <https://github.com/kubernetes/kubernetes/tree/f78e722310e50bcaca9276be22276d9e91d91308/pkg/proxy/nftables> |
+| API server storage | <https://github.com/kubernetes/kubernetes/tree/f78e722310e50bcaca9276be22276d9e91d91308/staging/src/k8s.io/apiserver/pkg/storage> |
 
 ### A.7 相关仓库内文档
 
@@ -1719,7 +1724,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 | 项目 | 自身版本/日期 | API group 或接口 | 与 Kubernetes Core 的关系 |
 | --- | --- | --- | --- |
-| Kubernetes | `v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc`，2026-08-26 | `*.k8s.io` Core API、feature gates | 本文唯一的 Stable 兼容基线 |
+| Kubernetes | `v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308`，2026-09-23 | `*.k8s.io` Core API、feature gates | 本文唯一的 Stable 兼容基线 |
 | etcd | `v3.7.0`，2026-07-08 Blog | etcd v3 gRPC `RangeStream` | 存储项目独立发布；是 v1.37 RangeStream 的外部依赖 |
 | Gateway API | v1.5 / v1.6（2026） | `gateway.networking.k8s.io/v1`、实验 `gateway.networking.x-k8s.io` | SIG Network 独立 release train；controller conformance 另审计 |
 | Ingress2Gateway | 1.0，2026-03-20 | CLI converter | 迁移工具，不是 apiserver API 或 controller |
@@ -1743,7 +1748,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 ### A.13 未发布主线、proposal、prerelease 与 tag-only 审计区
 
-- `v1.36/v1.37 Sneak Peek`、AI Gateway WG charter、Inference Extension roadmap 和 Agent Sandbox 快照只证明审校时的设计/实现形态；它们不扩大 `v1.37.0` Stable 承诺。
+- `v1.36/v1.37 Sneak Peek`、AI Gateway WG charter、Inference Extension roadmap 和 Agent Sandbox 快照只证明审校时的设计/实现形态；它们不扩大 `v1.37.1` Stable 承诺。
 - etcd `v3.7.0-beta.0` 是 prerelease，正式 RangeStream 依赖固定到 `v3.7.0`；不要用 beta 性能数字作为生产容量合同。
 - Gateway API `x-k8s` 实验 group、Inference Extension CRD、Headlamp plugin 和 Kueue/Volcano/Grove/KAI 的自身 tag 都有独立版本；升级 Kubernetes 时不能只看 minor 号。
 - 没有 GitHub Release 的生态 tag、分支 commit 或 proposal 若需要复现实验，应记录 exact commit、日期和“未发布/审计证据”标签；它们不得写入本文 v1.37 Stable 表。
