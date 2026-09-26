@@ -1049,6 +1049,12 @@ class RenderDocLayoutTest(unittest.TestCase):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
 
+        self.assertIn(
+            "v1.0.3（2026-09-17 发布）与 v1.0.4（2026-09-24 发布）",
+            markdown_text,
+        )
+        self.assertNotIn("v1.0.3（2026-09-26 发布）", markdown_text)
+
         self.assertNotIn(
             "88f41f392722a2f56971ea6c1084f0fc574ef1f4", markdown_text
         )
