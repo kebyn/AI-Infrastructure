@@ -766,6 +766,22 @@ class RenderDocLayoutTest(unittest.TestCase):
             "c2050e3debe58dbcdf9bb75b667799eec9409513",
         ):
             self.assertIn(revision, volcano_text)
+        self.assertIn(
+            "master@f5258704d7ef5bda28f31ba51950cdea9adbe921", ai_text
+        )
+        self.assertIn(
+            "https://github.com/volcano-sh/website/tree/"
+            "f5258704d7ef5bda28f31ba51950cdea9adbe921",
+            ai_text,
+        )
+        self.assertNotIn(
+            "master@aee652b985d25e33f59f6112e857627784b741ca", ai_text
+        )
+        self.assertNotIn(
+            "https://github.com/volcano-sh/website/tree/"
+            "aee652b985d25e33f59f6112e857627784b741ca",
+            ai_text,
+        )
 
         for required_text in (
             "OnDemand PVC informer race",
