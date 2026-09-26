@@ -49,7 +49,7 @@
 | --- | --- | --- | --- |
 | Teleport | `v18.10.0@ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d` | 2026-07-09 正式 Release；lightweight tag | GitHub 源码 AGPL-3.0；官方 Community binary 另受 Community Edition License 和规模条件约束；Enterprise/Cloud 不纳入稳定承诺 |
 | The Bastion | `v3.24.01@30c8b522ddd9db2993e22b05b0ee19f961cadf1d` | 2026-07-08 正式 Release；lightweight tag | Apache-2.0；Perl 插件/helper 与 Unix 账号模型属于项目实现，部署仍需按目标系统加固 |
-| Warpgate | `v0.28.6@525c7caf2219d5f5e3913b5732e4cbad5d15cd34` | 2026-09-01 正式 Release；lightweight tag | Apache-2.0；单二进制和 SQLite 是该版本稳定边界，主线新协议不前推 |
+| Warpgate | `v0.29.1@54f93c807be2c161a94c0df764242849125161a8` | 2026-09-23 正式 Release；lightweight tag | Apache-2.0；单二进制和 SQLite 是该版本稳定边界，主线新协议不前推 |
 | Boundary | `v0.21.3@8c9715c868537616a11e0ea555b20042e212bdbc` | 2026-04-30 正式 Release；lightweight tag | Business Source License 1.1（MariaDB BSL 文本）；生产使用须复核变更日期和商业条款，不把它写成 Apache OSS |
 | Pomerium | `v0.33.3@76042ed40db3bab9506b689f436716b6df624f23` | 2026-09-09 正式 Release；lightweight tag | Apache-2.0；HTTP/TCP identity-aware proxy 边界，企业托管/高级策略另行核对 |
 | Guacamole | server `1.6.0@1f664e08feae6e7d15d8146b78acab2e6fb470ae`；client `1.6.0@0537c89cd783681b986ff8f8c4e0b97ec6873371` | 审校日未找到 GitHub Release；官方 `1.6.0` annotated tag 可验证但按 tag-only 处理 | Apache-2.0；不把无 Release 的 tag-only 当作厂商稳定兼容承诺，部署前仍应固定并测试 server/client 实际发行包 |
@@ -146,6 +146,8 @@ The Bastion 以 SSH 入口和出口协议断开为中心：用户使用标准 SS
 ### 2.3 Warpgate：单二进制多协议网关
 
 Warpgate 是 Rust 单二进制，直接监听 SSH、HTTPS/Web UI、Kubernetes、MySQL、PostgreSQL、RDP 和 VNC 入口；用户在 Web 管理界面把 target 分配给账号，浏览器可作为终端客户端，原生客户端可使用 ticket/配置连接。SQLite 保存用户、target、策略和录制元数据，部署快但多实例共享状态、密钥备份和高可用需额外设计。它的协议覆盖比纯 SSH bastion 广，却不等于 Teleport 的统一 CA、自动资源发现或跨集群信任模型。
+
+本文固定到 v0.29.1。v0.29.0 引入 session approval/JIT 访问（target 可要求管理员逐会话批准）、MFA enforcement 策略与新用户默认凭据策略，并把 Kubernetes `exec`/`attach`/`port-forward`/debug 纳入结构化审计；session 拆分为用户会话与 target 会话，SSH host key 从数据目录迁入数据库。该版本含破坏性 API 变化：官方声明兼容的 Terraform provider 为 v1.2.0、Kubernetes operator 为 v0.4.11，旧 API client 必须先核对。v0.29.0 还修复四个安全通告（Kubernetes 证书校验错误信息与数据库错误暴露、已删除重建用户的 HTTP/Kubernetes 旧会话保持登录、删除用户不关闭原生会话）及 TOTP 密钥熵源问题；v0.29.1 补上 approval 记忆与 RDP 等待界面两处修复。这些是访问治理与安全修复，不把 Warpgate 变成 Teleport 式统一身份控制面。
 
 ### 2.4 Boundary：控制器、Worker 与 session broker
 
@@ -911,7 +913,7 @@ Patch 回滚也应先确认 backend schema 和写入兼容。跨 major 安全降
 | self-hosted 形态 | Auth/Proxy/Agent 多角色 Go 服务；可拆分和 HA | Perl/SSH 入口出口，单机或 active/active；无外部 DB 依赖 | Rust 单二进制，内置 HTTPS/SSH/Kubernetes/DB/RDP/VNC/Web UI | Controller + worker + session broker；状态库和 worker 分离 | Identity-aware HTTP/TCP proxy，可自托管多组件 | guacd + Web 应用；连接配置与外围身份系统分离 |
 | 主要协议 | SSH、Kubernetes、数据库、HTTP/TCP、Desktop、MCP | SSH/PTY、SFTP/SCP、网络设备；其它协议靠 helper | SSH、Kubernetes、MySQL、PostgreSQL、RDP、VNC、HTTPS | TCP session brokering；协议理解有限 | HTTP/HTTPS、TCP 应用 | RDP、VNC、SSH、Telnet 等浏览器协议 |
 | 是否需要专用客户端 | `tsh` 可选；原生客户端经 proxy/local proxy | 标准 SSH 客户端和 bastion wrapper | 原生 SSH/DB 客户端或浏览器；配置 ticket | Boundary CLI/desktop 连接流程通常需要 | 浏览器、JWT/OIDC 或 TCP client | 浏览器为主；无需目标端客户端 |
-| 用户认证/MFA/SSO | Local、GitHub、TOTP/WebAuthn；OIDC/SAML 等按 edition | Unix/LDAP/realm、SSH key；MFA/SSO 由插件或外围 IdP | Local、OIDC/SSO、TOTP（以 v0.28.6 配置为准） | OIDC/LDAP 等 controller auth；MFA 多由 IdP | OIDC、JWT、Pomerium policy/IdP | 可接 LDAP/OIDC/HTTP header；自身不是完整 IdP |
+| 用户认证/MFA/SSO | Local、GitHub、TOTP/WebAuthn；OIDC/SAML 等按 edition | Unix/LDAP/realm、SSH key；MFA/SSO 由插件或外围 IdP | Local、OIDC/SSO、TOTP（以 v0.29.1 配置为准） | OIDC/LDAP 等 controller auth；MFA 多由 IdP | OIDC、JWT、Pomerium policy/IdP | 可接 LDAP/OIDC/HTTP header；自身不是完整 IdP |
 | 机器身份与短期凭据 | CA、短期 cert、`tbot`、JWT/SPIFFE/X.509 | SSH key/Unix account；无统一短期 CA | ticket/target credential；SQLite 保存配置，非 Teleport CA | worker credential、Vault credential injection、短期 session token | 上游 JWT/headers；不签发 SSH/DB cert | 连接凭据由配置/外部 secret 提供 |
 | 资源级授权模型 | Role + labels + traits + target principals，目标再授权 | realm、Unix group/DAC、delegated group、命令策略 | user-target 一对一/显式映射、role 与 target 配置 | scope/role、target、session policy；最终凭据在目标/Vault | route policy、identity/group/claim、TCP route | connection 列表/组权限；细粒度资源发现需外围目录 |
 | 临时访问/JIT/审批 | Access Request 基础流程；完整 JIT/Access Lists 为商业边界 | delegated group/临时 token 可由插件实现；无统一审批控制面 | ticket 可设过期；无多级审批工作流 | session authorization 与 credential injection；审批需外围工作流 | policy/identity 生命周期；无基础设施 JIT | 无原生 JIT/审批，依赖外围系统 |
@@ -1103,11 +1105,11 @@ Teleport OSS 最有价值的能力是把多协议访问统一到同一组 CA、�
 
 #### B.1.2 Warpgate
 
-- Release：<https://github.com/warp-tech/warpgate/releases/tag/v0.28.6>
-- Exact source（lightweight tag）：<https://github.com/warp-tech/warpgate/tree/525c7caf2219d5f5e3913b5732e4cbad5d15cd34>
-- Apache-2.0 license：<https://github.com/warp-tech/warpgate/blob/525c7caf2219d5f5e3913b5732e4cbad5d15cd34/LICENSE>
+- Release：<https://github.com/warp-tech/warpgate/releases/tag/v0.29.1>
+- Exact source（lightweight tag）：<https://github.com/warp-tech/warpgate/tree/54f93c807be2c161a94c0df764242849125161a8>
+- Apache-2.0 license：<https://github.com/warp-tech/warpgate/blob/54f93c807be2c161a94c0df764242849125161a8/LICENSE>
 - Documentation/configuration：<https://warpgate.null.page/>
-- Protocol and web UI source：<https://github.com/warp-tech/warpgate/tree/525c7caf2219d5f5e3913b5732e4cbad5d15cd34>
+- Protocol and web UI source：<https://github.com/warp-tech/warpgate/tree/54f93c807be2c161a94c0df764242849125161a8>
 
 #### B.1.3 Boundary
 
