@@ -1,6 +1,6 @@
 # 推理系统与压测深度文档
 
-> 审校日期：2026-09-26。沿用各组件固定证据，正式 Release、Alpha/Beta、tag-only 与未发布主线快照分别记录；本次为结构与编辑整理。
+> 审校日期：2026-10-13。沿用各组件固定证据，正式 Release、Alpha/Beta、RC、tag-only 与未发布主线快照分别记录；本次完成官方上游版本复核与增量同步。
 
 ## 第1篇：公共概念：KVCache、P/D 分离与性能指标 {#inference-concepts}
 
@@ -135,7 +135,7 @@ LLM 压测至少应报告：
 >
 > 基于 Mooncake 官方文档 (https://kvcache-ai.github.io/Mooncake) 整理编写
 >
-> 稳定版本基线：`v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a`，审校日期：2026-09-26。论文结论与软件实现会明确区分；`v0.3.13.post1` 为 lightweight tag，所列 commit 即 tag 直接指向的源码提交。
+> 稳定版本基线：`v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a`，审校日期：2026-10-13。论文结论与软件实现会明确区分；`v0.3.13.post1` 为 lightweight tag，所列 commit 即 tag 直接指向的源码提交。上游另有 `v0.3.14-rc1`（annotated tag，解引用源码 `78566d459c140956fd15606e102132b1acc83eec`），仅作 RC 审计记录，不替换稳定基线。
 >
 > FAST 2025 最佳论文 | Moonshot AI 的 Kimi 服务平台
 
@@ -194,7 +194,7 @@ Mooncake 提出了三个关键洞察，从根本上重塑了 LLM 推理架构：
 | 可移植性与构建 | 增加 ROCm/HIP release wheel、ARM64 non-CUDA wheel、CUDA 13/EFA wheel，并建立 `scikit-build-core` Python 项目基础；`mooncake_master` 不再强制 CUDA | 每类 wheel 的 transport/accelerator 集合不同；`v0.3.13.post1` 只修正 wheel 依赖封装，不能把非 CUDA wheel 当作 GPU 功能包 |
 | 运维与多租户 | 新增 multi-tenant deployment guide，Master admin/metrics bind address 与 RPC/TENT worker 数可配置；配置项逐步结构化并补充严格解析与测试 | bind 到通配地址会扩大暴露面；租户 key 隔离仍不替代认证、授权、网络隔离和加密 |
 
-从旧基线升级时，至少应复测四条链路：TCP 池化后的 peer 重连、RDMA/EFA 跨 MR 边界传输、io_uring/SSD 恢复的一致性，以及 HA batch OpLog/standby promotion。已有 `v0.3.12.post1` 的 TENT QoS、租户配额和结构化对象结论仍成立，但本文的稳定兼容上限统一提升到 `v0.3.13.post1`。
+从旧基线升级时，至少应复测四条链路：TCP 池化后的 peer 重连、RDMA/EFA 跨 MR 边界传输、io_uring/SSD 恢复的一致性，以及 HA batch OpLog/standby promotion。已有 `v0.3.12.post1` 的 TENT QoS、租户配额和结构化对象结论仍成立，但本文的稳定兼容上限继续保持为 `v0.3.13.post1`；`v0.3.14-rc1` 的 wheel 发布验证信息不足以承诺运行时兼容性。
 
 ---
 
@@ -2960,11 +2960,11 @@ Mooncake 已适配以下硬件平台：
 
 ---
 
-> **文档版本**：基于 Mooncake `v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a` 与该版本官方文档审校，2026-09-26
+> **文档版本**：基于 Mooncake `v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a` 与该版本官方文档审校，2026-10-13
 >
 > **项目源码**：https://github.com/kvcache-ai/Mooncake/tree/719735896c86b56fabec6cf3e825fb2ea640597a
 >
-> **Release Notes**：https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.13.post1 | [v0.3.13 完整运行时增量](https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.13) | [固定 compare](https://github.com/kvcache-ai/Mooncake/compare/v0.3.12.post1...v0.3.13.post1)
+> **Release Notes**：https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.13.post1 | [v0.3.13 完整运行时增量](https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.13) | [v0.3.14-rc1（RC）](https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.14-rc1) | [固定 compare](https://github.com/kvcache-ai/Mooncake/compare/v0.3.12.post1...v0.3.13.post1)
 >
 > **固定文档证据**：[Store Deployment](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/mooncake-store-deployment-guide.md) | [SSD Offload](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/ssd/ssd-offload.md) | [NVMe KV](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/ssd/nvme-kv.md) | [Multi-tenancy](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/multi-tenancy.md) | [DataProto Structured Object](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/api-reference/python/dataproto-structured-object-transfer.md)
 >
@@ -2978,7 +2978,7 @@ Mooncake 已适配以下硬件平台：
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：`v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615`；ModelExpress 章节固定到其独立稳定版 `v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3`；审校日期：2026-09-26。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
+> 稳定版本基线：Dynamo `v1.5.1@2093662a4d4e5fd318732935213dde08dc7be818`；ModelExpress 章节固定到其独立稳定版 `v0.7.0@ac6d03a87a550c8188c3ed59f187b90d4f0554f5`；审校日期：2026-10-13。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 
@@ -3145,6 +3145,20 @@ v1.4.2 的 runtime 矩阵仍固定 SGLang `v0.5.16`、TensorRT-LLM `v1.3.0rc22`�
 | runtime 矩阵 | SGLang `v0.5.18`（CUDA 13.0）、TensorRT-LLM `v1.3.0rc25`（CUDA 13.1）、vLLM `v0.28.0`（CUDA 13.0）；NIXL SGLang `v1.4.0`、TensorRT-LLM `v1.3.1`、vLLM `v1.3.2`；UCX `v1.21.0` | 矩阵只描述官方镜像组合；自组环境必须自行验证 backend 与 NIXL 版本匹配 |
 
 已知问题里与压测/回归直接相关的两项：SGLang sidecar 每个 generate 请求返回 500（`'GenerateReqInput' object has no attribute 'batch_size'`，上游已在 SGLang v0.5.19 修复）；SGLang worker 带 `--dcp-size` 在真实 completion 请求上崩溃（官方建议 v1.5.0 不要设置 `--dcp-size`，修复目标 v1.6.0）。另外 2026-09-16/17 还出现两条 `v1.4.1-*-post.1` 变体构建 tag（k-exaone、solar-open2），它们是特定模型变体镜像，不是主线 release，不进入本文基线。
+
+#### 3.1.9 v1.5.1 patch 增量与迁移 {#dynamo-1-9-v1-5-1-patch-增量与迁移}
+
+`v1.5.1@2093662a4d4e5fd318732935213dde08dc7be818` 是 Dynamo 的稳定 patch release。它没有把独立 ModelExpress 版本自动升级到 v0.7.0；Dynamo release 自身仍以 ModelExpress `v0.6.0` 为说明中的组合版本，组合部署必须分别锁定。
+
+| 领域 | v1.5.1 稳定增量 | 升级与兼容边界 |
+|------|-----------------|----------------|
+| Router / worker | 增加 Router overload recovery；SGLang worker 支持 tokenizer-free `min_tokens`，并补充 Qwen3-VL video routing | 应在 overload→healthy、固定输出长度和视频输入场景重做回归；不能把新的 worker 路由逻辑当作所有 backend 的通用能力 |
+| RL 与发现 | 增加 RL worker discovery；frontend/runtime 发现和运行时路径继续修复 | 混合 v1.5.0/v1.5.1 worker 时要固定 discovery schema 与 worker capability，滚动升级不能只看进程存活 |
+| 多模态输入 | 对 multimodal input/media 做边界限制 | 超出限制应按拒绝/失败样本计入容量报告；客户端需验证图片、视频和 media URL 的错误分类 |
+| 媒体下载与本地扩散 | ambient HTTP proxy 的媒体获取现在要求显式 `DYN_MM_TRUST_EGRESS_PROXY=1`；本地 SGLang diffusion reference 需要 `DYN_MM_LOCAL_PATH` | 这是升级前必须清点的环境变量变化；未显式配置时，旧的代理媒体路径或本地 diffusion 配置可能直接失败，不能用默认放行假设补救 |
+| 依赖 | ModelExpress 说明更新到 v0.6.0；PyNvVideoCodec 2.2.3、FFmpeg 9.0.1 等依赖修订 | 镜像重建后需记录实际媒体库与 CUDA/driver 组合；独立 ModelExpress v0.7.0 的 CRD/传输能力仍需单独验收 |
+
+因此 v1.5.1 主要是路由恢复、多模态边界与媒体安全默认的 patch 收敛；不能把它写成 Dynamo runtime 与所有后端版本自动兼容，也不能以独立 ModelExpress v0.7.0 的能力反推 Dynamo v1.5.1 已内嵌该版本。
 
 ---
 
@@ -4406,7 +4420,7 @@ python -m dynamo.frontend \
 
 ModelExpress 是 Dynamo 生态里的**模型权重生命周期与冷启动加速组件**。它关注的是模型文件、权重、JIT 编译产物如何更快到达新 worker；KVBM、LMCache、FlexKV、HiCache 关注的是请求运行期间产生的 KV block 如何复用、迁移和分层存储。两者都能降低延迟或扩容成本，但服务的对象完全不同。
 
-本节固定到 ModelExpress 独立稳定版 `v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3`。v0.5.0 把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；v0.5.1 回补 TensorRT-LLM 一等集成并兼容 protobuf 6 runtime；v0.6.0 再把 RL post-training 的 reshard-refit、Prometheus 基础、S3 provider、Helm/CRD/RBAC 和异构 CUDA/XPU source 纳入正式 Release。它不是 Dynamo v1.4.2 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
+本节固定到 ModelExpress 独立稳定版 `v0.7.0@ac6d03a87a550c8188c3ed59f187b90d4f0554f5`。v0.5.0 把任意 artifact/JIT cache transfer、accelerator backend 与 XPU、版本化 source discovery、rendezvous hashing、stale-source 处理和 engine-health-gated publication 纳入稳定版；v0.5.1 回补 TensorRT-LLM 一等集成并兼容 protobuf 6 runtime；v0.6.0 再把 RL post-training 的 reshard-refit、Prometheus 基础、S3 provider、Helm/CRD/RBAC 和异构 CUDA/XPU source 纳入正式 Release；v0.7.0 增加不可变 S3 checkpoint/delta refit、P2P-first active refit/cold start、MoE trainer-only update、拓扑/带宽/PCI affinity source selection，以及监控与 vLLM transfer engine 集成。它不是 Dynamo 的内嵌组件或强制依赖。组合部署仍需分别固定并验证 Dynamo runtime image 与 ModelExpress image/plugin，不能仅凭两个项目各自最新就推断兼容。
 
 ##### 3.11.9.1 v0.6.0 稳定增量与升级边界 {#dynamo-v0-6-0-稳定增量与升级边界}
 
@@ -4652,6 +4666,20 @@ ModelExpress 与 KV cache 系统可以叠加：
 
 如果系统瓶颈是“新 pod 启动几十分钟才 ready”，优先评估 ModelExpress。如果瓶颈是“ready 后长上下文 prefill 太贵或多轮会话重复计算”，优先评估 KV-aware routing 与 KV cache/offloading。两类优化不要互相替代。
 
+##### 3.11.9.11 v0.7.0 稳定增量与升级边界 {#dynamo-v0-7-0-稳定增量与升级边界}
+
+`v0.7.0@ac6d03a87a550c8188c3ed59f187b90d4f0554f5` 的核心变化是把模型 refit、来源选择和可观测性进一步收敛到生产运维路径：
+
+| 领域 | v0.7.0 行为 | 操作边界 |
+|------|-------------|----------|
+| checkpoint/refit | 支持不可变 S3 checkpoint 与 delta refit；active refit/cold start 优先使用 P2P 路径 | 对象版本、delta 顺序和最终权重 digest 仍需纳入发布验收；P2P 可用不等于跨拓扑/跨 ABI 自动兼容 |
+| trainer 更新 | 支持 MoE trainer-only updates | 仅更新 trainer 允许的权重切片，不能把它当作任意在线全量更新；要固定模型结构、slice layout 与 engine adapter |
+| source selection | 按拓扑、带宽和 PCI affinity 选择 source | 选择结果依赖集群拓扑与运行时发现，容量测试和故障演练需保存实际 source、链路和 fallback |
+| 监控与部署 | 增加 PodMonitor、告警和 Grafana 资产；CRD 从 Rust 生成 | 安装/升级时需审查 CRD diff、RBAC 和监控标签；监控资源不等于已接入组织的告警路由 |
+| engine 集成 | vLLM transfer engine 纳入集成 | 仍要按 vLLM、CUDA、NIXL/传输后端和 checkpoint layout 做组合矩阵，不能因“集成”字样跳过端到端 refit 正确性检查 |
+
+v0.7.0 是 ModelExpress 自身的稳定 release；Dynamo v1.5.1 release 说明仍引用 ModelExpress v0.6.0，故本文不把两者标成已验证的整套兼容组合。
+
 ---
 
 ### 3.12 实践建议 {#dynamo-实践建议}
@@ -4777,12 +4805,14 @@ helm install dynamo-platform \
 |------|------|
 | GitHub 仓库 | <https://github.com/ai-dynamo/dynamo> |
 | 官方文档 | <https://docs.nvidia.com/dynamo/> |
-| v1.5.0 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.5.0> |
-| v1.5.0 exact source | <https://github.com/ai-dynamo/dynamo/tree/b83b1d9304ebfc624709ac46db32b1b6f1ff1615> |
+| v1.5.1 Release | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.5.1> |
+| v1.5.1 exact source | <https://github.com/ai-dynamo/dynamo/tree/2093662a4d4e5fd318732935213dde08dc7be818> |
+| v1.5.0 Release（历史基线） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.5.0> |
+| v1.5.0 exact source（历史基线） | <https://github.com/ai-dynamo/dynamo/tree/b83b1d9304ebfc624709ac46db32b1b6f1ff1615> |
 | v1.4.2 Release（补丁层） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.2> |
 | v1.4.1 Release（classify/pooling 与修复层） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.1> |
 | v1.4.0 Release（架构增量与继承边界） | <https://github.com/ai-dynamo/dynamo/releases/tag/v1.4.0> |
-| README | <https://github.com/ai-dynamo/dynamo/blob/b83b1d9304ebfc624709ac46db32b1b6f1ff1615/README.md> |
+| README | <https://github.com/ai-dynamo/dynamo/blob/2093662a4d4e5fd318732935213dde08dc7be818/README.md> |
 | Overall Architecture | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/architecture-flow.md> |
 | Disaggregated Serving | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/disaggregated-serving.md> |
 | Router Design | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/router/router-design.md> |
@@ -4796,17 +4826,17 @@ helm install dynamo-platform \
 | SGLang HiCache | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/modular-components/backends/sglang/hicache.md> |
 | SGLang HiCache Design | <https://docs.sglang.ai/advanced_features/hicache_design.html> |
 | ModelExpress GitHub | <https://github.com/ai-dynamo/modelexpress> |
-| ModelExpress v0.6.0 Release | <https://github.com/ai-dynamo/modelexpress/releases/tag/v0.6.0> |
-| ModelExpress v0.6.0 源码快照 | <https://github.com/ai-dynamo/modelexpress/tree/e91f650aa6a1847959e7f7da1b39c19e16b312e3> |
-| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/ARCHITECTURE.md> |
-| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/DEPLOYMENT.md> |
-| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/metadata.md> |
-| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/K8S_SERVICE_BACKEND.md> |
-| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/SGLANG.md> |
-| ModelExpress TensorRT-LLM client | <https://github.com/ai-dynamo/modelexpress/tree/e91f650aa6a1847959e7f7da1b39c19e16b312e3/modelexpress_client/python/modelexpress/engines/trtllm> |
-| ModelExpress RL refit | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/modelexpress_client/python/modelexpress/refit/README.md> |
-| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/examples/dynamo_model_cache_k8s/README.md> |
-| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/examples/dynamo_p2p_transfer_k8s/README.md> |
+| ModelExpress v0.7.0 Release | <https://github.com/ai-dynamo/modelexpress/releases/tag/v0.7.0> |
+| ModelExpress v0.7.0 源码快照 | <https://github.com/ai-dynamo/modelexpress/tree/ac6d03a87a550c8188c3ed59f187b90d4f0554f5> |
+| ModelExpress Architecture | <https://github.com/ai-dynamo/modelexpress/blob/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/docs/ARCHITECTURE.md> |
+| ModelExpress Deployment | <https://github.com/ai-dynamo/modelexpress/blob/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/docs/DEPLOYMENT.md> |
+| ModelExpress Metadata | <https://github.com/ai-dynamo/modelexpress/blob/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/docs/metadata.md> |
+| ModelExpress K8s Service Backend | <https://github.com/ai-dynamo/modelexpress/blob/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/docs/K8S_SERVICE_BACKEND.md> |
+| ModelExpress SGLang | <https://github.com/ai-dynamo/modelexpress/blob/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/docs/SGLANG.md> |
+| ModelExpress TensorRT-LLM client | <https://github.com/ai-dynamo/modelexpress/tree/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/modelexpress_client/python/modelexpress/engines/trtllm> |
+| ModelExpress RL refit | <https://github.com/ai-dynamo/modelexpress/blob/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/modelexpress_client/python/modelexpress/refit/README.md> |
+| Dynamo Model Cache with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/examples/dynamo_model_cache_k8s/README.md> |
+| Dynamo P2P Transfer with ModelExpress | <https://github.com/ai-dynamo/modelexpress/blob/ac6d03a87a550c8188c3ed59f187b90d4f0554f5/examples/dynamo_p2p_transfer_k8s/README.md> |
 | Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/kubernetes/kubernetes-operator/dynamo-operator.md> |
 | Kubernetes Installation | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/kubernetes/installation> |
 | Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac#quick-start> |
@@ -4819,9 +4849,11 @@ helm install dynamo-platform \
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.13.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.20@94602c9c2b7cbdb8efd5c52802dac6a1c180089e`、LLMPerf `v2.0`、ollama-benchmark `v0.5.4`、vLLM `v0.30.0`、EvalScope `v1.12.0`；审校日期：2026-09-26。
+> 稳定版本基线：AIPerf `v0.13.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.21@e00930c5489053f26d86b179cee0d087f846acbb`、LLMPerf `v2.0`、ollama-benchmark `v0.5.4`、vLLM `v0.31.0@db9527a46873454610df6dbedf79a36d6bf1a7f6`、EvalScope `v1.13.0@498027686e6e3cf4eb32405a3fd21c65ff9237f1`；审校日期：2026-10-13。
 
-> vLLM `v0.30.1rc0` 是 prerelease，不替代本文 `v0.30.0` 稳定基线；RC 结果只能作为候选升级验证，不能与正式版容量数据混为同一序列。
+> vLLM `v0.30.1rc0` 是历史 prerelease，不替代当时的 `v0.30.0` 稳定基线；当前稳定压测基线已更新为 `v0.31.0`，历史 RC 结果仍不能与正式版容量数据混为同一序列。
+
+> AIPerf 截至本审校日仍以 `v0.13.0` 为最新稳定 release；Mooncake `v0.3.14-rc1` 同样只作为 RC 证据，不替代其 `v0.3.13.post1` 稳定基线。
 
 ---
 
@@ -5552,6 +5584,19 @@ SGLang `v0.5.20` 是 annotated tag，正文使用解引用后的 source commit `
 4. **调度与采样**：`hrrn`、sampling mask 容量与 Gumbel-max sampler 都会改变延迟分布；切换前先用默认策略跑对照。
 5. **缓存与依赖**：`SGLANG_CACHE_DIR` 按新依赖栈（sgl-kernel 0.4.7、FlashInfer 0.6.18）重建，首次运行单独记录编译时间。
 
+#### 4.6.11 v0.5.21 服务能力与压测边界 {#benchmark-9-11-v0-5-21-服务能力与压测边界}
+
+SGLang `v0.5.21` 是 annotated tag，正文使用解引用后的 source commit `e00930c5489053f26d86b179cee0d087f846acbb`（tag object `7337b278` 仅作类型证据）。该 release 是当前稳定压测基线，不能与前一版报告不加说明地拼接：
+
+| 领域 | v0.5.21 稳定变化 | 压测/运维影响 |
+|------|------------------|----------------|
+| 模型与运行时 | 增加一批新模型支持，并增强 PD instance role switching | 模型/backend/PD 角色组合要单独记录；角色切换时的 warmup、连接和 cache 状态不能混入普通 steady-state |
+| Prefix cache | Rust prefix cache 成为默认路径 | 默认缓存实现变化会影响 TTFT、命中率和 CPU 开销；跨 v0.5.20 比较必须固定 cache backend、冷/热状态和命名空间 |
+| API | 增加 `/v1/decisions` 与 `/v1/score` | 这些 endpoint 不是标准生成接口；客户端、鉴权、错误码和吞吐口径需单独验收，不能将其结果计入 chat completion 吞吐 |
+| 依赖/安装 | 提供对应 release 安装路径及 CUDA 13 组合 | 镜像、CUDA/driver、编译缓存和 kernel 版本应写入 manifest；旧 wheel 或缓存不可直接视为可复用 |
+
+升级动作：先对 prefix cache 命中/未命中、PD role switch、`/v1/decisions`/`/v1/score` 和已有 OpenAI-compatible endpoint 做 smoke test，再重建 TTFT、ITL、TPOT、goodput 曲线；本节不把 release 中新增模型的性能宣传数字当成本地承诺。
+
 ---
 
 ### 4.7 LLMPerf {#benchmark-llmperf}
@@ -5659,7 +5704,7 @@ llm_benchmark run --custombenchmark=path/to/custombenchmarkmodels.yml
 
 #### 4.9.1 定位 {#benchmark-12-1-定位}
 
-vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。本文固定到 `v0.30.0@ced6857afa0ea7b2e3f0846a62e1394e90f15607`；该 lightweight tag 直接指向所列 commit。默认 benchmark 仍通过 Python CLI 使用：
+vLLM 的 `benchmarks/` 目录是 vLLM 自带的性能测试工具集合。本文固定到 `v0.31.0@db9527a46873454610df6dbedf79a36d6bf1a7f6`；该 lightweight tag 直接指向所列 commit。默认 benchmark 仍通过 Python CLI 使用：
 
 ```bash
 vllm bench serve
@@ -5795,6 +5840,18 @@ v0.30.0 的 benchmark 入口（`vllm bench serve/latency/throughput`）不变，
 
 指标定义（TTFT、ITL、TPOT、goodput、到达率）不变，但 Fast Start、HiSparse 与 MRV2 扩展让“相同参数”下的服务端工作点与前版不同；跨版本比较必须在 manifest 中固定 runner、weight-cache、水印、内存层级与依赖版本。
 
+#### 4.9.7.1 v0.31.0 服务能力与压测边界 {#benchmark-12-7-1-v0-31-0-服务能力与压测边界}
+
+vLLM `v0.31.0@db9527a46873454610df6dbedf79a36d6bf1a7f6` 为 lightweight tag。release 重点落在 DeepSeek-V4.1 Flash/SM100、`vllm preload` 权重缓存 daemon 与 snapshot、MRV2/speculative decoding、大规模 serving 和 scheduler controls；这些能力会改变启动、显存和排队工作点：
+
+| 领域 | v0.31.0 稳定变化 | 压测/升级影响 |
+|------|------------------|----------------|
+| 权重缓存 | `vllm preload` 与权重缓存 daemon/snapshot 路径增强 | 必须区分冷启动、缓存命中和 snapshot 恢复；warm start 不能作为通用模型加载性能 |
+| runner/spec decode | MRV2 与 speculative decoding、DeepSeek-V4.1 Flash/SM100 路径更新 | 记录实际 runner、speculative 配置、GPU 架构和模型版本；不能把新模型结果直接与旧模型横比 |
+| 大规模 serving | 增强大规模部署路径和调度控制（含 active sequence 等限制） | admission/排队边界会改变，报告需同时保留 accepted、rejected、failed 和尾延迟 |
+
+从 v0.30.0 升级时，应重新验证启动参数、权重缓存、MRV2 fallback、speculative decode、scheduler limit 和多模态模型路径；release 新能力不自动改变本文公共指标定义。
+
 #### 4.9.8 适用场景与限制 {#benchmark-12-8-适用场景与限制}
 
 | 类型 | 说明 |
@@ -5893,6 +5950,19 @@ HTML 报告还同步 console theme，并避免在未配置 visualizer 时为每�
 | Agent trace | Bridge 保留原模型输出、reasoning、性能指标和上游失败；带 token usage 的 trace 不再让 Predictions API 返回 500 | 修复前缺失/失败样本可能被系统性排除，成功率和延迟分布都会变化 |
 
 因此 v1.12.0、GuideLLM v0.7.4 与 inference-perf v0.7.0 都涉及“哪些 token、请求或 session 进入统计”的变化。跨工具对比必须先对齐 token source、warmup/cooldown、reasoning 首输出、重试和失败样本，旧结果不能仅按列名相同直接合并。
+
+#### 4.10.6.1 v1.13.0 评测覆盖与迁移边界 {#benchmark-13-6-1-v1-13-0-评测覆盖与迁移边界}
+
+`v1.13.0@498027686e6e3cf4eb32405a3fd21c65ff9237f1` 是 annotated tag（tag object `c4a2de7d`）。该版本新增 MT-Bench、Terminal-Bench 4.0、decision benchmarks、System One Choice、Math-Verify，以及 lazy benchmark loading、缓存优化、多模态/多轮/SLA 路径改进和多项 score/metric 修复。
+
+| 领域 | v1.13.0 变化 | 评测影响 |
+|------|--------------|----------|
+| benchmark 覆盖 | 增加 MT-Bench、Terminal-Bench 4.0、decision、System One Choice、Math-Verify | benchmark 名称、数据集版本和 scoring 配置必须写入结果元数据；不能把不同版本同名任务当作同一序列 |
+| 运行效率 | lazy benchmark loading 与 cache 改进 | 首次加载与热缓存要分开测量；缓存目录应按版本/依赖隔离 |
+| 多模态/多轮/SLA | 改进 multimodal、多轮和 SLA 评测路径 | 需固定 turn、媒体输入、timeout、warmup、重试和失败样本口径 |
+| 分数与报告 | 修正多项 score/metric 与报告行为 | v1.12.0 及更早结果不能直接复用为 v1.13.0 的评测结论，升级后应重跑关键基准 |
+
+升级动作：先验证已有任务的 dataset/metric schema 和 report parser，再补跑新 benchmark；官方升级说明已明确版本变化会影响旧结果与 review 的直接复用。
 
 #### 4.10.7 典型命令 {#benchmark-13-7-典型命令}
 
@@ -6115,11 +6185,11 @@ python3 -m sglang.benchmark.serving \
 | GuideLLM | `v0.7.4` | `291a6e609c3eb52d6eadcedecc7a056e396cd5eb` |
 | inference-perf | `v0.7.0` | `5804ea6b7ebd2bfceff29cf113311ed3af95146e` |
 | genai-bench | `v0.0.5` | `4f873e03719c947a101647c6646954d5ebc3d35b` |
-| SGLang Bench | `v0.5.20` | `94602c9c2b7cbdb8efd5c52802dac6a1c180089e` |
+| SGLang Bench | `v0.5.21` | `e00930c5489053f26d86b179cee0d087f846acbb` |
 | LLMPerf | `v2.0` | `1eac866f91773bff401f96e74c1cf20c38778329` |
 | ollama-benchmark | `v0.5.4` | `9e441efe48756928e453ff26694d6e5af1a9c71d` |
-| vLLM Bench | `v0.30.0` | `ced6857afa0ea7b2e3f0846a62e1394e90f15607` |
-| EvalScope | `v1.12.0` | `f09e55de5d5f0a0953cd90aa7b0382b45859c4f5` |
+| vLLM Bench | `v0.31.0` | `db9527a46873454610df6dbedf79a36d6bf1a7f6` |
+| EvalScope | `v1.13.0` | `498027686e6e3cf4eb32405a3fd21c65ff9237f1` |
 
 #### 4.12.2 关键参考 {#benchmark-a-2-关键参考}
 
@@ -6148,6 +6218,9 @@ python3 -m sglang.benchmark.serving \
 | genai-bench Metrics | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/getting-started/metrics-definition.md> |
 | genai-bench Scenario | <https://github.com/sgl-project/genai-bench/blob/v0.0.5/docs/user-guide/scenario-definition.md> |
 | SGLang v0.5.20 Release | <https://github.com/sgl-project/sglang/releases/tag/v0.5.20> |
+| SGLang v0.5.21 Release | <https://github.com/sgl-project/sglang/releases/tag/v0.5.21> |
+| SGLang v0.5.21 Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/e00930c5489053f26d86b179cee0d087f846acbb/docs/docs/developer_guide/bench_serving.mdx> |
+| SGLang v0.5.21 benchmark serving source | <https://github.com/sgl-project/sglang/blob/e00930c5489053f26d86b179cee0d087f846acbb/python/sglang/benchmark/serving.py> |
 | SGLang Bench Serving Guide | <https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/docs/docs/developer_guide/bench_serving.mdx> |
 | SGLang deprecated entry wrapper | <https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/python/sglang/bench_serving.py> |
 | SGLang benchmark serving source | <https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/python/sglang/benchmark/serving.py> |
@@ -6155,15 +6228,17 @@ python3 -m sglang.benchmark.serving \
 | ollama-benchmark v0.5.4 Release | <https://github.com/aidatatools/ollama-benchmark/releases/tag/v0.5.4> |
 | ollama-benchmark README | <https://github.com/aidatatools/ollama-benchmark/blob/v0.5.4/README.md> |
 | vLLM v0.30.0 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.30.0> |
-| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/ced6857afa0ea7b2e3f0846a62e1394e90f15607/benchmarks> |
-| vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/ced6857afa0ea7b2e3f0846a62e1394e90f15607/docs/benchmarking/cli.md> |
-| vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/ced6857afa0ea7b2e3f0846a62e1394e90f15607/rust/src/bench/README.md> |
+| vLLM v0.31.0 Release | <https://github.com/vllm-project/vllm/releases/tag/v0.31.0> |
+| vLLM benchmarks | <https://github.com/vllm-project/vllm/tree/db9527a46873454610df6dbedf79a36d6bf1a7f6/benchmarks> |
+| vLLM Python Benchmark CLI | <https://github.com/vllm-project/vllm/blob/db9527a46873454610df6dbedf79a36d6bf1a7f6/docs/benchmarking/cli.md> |
+| vLLM Rust benchmark README | <https://github.com/vllm-project/vllm/blob/db9527a46873454610df6dbedf79a36d6bf1a7f6/rust/src/bench/README.md> |
 | EvalScope v1.12.0 Release | <https://github.com/modelscope/evalscope/releases/tag/v1.12.0> |
-| EvalScope README | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/README_zh.md> |
-| EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/quick_start.md> |
-| EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/parameters.md> |
-| EvalScope Examples | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/examples.md> |
-| EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
+| EvalScope v1.13.0 Release | <https://github.com/modelscope/evalscope/releases/tag/v1.13.0> |
+| EvalScope README | <https://github.com/modelscope/evalscope/blob/498027686e6e3cf4eb32405a3fd21c65ff9237f1/README_zh.md> |
+| EvalScope Stress Test Quick Start | <https://github.com/modelscope/evalscope/blob/498027686e6e3cf4eb32405a3fd21c65ff9237f1/docs/zh/user_guides/stress_test/quick_start.md> |
+| EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/498027686e6e3cf4eb32405a3fd21c65ff9237f1/docs/zh/user_guides/stress_test/parameters.md> |
+| EvalScope Examples | <https://github.com/modelscope/evalscope/blob/498027686e6e3cf4eb32405a3fd21c65ff9237f1/docs/zh/user_guides/stress_test/examples.md> |
+| EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/498027686e6e3cf4eb32405a3fd21c65ff9237f1/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
 
 ## 第5篇：组合架构与选型 {#inference-selection}
 
