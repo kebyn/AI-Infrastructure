@@ -10,11 +10,12 @@ class RenderDocLayoutTest(unittest.TestCase):
     def test_all_deep_dives_are_registered_and_use_current_audit_date(self):
         docs_dir = Path(__file__).resolve().parent
         markdown_docs = {path.name for path in docs_dir.glob("*-Deep-Dive.md")}
-        registered_docs = {Path(doc["src"]).name for doc in serve_docs.DOCS}
+        deep_dive_docs = [doc for doc in serve_docs.DOCS if doc.get("type") != "timeline"]
+        registered_docs = {Path(doc["src"]).name for doc in deep_dive_docs}
 
         self.assertEqual(len(markdown_docs), 15)
         self.assertEqual(registered_docs, markdown_docs)
-        for doc in serve_docs.DOCS:
+        for doc in deep_dive_docs:
             with self.subTest(document=Path(doc["src"]).name):
                 self.assertIn("2026-09-26", doc["meta"])
                 self.assertNotIn("2026-09-17", doc["meta"])
@@ -26,6 +27,178 @@ class RenderDocLayoutTest(unittest.TestCase):
                 self.assertNotIn("审校日期：2026-09-17", markdown_text)
                 self.assertNotIn("审校日期：2026-09-06", markdown_text)
                 self.assertNotIn("审校日期：2026-08-22", markdown_text)
+
+    def test_model_release_timeline_is_registered_with_its_own_page_metadata(self):
+        docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
+
+        self.assertIn("model_release_timeline.md", docs_by_src)
+        doc = docs_by_src["model_release_timeline.md"]
+        self.assertEqual(doc["type"], "timeline")
+        self.assertEqual(Path(doc["dst"]).name, "model_release_timeline.html")
+        self.assertEqual(doc["href"], "/model_release_timeline.html")
+        self.assertEqual(doc["title"], "模型发布时间时间线")
+        self.assertEqual(doc["hero"], "模型发布时间时间线")
+        self.assertIn("2026-10-13", doc["meta"])
+        self.assertIn("筛选", doc["summary"])
+        self.assertIn("导出", doc["summary"])
+        self.assertIn("model_release_timeline.md", doc["footer"])
+
+    def test_render_index_includes_model_release_timeline(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            original_index = serve_docs.INDEX
+            serve_docs.INDEX = str(Path(tmpdir) / "index.html")
+            try:
+                serve_docs.render_index()
+                html = Path(serve_docs.INDEX).read_text(encoding="utf-8")
+            finally:
+                serve_docs.INDEX = original_index
+
+        self.assertIn("模型发布时间时间线", html)
+        self.assertIn('/model_release_timeline.html', html)
+        self.assertIn("2026-10-13", html)
+
+    def test_timeline_source_has_117_rows_and_rendered_rows_have_filter_metadata(self):
+        source = Path(__file__).resolve().parent / "model_release_timeline.md"
+        source_rows = re.findall(r"^\| 20", source.read_text(encoding="utf-8"), re.M)
+        self.assertEqual(len(source_rows), 117)
+
+        doc = next(doc for doc in serve_docs.DOCS if doc.get("type") == "timeline")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc, dst=str(Path(tmpdir) / "timeline.html"))
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        rendered_rows = re.findall(
+            r'<tr data-year="([^"]+)" data-supplier="([^"]+)" '
+            r'data-multimodal="(yes|no)" data-open-source="(yes|no)">',
+            html,
+        )
+        self.assertEqual(len(rendered_rows), 117)
+        self.assertEqual(
+            {row[0] for row in rendered_rows},
+            {"2022", "2023", "2024", "2025", "2026"},
+        )
+        self.assertEqual(
+            {row[1] for row in rendered_rows},
+            {
+                "DeepSeek",
+                "Moonshot / Kimi",
+                "Alibaba / Qwen",
+                "智谱 / GLM",
+                "Xiaomi / MiMo",
+                "腾讯混元",
+                "OpenAI",
+                "Anthropic",
+                "Google",
+            },
+        )
+        self.assertIn(
+            ('2024', 'OpenAI', 'yes', 'no'),
+            rendered_rows,
+        )
+        self.assertIn(
+            ('2023', 'Alibaba / Qwen', 'yes', 'yes'),
+            rendered_rows,
+        )
+
+    def test_timeline_controls_restore_and_combine_filters(self):
+        doc = next(doc for doc in serve_docs.DOCS if doc.get("type") == "timeline")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc, dst=str(Path(tmpdir) / "timeline.html"))
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        for control in (
+            'id="timeline-controls"',
+            'name="supplier"',
+            'name="year"',
+            'id="timeline-multimodal-filter"',
+            'id="timeline-open-source-filter"',
+            'id="timeline-clear-filters"',
+            'id="timeline-result-count"',
+            '当前筛选没有匹配记录',
+        ):
+            with self.subTest(control=control):
+                self.assertIn(control, html)
+
+        for script_contract in (
+            "new URLSearchParams(window.location.search)",
+            "url.searchParams.set(filterName, state[filterName].join(','))",
+            "window.history.replaceState",
+            "state.supplier.length && !state.supplier.includes(record.supplier)",
+            "state.year.length && !state.year.includes(record.year)",
+            "state.multimodal && (record.multimodal ? 'yes' : 'no')",
+            "state.open_source && (record.open_source ? 'yes' : 'no')",
+            "const visible = visibleRecords()",
+            "record._row.hidden = !visibleRows.has(record)",
+        ):
+            with self.subTest(script_contract=script_contract):
+                self.assertIn(script_contract, html)
+
+    def test_timeline_exports_preserve_schema_links_and_empty_state_contract(self):
+        doc = next(doc for doc in serve_docs.DOCS if doc.get("type") == "timeline")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rendered_doc = dict(doc, dst=str(Path(tmpdir) / "timeline.html"))
+            serve_docs.render_doc(rendered_doc)
+            html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
+
+        for button in (
+            'id="timeline-export-csv"',
+            'id="timeline-export-json"',
+            'id="timeline-export-markdown"',
+        ):
+            self.assertIn(button, html)
+        for field in (
+            "release_date",
+            "supplier",
+            "model",
+            "type",
+            "release_form",
+            "features",
+            "lineage",
+            "official_source",
+            "notes",
+            "year",
+            "multimodal",
+            "open_source",
+        ):
+            with self.subTest(field=field):
+                self.assertIn(field, html)
+        for export_contract in (
+            "\\ufeff",
+            '''replaceAll('"', '""')''',
+            "model-release-timeline-filtered.csv",
+            "model-release-timeline-filtered.json",
+            "model-release-timeline-filtered.md",
+            "JSON.stringify(records.map(toExportRecord), null, 2)",
+            "当前筛选没有匹配记录。",
+            "key === 'official_source' ? record[key] : markdownCell(record[key])",
+        ):
+            with self.subTest(export_contract=export_contract):
+                self.assertIn(export_contract, html)
+
+    def test_timeline_metadata_detection_handles_month_only_and_open_semantics(self):
+        cells = [
+            "2023-09（官方回顾）",
+            "Example / Model",
+            "Vision Model",
+            "多模态、视觉",
+            "研究发布、开放权重",
+            "支持 Apache-2.0 和图像理解",
+            "A → B",
+            '<a href="https://example.com">官方公告</a>',
+            "官方只提供月份。",
+        ]
+
+        self.assertEqual(
+            serve_docs._timeline_row_metadata(cells),
+            {
+                "year": "2023",
+                "supplier": "Example / Model",
+                "multimodal": "yes",
+                "open_source": "yes",
+            },
+        )
 
     def test_readme_tracks_current_audit_summary(self):
         readme_text = (Path(__file__).resolve().parent / "README.md").read_text(
