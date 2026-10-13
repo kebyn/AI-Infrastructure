@@ -1828,7 +1828,7 @@ Mooncake Store 把 object key 当作 opaque string；它不会检查两个 key �
 |------|---------|---------|
 | `random`（默认） | 稳定集群，追求最大吞吐 | 随机选择 Segment，100 次迭代上限 |
 | `free_ratio_first` | 动态扩缩容，均衡利用 | "Best-of-N"：采样候选→按自由比排序→优先选择更空闲的 |
-| `ssd_free_ratio_first` | SSD 卸载感知 | 按 SSD 自由比排序（详见第六章） |
+| `ssd_free_ratio_first` | SSD 卸载感知 | 按 SSD 自由比排序（详见[2.6 SSD 自由比优先分配](#mooncake-ssd-自由比优先分配)） |
 | `local_first` | Worker 与存储同城部署 | 优先写入者同主机 Segment，循环 host-id 排序 |
 | `cxl` | CXL 内存硬件 | 仅从指定 CXL Segment 分配，单副本 |
 
@@ -2093,7 +2093,7 @@ C++ 集成测试：`build/mooncake-store/tests/client_integration_test`
 
 ### 2.6 SSD 自由比优先分配 {#mooncake-ssd-自由比优先分配}
 
-> 本章是第五章的深入扩展，专门分析混合存储场景下分配策略的设计。
+> 本章是[2.5 Mooncake Store — 分布式 KV 缓存存储引擎](#mooncake-mooncake-store--分布式-kv-缓存存储引擎)的深入扩展，专门分析混合存储场景下分配策略的设计。
 
 #### 2.6.1 问题：DDR-only 策略对 SSD 的盲区 {#mooncake-6-1-问题ddr-only-策略对-ssd-的盲区}
 
@@ -3139,7 +3139,7 @@ v1.4.2 的 runtime 矩阵仍固定 SGLang `v0.5.16`、TensorRT-LLM `v1.3.0rc22`�
 | Frontend 协议 | guided tool calls 默认增量流式（`DYN_ENABLE_GUIDED_TOOL_STREAMING=0` 可退回）；Qwen3 进入 v2 unified tool-call parser；Kimi K3 原生处理；tokenizer 后端可插拔（如 `--tokenizer basetenkenizer`）；可选启用 SGLang 原生 `/generate` 直通 | 流式 chunk 形态与旧客户端不逐字节兼容；tokenizer 后端切换会改变计数口径 |
 | Kubernetes | CRD storage version 升至 `nvidia.com/v1beta1`（v1alpha1 admission webhook 端点移除）；Rust EPP 成为默认且随 Frontend 镜像分发，Go EPP 移除、`eppConfig` deprecated；Snapshot standalone operator v0.1.0（`PodSnapshot`/`PodSnapshotContent`），`DynamoCheckpoint` CRD 移除、`checkpointRef` 改指 `PodSnapshot` | 自定义 webhook 配置必须改指 v1beta1 路径；升级 operator 前需先装 Snapshot chart；EPP 迁移要按 Rust EPP 契约重写 manifest |
 | 工具链 | `AIConfigurator` 更名 `AISimulate`：`python -m dynamo.replay` CLI 无 shim 移除，迁往 `aisimulate predict --stack dynamo --config <file>`；Replay 返回单一 `ReplayReport`，`--report-jsonl` 更名 `--per-request-jsonl` 且 per-request capture 改为 opt-in | 依赖旧 replay/AIConfigurator 的流水线会硬失败；报告消费方要按新 schema 迁移 |
-| KVBM | 重申 deprecated，官方目标 v1.6.0 移除；KVCR 尚处早期、明确不替代 KVBM | 仍按第五章边界执行退出计划，不得新增 KVBM 依赖 |
+| KVBM | 重申 deprecated，官方目标 v1.6.0 移除；KVCR 尚处早期、明确不替代 KVBM | 仍按[3.5 Dynamo 的缓存管理](#dynamo-dynamo-的缓存管理)边界执行退出计划，不得新增 KVBM 依赖 |
 | 默认值变化 | liveness probe `failureThreshold` 1→3（runtime ≥1.5.0）；embedding tokenization 移到 worker 并默认加 special token（`DYN_EMBEDDING_TOKENIZATION_ADD_SPECIAL_TOKENS=false` 退出）；over-context 请求改为 pre-stream 非 200 拒绝；worker canary 健康检查默认开启（`DYN_HEALTH_CHECK_ENABLED=false` 退出）；`DYN_USE_KV_EVENTS` 更名 `DYN_ROUTER_USE_KV_EVENTS`（保留别名） | 每项默认值翻转都可能改变既有基线；升级清单应逐项记录 opt-out 决策 |
 | runtime 矩阵 | SGLang `v0.5.18`（CUDA 13.0）、TensorRT-LLM `v1.3.0rc25`（CUDA 13.1）、vLLM `v0.28.0`（CUDA 13.0）；NIXL SGLang `v1.4.0`、TensorRT-LLM `v1.3.1`、vLLM `v1.3.2`；UCX `v1.21.0` | 矩阵只描述官方镜像组合；自组环境必须自行验证 backend 与 NIXL 版本匹配 |
 
@@ -5522,7 +5522,7 @@ SGLang `v0.5.19` 在 serving、kernel、缓存和 Rust server 路径上有一组
 5. **组合限制**：beam search 会改变 KV/cache 和调度压力；disaggregation、DP attention、HiCache/L3、speculative decoding 及多模态 processor 组合可能受模型/backend 限制。若服务端拒绝组合，应记录为 capability matrix 的“不支持”，不能回退到另一组合后继续声称同一 workload。
 6. **横向可比性**：新模型、多模态 processor、L3 状态、不同 GPU 架构和新 kernel 不能与旧文本基准直接横比。跨版本比较必须固定 tokenizer、输入/输出长度分布、sampling、streaming、warmup、cache 状态、硬件和依赖 lockfile。
 
-这些变化提升了 SGLang 的服务覆盖和优化空间，但没有自动改变 TTFT、ITL、TPOT、accept length、goodput 或 open-loop 到达率的定义；指标仍按第二章口径计算，并在结果中区分 client-observed 与 server-reported latency。
+这些变化提升了 SGLang 的服务覆盖和优化空间，但没有自动改变 TTFT、ITL、TPOT、accept length、goodput 或 open-loop 到达率的定义；指标仍按[1.3 核心指标与口径](#benchmark-核心指标与口径)口径计算，并在结果中区分 client-observed 与 server-reported latency。
 
 #### 4.6.10 v0.5.20 服务能力与压测边界 {#benchmark-9-10-v0-5-20-服务能力与压测边界}
 
@@ -6173,7 +6173,7 @@ python3 -m sglang.benchmark.serving \
 | 单机模型服务 | vLLM / SGLang | 固定模型、CUDA lane、runner、缓存状态及 token 口径 |
 | 多节点缓存复用与数据移动 | Mooncake Store / Transfer Engine | 租户对象、DFS 生命周期、SSD / NVMe-oF 成熟度 |
 | 多 worker 编排和独立 P/D 扩缩 | Dynamo Router / Planner / Operator | 后端版本、NIXL、路由事件与稳定版 CRD |
-| Kubernetes 上多角色推理 | 推理编排与平台调度组合 | [平台职责](Kubernetes-AI-Schedulers-Deep-Dive.md)，最终 Bind 与设备所有权唯一 |
+| Kubernetes 上多角色推理 | 推理编排与平台调度组合 | [平台职责](Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers)，最终 Bind 与设备所有权唯一 |
 | 生产容量与 SLO | 本文压测工具 | open-loop、失败计数、goodput 与重放基线 |
 
 缓存 backend 的详细比较见[Dynamo 四种路径对比](#dynamo-11-8-四种路径对比与选型)，文件系统底座见[AI 存储](Lustre-3FS-Deep-Dive.md)。

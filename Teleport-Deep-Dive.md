@@ -1043,7 +1043,7 @@ Teleport 仍是本文的主基线，因为它同时覆盖用户/机器身份、�
 
 ### 13.8 与本仓库其他主题的组合
 
-- Teleport 可以统一进入 Kubernetes 集群，但 [Kubernetes-Native-Scheduler-Deep-Dive.md](Kubernetes-Native-Scheduler-Deep-Dive.md) 和各 AI scheduler 仍决定工作负载如何调度；
+- Teleport 可以统一进入 Kubernetes 集群，但 [Kubernetes 原生调度](Kubernetes-AI-Platform-Deep-Dive.md#k8s-scheduler) 和各 AI scheduler 仍决定工作负载如何调度；
 - Teleport 可以保护 KServe/Kubeflow 管理 API 和内部 Web UI，但不替 KServe 的流量路由、模型 runtime 或 Kubeflow 多租户控制；
 - Teleport MCP Access 约束 tool 身份和审计，Multica 负责 coding agent 协作编排，二者都不自动提供 Sandbox；
 - Teleport 进入 E2B 管理面不等于 Teleport 提供 Firecracker 隔离，执行安全边界仍应由 E2B/Agent Sandbox 或其他 runtime 提供；

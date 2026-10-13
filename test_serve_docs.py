@@ -465,7 +465,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         deep_dive_docs = [doc for doc in serve_docs.DOCS if doc.get("type") != "timeline"]
         registered_docs = {Path(doc["src"]).name for doc in deep_dive_docs}
 
-        self.assertEqual(len(markdown_docs), 13)
+        self.assertEqual(len(markdown_docs), 6)
         self.assertEqual(registered_docs, markdown_docs)
         for doc in deep_dive_docs:
             with self.subTest(document=Path(doc["src"]).name):
@@ -868,14 +868,14 @@ class RenderDocLayoutTest(unittest.TestCase):
     def test_kubernetes_blog_doc_is_registered_rendered_and_source_backed(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 
-        self.assertIn("Kubernetes-Blog-Feature-Deep-Dive.md", docs_by_src)
-        doc = docs_by_src["Kubernetes-Blog-Feature-Deep-Dive.md"]
+        self.assertIn("Kubernetes-AI-Platform-Deep-Dive.md", docs_by_src)
+        doc = docs_by_src["Kubernetes-AI-Platform-Deep-Dive.md"]
         self.assertEqual(
-            doc["title"], "Kubernetes Blog 新特性深度综述"
+            doc["title"], "Kubernetes AI 平台深度文档"
         )
         self.assertEqual(
-            doc["meta"],
-            "Kubernetes v1.36/v1.37 · Kubernetes Blog RSS · 2026-09-26",
+            doc["category"],
+            "Kubernetes 平台",
         )
         for summary_term in (
             "Workload/Gang",
@@ -891,7 +891,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "Stable/Beta/Alpha",
         ):
             with self.subTest(summary_term=summary_term):
-                self.assertIn(summary_term, doc["summary"])
+                self.assertIn(summary_term, Path(doc["src"]).read_text())
 
         for source_link in (
             "https://kubernetes.io/blog/",
@@ -958,11 +958,11 @@ class RenderDocLayoutTest(unittest.TestCase):
             html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
 
         self.assertIn(
-            '<a class="toc-chapter" href="#第一章rss-范围与证据边界">', html
+            '<a href="#k8s-history-rss-范围与证据边界">', html
         )
         self.assertIn('<div class="mermaid">', html)
         self.assertNotIn('class="language-mermaid"', html)
-        self.assertIn("Kubernetes Blog 新特性深度综述", html)
+        self.assertIn("Kubernetes AI 平台深度文档", html)
         self.assertIn("f78e722310e50bcaca9276be22276d9e91d91308", html)
 
     def test_benchmark_snapshot_uses_current_stable_releases(self):
@@ -1129,10 +1129,10 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "ff8b285497809e084915016c40c2bc5e5991ffbc",
                 "12f8f3f31111564e5e1b9aac3f7f916e8bba4039",
             ),
-            ("NVIDIA-GPU-Operator-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'gpu-operator'): (
                 "dbacf43d4938816fefe62690ab868a640a195282",
             ),
-            ("HAMi-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'hami'): (
                 "4707fb02c91c545bc7343ce26dba4c32919f9a3e",
             ),
             ('AI-Inference-Deep-Dive.md', 'dynamo'): (
@@ -1142,13 +1142,13 @@ class RenderDocLayoutTest(unittest.TestCase):
             ('AI-Inference-Deep-Dive.md', 'mooncake'): (
                 "719735896c86b56fabec6cf3e825fb2ea640597a",
             ),
-            ("Kubernetes-Native-Scheduler-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'k8s-scheduler'): (
                 "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
-            ("Kubernetes-Blog-Feature-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'k8s-history'): (
                 "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
-            ("Kubernetes-AI-Schedulers-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'ai-schedulers'): (
                 "f0e95cea51b5591e0177fbe0fa06a299f36db548",
                 "af2df1ffff0ae7a1135554564a6240a3f22f2c35",
                 "2df9a1ffca535d602d57023074b824606e312797",
@@ -1164,11 +1164,11 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "ced6857afa0ea7b2e3f0846a62e1394e90f15607",
                 "9e441efe48756928e453ff26694d6e5af1a9c71d",
             ),
-            ("KServe-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'kserve'): (
                 "d1482554fc4f66dd41aee70e01f5174e24f265bd",
                 "bb22cc477a6bd317bb2c7e357a85efcab8c7462a",
             ),
-            ("Volcano-Upgrade-Compatibility-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'volcano-upgrade'): (
                 "1462fb7b4835970708717456e3aed85e697ec2eb",
             ),
         }
@@ -1181,11 +1181,11 @@ class RenderDocLayoutTest(unittest.TestCase):
     def test_annotated_tags_distinguish_tag_objects_from_source_commits(self):
         docs_dir = Path(__file__).resolve().parent
         cases = {
-            ("Kubernetes-Native-Scheduler-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'k8s-scheduler'): (
                 "d2b770f4c94636a992534a8d3156b6b2d8e82ac3",
                 "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
-            ("Volcano-Upgrade-Compatibility-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'volcano-upgrade'): (
                 "f0917e48403c4ffa2d8a022f05f1f5097fbe9c10",
                 "1462fb7b4835970708717456e3aed85e697ec2eb",
             ),
@@ -1197,7 +1197,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "207e227163d97889651d614d191f094732c18744",
                 "ff8b285497809e084915016c40c2bc5e5991ffbc",
             ),
-            ("Kubernetes-AI-Schedulers-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'ai-schedulers'): (
                 "e28d01afc0aae90ec5ad8f0bc00ee6ab9294b11b",
                 "f0e95cea51b5591e0177fbe0fa06a299f36db548",
             ),
@@ -1221,16 +1221,16 @@ class RenderDocLayoutTest(unittest.TestCase):
             ("E2B-Deep-Dive.md", "component"): ("E2B Infra 2026.30", "E2B Infra 2026.29"),
             ("Multica-Deep-Dive.md", "component"): ("Multica v0.5.3", "Multica v0.4.44"),
             ('AI-Inference-Deep-Dive.md', 'benchmark'): ("vLLM v0.30.0", "vLLM v0.29.0"),
-            ("Kubernetes-AI-Schedulers-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'ai-schedulers'): (
                 "Kueue v0.19.6",
                 "Kueue v0.19.4",
             ),
-            ("KServe-Deep-Dive.md", "component"): ("KServe v0.21.0", "KServe v0.20.0"),
-            ("Kubernetes-Native-Scheduler-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'kserve'): ("KServe v0.21.0", "KServe v0.20.0"),
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'k8s-scheduler'): (
                 "Kubernetes v1.37.1",
                 "Kubernetes v1.37.0",
             ),
-            ("Volcano-Upgrade-Compatibility-Deep-Dive.md", "component"): (
+            ('Kubernetes-AI-Platform-Deep-Dive.md', 'volcano-upgrade'): (
                 "v1.8.2 → v1.15.2",
                 "v1.8.2 → v1.15.1",
             ),
@@ -1245,7 +1245,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         mooncake_text = (docs_dir / "AI-Inference-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
-        kai_text = (docs_dir / "Kubernetes-AI-Schedulers-Deep-Dive.md").read_text(
+        kai_text = (docs_dir / "Kubernetes-AI-Platform-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
 
@@ -1357,30 +1357,30 @@ class RenderDocLayoutTest(unittest.TestCase):
 
     def test_scheduler_release_snapshots_and_patch_boundaries_are_documented(self):
         docs_dir = Path(__file__).resolve().parent
-        ai_text = (docs_dir / "Kubernetes-AI-Schedulers-Deep-Dive.md").read_text(
+        ai_text = (docs_dir / "Kubernetes-AI-Platform-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
         native_text = (
-            docs_dir / "Kubernetes-Native-Scheduler-Deep-Dive.md"
+            docs_dir / "Kubernetes-AI-Platform-Deep-Dive.md"
         ).read_text(encoding="utf-8")
         volcano_text = (
-            docs_dir / "Volcano-Upgrade-Compatibility-Deep-Dive.md"
+            docs_dir / "Kubernetes-AI-Platform-Deep-Dive.md"
         ).read_text(encoding="utf-8")
 
         ai_doc = next(
             doc
             for doc in serve_docs.DOCS
-            if Path(doc["src"]).name == "Kubernetes-AI-Schedulers-Deep-Dive.md"
+            if Path(doc["src"]).name == "Kubernetes-AI-Platform-Deep-Dive.md"
         )
         volcano_doc = next(
             doc
             for doc in serve_docs.DOCS
             if Path(doc["src"]).name
-            == "Volcano-Upgrade-Compatibility-Deep-Dive.md"
+            == "Kubernetes-AI-Platform-Deep-Dive.md"
         )
 
         self.assertIn("KAI-Scheduler v0.18.0", ai_doc["meta"])
-        self.assertIn("prerelease 边界", ai_doc["summary"])
+        self.assertIn("prerelease", ai_text)
         self.assertIn("Kueue v0.19.6", ai_doc["meta"])
         self.assertIn("Grove alpha.13", ai_doc["meta"])
         self.assertIn("Volcano v1.15.2", ai_doc["meta"])
@@ -1819,7 +1819,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         doc = next(
             doc
             for doc in serve_docs.DOCS
-            if Path(doc["src"]).name == "KServe-Deep-Dive.md"
+            if Path(doc["src"]).name == "Kubernetes-AI-Platform-Deep-Dive.md"
         )
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
@@ -2117,15 +2117,15 @@ class RenderDocLayoutTest(unittest.TestCase):
 
     def test_new_release_behavior_boundaries_are_documented(self):
         docs_dir = Path(__file__).resolve().parent
-        gpu_text = (docs_dir / "NVIDIA-GPU-Operator-Deep-Dive.md").read_text(
+        gpu_text = (docs_dir / "Kubernetes-AI-Platform-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
-        hami_text = (docs_dir / "HAMi-Deep-Dive.md").read_text(encoding="utf-8")
+        hami_text = (docs_dir / "Kubernetes-AI-Platform-Deep-Dive.md").read_text(encoding="utf-8")
         native_text = (
-            docs_dir / "Kubernetes-Native-Scheduler-Deep-Dive.md"
+            docs_dir / "Kubernetes-AI-Platform-Deep-Dive.md"
         ).read_text(encoding="utf-8")
         kueue_text = (
-            docs_dir / "Kubernetes-AI-Schedulers-Deep-Dive.md"
+            docs_dir / "Kubernetes-AI-Platform-Deep-Dive.md"
         ).read_text(encoding="utf-8")
 
         for required_text in (
@@ -2199,15 +2199,15 @@ class RenderDocLayoutTest(unittest.TestCase):
     def test_nvidia_gpu_operator_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 
-        self.assertIn("NVIDIA-GPU-Operator-Deep-Dive.md", docs_by_src)
+        self.assertIn("Kubernetes-AI-Platform-Deep-Dive.md", docs_by_src)
 
-        doc = docs_by_src["NVIDIA-GPU-Operator-Deep-Dive.md"]
+        doc = docs_by_src["Kubernetes-AI-Platform-Deep-Dive.md"]
         self.assertEqual(
             Path(doc["dst"]).name,
-            "NVIDIA-GPU-Operator-Deep-Dive.html",
+            "Kubernetes-AI-Platform-Deep-Dive.html",
         )
-        self.assertEqual(doc["href"], "/NVIDIA-GPU-Operator-Deep-Dive.html")
-        self.assertEqual(doc["title"], "NVIDIA GPU Operator 深度技术文档")
+        self.assertEqual(doc["href"], "/Kubernetes-AI-Platform-Deep-Dive.html")
+        self.assertEqual(doc["title"], "Kubernetes AI 平台深度文档")
         self.assertIn("v26.7.1", doc["meta"])
         self.assertIn("dbacf43", doc["meta"])
         self.assertIn(
@@ -2230,15 +2230,15 @@ class RenderDocLayoutTest(unittest.TestCase):
             finally:
                 serve_docs.INDEX = original_index
 
-        self.assertIn("NVIDIA GPU Operator 深度技术文档", html)
-        self.assertIn('/NVIDIA-GPU-Operator-Deep-Dive.html', html)
+        self.assertIn("Kubernetes AI 平台深度文档", html)
+        self.assertIn('/Kubernetes-AI-Platform-Deep-Dive.html', html)
         self.assertIn("GPU Operator v26.7.1", html)
 
     def test_render_nvidia_gpu_operator_doc_includes_toc_and_mermaid(self):
         doc = next(
             doc
             for doc in serve_docs.DOCS
-            if Path(doc["src"]).name == "NVIDIA-GPU-Operator-Deep-Dive.md"
+            if Path(doc["src"]).name == "Kubernetes-AI-Platform-Deep-Dive.md"
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2248,15 +2248,15 @@ class RenderDocLayoutTest(unittest.TestCase):
             html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
 
         self.assertIn(
-            '<a class="toc-chapter" href="#第一章定位与边界">',
+            '<a href="#gpu-operator-定位与边界">',
             html,
         )
         self.assertIn(
-            '<a href="#4-1-两个配置层不要混淆">4.1 两个配置层不要混淆</a>',
+            '<h4 id="gpu-operator-4-1-两个配置层不要混淆">3.4.1 两个配置层不要混淆</h4>',
             html,
         )
         self.assertIn(
-            '<a class="toc-chapter" href="#第十二章故障排查方法">',
+            '<a href="#gpu-operator-故障排查方法">',
             html,
         )
         self.assertGreaterEqual(html.count('<div class="mermaid">'), 5)
@@ -2279,15 +2279,15 @@ class RenderDocLayoutTest(unittest.TestCase):
     def test_kubernetes_native_scheduler_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 
-        self.assertIn("Kubernetes-Native-Scheduler-Deep-Dive.md", docs_by_src)
+        self.assertIn("Kubernetes-AI-Platform-Deep-Dive.md", docs_by_src)
 
-        doc = docs_by_src["Kubernetes-Native-Scheduler-Deep-Dive.md"]
+        doc = docs_by_src["Kubernetes-AI-Platform-Deep-Dive.md"]
         self.assertEqual(
             Path(doc["dst"]).name,
-            "Kubernetes-Native-Scheduler-Deep-Dive.html",
+            "Kubernetes-AI-Platform-Deep-Dive.html",
         )
-        self.assertEqual(doc["href"], "/Kubernetes-Native-Scheduler-Deep-Dive.html")
-        self.assertEqual(doc["title"], "Kubernetes 原生调度器深度技术文档")
+        self.assertEqual(doc["href"], "/Kubernetes-AI-Platform-Deep-Dive.html")
+        self.assertEqual(doc["title"], "Kubernetes AI 平台深度文档")
         self.assertIn("v1.37.1", doc["meta"])
         self.assertIn("f78e722", doc["meta"])
         self.assertIn(
@@ -2309,8 +2309,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             finally:
                 serve_docs.INDEX = original_index
 
-        self.assertIn("Kubernetes 原生调度器深度技术文档", html)
-        self.assertIn('/Kubernetes-Native-Scheduler-Deep-Dive.html', html)
+        self.assertIn("Kubernetes AI 平台深度文档", html)
+        self.assertIn('/Kubernetes-AI-Platform-Deep-Dive.html', html)
         self.assertIn("Kubernetes v1.37.1", html)
         self.assertIn("v1.37 DRA 扩展", html)
         self.assertIn("Workload/PodGroup v1beta1", html)
@@ -2319,7 +2319,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         doc = next(
             doc
             for doc in serve_docs.DOCS
-            if Path(doc["src"]).name == "Kubernetes-Native-Scheduler-Deep-Dive.md"
+            if Path(doc["src"]).name == "Kubernetes-AI-Platform-Deep-Dive.md"
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2329,45 +2329,39 @@ class RenderDocLayoutTest(unittest.TestCase):
             html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
 
         self.assertIn(
-            '<a class="toc-chapter" href="#第一章先明确-kube-scheduler-的边界">',
+            '<a href="#k8s-scheduler-先明确-kube-scheduler-的边界">',
             html,
         )
         self.assertIn(
-            '<a href="#3-1-两个周期与扩展点">3.1 两个周期与扩展点</a>',
+            '<h4 id="k8s-scheduler-3-1-两个周期与扩展点">2.3.1 两个周期与扩展点</h4>',
             html,
         )
         self.assertIn(
-            '<a class="toc-chapter" href="#第十章与五类-ai-调度项目对比">',
+            '<a href="#k8s-scheduler-与五类-ai-调度项目对比">',
             html,
         )
         self.assertIn(
-            '<a href="#8-2-dra-对象模型与-source-of-truth">'
-            "8.2 DRA 对象模型与 source of truth</a>",
+            '<h4 id="k8s-scheduler-8-2-dra-对象模型与-source-of-truth">2.8.2 DRA 对象模型与 source of truth</h4>',
             html,
         )
         self.assertIn(
-            '<a href="#8-5-dynamicresources-插件调用链">'
-            "8.5 DynamicResources 插件调用链</a>",
+            '<h4 id="k8s-scheduler-8-5-dynamicresources-插件调用链">2.8.5 DynamicResources 插件调用链</h4>',
             html,
         )
         self.assertIn(
-            '<a href="#8-8-v1-37-1-feature-maturity-矩阵">'
-            "8.8 v1.37.1 feature maturity 矩阵</a>",
+            '<h4 id="k8s-scheduler-8-8-v1-37-1-feature-maturity-矩阵">2.8.8 v1.37.1 feature maturity 矩阵</h4>',
             html,
         )
         self.assertIn(
-            '<a href="#9-2-workload-podgroup-与-pod-对象链">'
-            "9.2 Workload PodGroup 与 Pod 对象链</a>",
+            '<h4 id="k8s-scheduler-9-2-workload-podgroup-与-pod-对象链">2.9.2 Workload PodGroup 与 Pod 对象链</h4>',
             html,
         )
         self.assertIn(
-            '<a href="#9-4-podgroup-scheduling-cycle-源码路径">'
-            "9.4 PodGroup scheduling cycle 源码路径</a>",
+            '<h4 id="k8s-scheduler-9-4-podgroup-scheduling-cycle-源码路径">2.9.4 PodGroup scheduling cycle 源码路径</h4>',
             html,
         )
         self.assertIn(
-            '<a href="#9-9-dra-与-gang-的联合链路">'
-            "9.9 DRA 与 Gang 的联合链路</a>",
+            '<h4 id="k8s-scheduler-9-9-dra-与-gang-的联合链路">2.9.9 DRA 与 Gang 的联合链路</h4>',
             html,
         )
         self.assertGreaterEqual(html.count('<div class="mermaid">'), 13)
@@ -2402,21 +2396,21 @@ class RenderDocLayoutTest(unittest.TestCase):
             self.assertIn(feature_gate, html)
         self.assertIn("dra_grpc_operations_duration_seconds", html)
         self.assertNotIn("kubelet_dra_grpc_operations_duration_seconds", html)
-        self.assertIn("Kubernetes-AI-Schedulers-Deep-Dive.html", html)
+        self.assertIn("Kubernetes-AI-Platform-Deep-Dive.html", html)
         self.assertNotIn('class="language-mermaid"', html)
 
     def test_kubernetes_ai_schedulers_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 
-        self.assertIn("Kubernetes-AI-Schedulers-Deep-Dive.md", docs_by_src)
+        self.assertIn("Kubernetes-AI-Platform-Deep-Dive.md", docs_by_src)
 
-        doc = docs_by_src["Kubernetes-AI-Schedulers-Deep-Dive.md"]
+        doc = docs_by_src["Kubernetes-AI-Platform-Deep-Dive.md"]
         self.assertEqual(
             Path(doc["dst"]).name,
-            "Kubernetes-AI-Schedulers-Deep-Dive.html",
+            "Kubernetes-AI-Platform-Deep-Dive.html",
         )
-        self.assertEqual(doc["href"], "/Kubernetes-AI-Schedulers-Deep-Dive.html")
-        self.assertIn("AI 调度器", doc["title"])
+        self.assertEqual(doc["href"], "/Kubernetes-AI-Platform-Deep-Dive.html")
+        self.assertIn("AI 调度器", doc["summary"])
         for project in ("Koordinator", "Kueue", "Grove", "KAI-Scheduler", "Volcano"):
             self.assertIn(project, doc["footer"])
 
@@ -2430,21 +2424,21 @@ class RenderDocLayoutTest(unittest.TestCase):
             finally:
                 serve_docs.INDEX = original_index
 
-        self.assertIn("Kubernetes AI 调度器深度对比", html)
-        self.assertIn('/Kubernetes-AI-Schedulers-Deep-Dive.html', html)
+        self.assertIn("Kubernetes AI 平台深度文档", html)
+        self.assertIn('/Kubernetes-AI-Platform-Deep-Dive.html', html)
 
     def test_volcano_upgrade_compatibility_doc_is_registered(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 
-        self.assertIn("Volcano-Upgrade-Compatibility-Deep-Dive.md", docs_by_src)
+        self.assertIn("Kubernetes-AI-Platform-Deep-Dive.md", docs_by_src)
 
-        doc = docs_by_src["Volcano-Upgrade-Compatibility-Deep-Dive.md"]
+        doc = docs_by_src["Kubernetes-AI-Platform-Deep-Dive.md"]
         self.assertEqual(
             Path(doc["dst"]).name,
-            "Volcano-Upgrade-Compatibility-Deep-Dive.html",
+            "Kubernetes-AI-Platform-Deep-Dive.html",
         )
-        self.assertEqual(doc["href"], "/Volcano-Upgrade-Compatibility-Deep-Dive.html")
-        self.assertIn("Volcano", doc["title"])
+        self.assertEqual(doc["href"], "/Kubernetes-AI-Platform-Deep-Dive.html")
+        self.assertIn("Volcano", doc["summary"])
         self.assertIn("Cloud Native Colocation", doc["footer"])
         self.assertIn("Queue Resource Management", doc["footer"])
         self.assertIn("Helm Charts", doc["footer"])
@@ -2459,14 +2453,14 @@ class RenderDocLayoutTest(unittest.TestCase):
             finally:
                 serve_docs.INDEX = original_index
 
-        self.assertIn("Volcano 升级与 Feature 兼容性", html)
-        self.assertIn('/Volcano-Upgrade-Compatibility-Deep-Dive.html', html)
+        self.assertIn("Kubernetes AI 平台深度文档", html)
+        self.assertIn('/Kubernetes-AI-Platform-Deep-Dive.html', html)
 
     def test_render_volcano_upgrade_doc_includes_toc_and_mermaid(self):
         doc = next(
             doc
             for doc in serve_docs.DOCS
-            if Path(doc["src"]).name == "Volcano-Upgrade-Compatibility-Deep-Dive.md"
+            if Path(doc["src"]).name == "Kubernetes-AI-Platform-Deep-Dive.md"
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2475,8 +2469,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             serve_docs.render_doc(rendered_doc)
             html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
 
-        self.assertIn('<a class="toc-chapter" href="#第一章结论与适用范围">', html)
-        self.assertIn('<a href="#3-1-主版本变化矩阵">3.1 主版本变化矩阵</a>', html)
+        self.assertIn('<a href="#volcano-upgrade-结论与适用范围">', html)
+        self.assertIn('<h4 id="volcano-upgrade-3-1-主版本变化矩阵">6.3.1 主版本变化矩阵</h4>', html)
         self.assertGreaterEqual(html.count('<div class="mermaid">'), 2)
         self.assertIn("flowchart TB", html)
         self.assertIn("flowchart LR", html)
