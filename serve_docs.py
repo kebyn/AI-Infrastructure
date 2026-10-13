@@ -375,6 +375,442 @@ def render_mermaid_blocks(body):
         flags=re.S,
     )
 
+
+TIMELINE_COLUMNS = (
+    ("release_date", "发布时间"),
+    ("supplier", "公司 / 阵营"),
+    ("model", "模型"),
+    ("type", "类型"),
+    ("release_form", "发布形态"),
+    ("features", "关键特点"),
+    ("lineage", "前后继关系"),
+    ("official_source", "官方来源"),
+    ("notes", "备注"),
+)
+TIMELINE_MULTIMODAL_RE = re.compile(r"多模态|全模态|原生视觉|视觉|语音")
+TIMELINE_OPEN_SOURCE_RE = re.compile(
+    r"开放权重|开源|Apache(?:[- ]?2(?:\.0)?)?|MIT(?:\s+许可)?|open[- ]weights?",
+    re.IGNORECASE,
+)
+
+
+def _html_fragment_text(fragment):
+    """Return readable text from a small HTML table-cell fragment."""
+    text = re.sub(r"<[^>]+>", "", fragment)
+    return unescape(text).strip()
+
+
+def _timeline_year(value):
+    match = re.search(r"\b(20\d{2})\b", value)
+    return match.group(1) if match else ""
+
+
+def _timeline_row_metadata(cells):
+    """Derive stable filter metadata from one rendered timeline row."""
+    values = [_html_fragment_text(cell) for cell in cells]
+    release_date, supplier, _, model_type, release_form, features, _, _, notes = values
+    multimodal = bool(TIMELINE_MULTIMODAL_RE.search(model_type))
+    open_source_text = " ".join(
+        (model_type, release_form, features, notes)
+    )
+    open_source = bool(TIMELINE_OPEN_SOURCE_RE.search(open_source_text))
+    return {
+        "year": _timeline_year(release_date),
+        "supplier": supplier,
+        "multimodal": "yes" if multimodal else "no",
+        "open_source": "yes" if open_source else "no",
+    }
+
+
+def _timeline_checkbox_group(name, values):
+    labels = []
+    for index, value in enumerate(values):
+        control_id = f"timeline-{name}-{index}"
+        labels.append(
+            f'<label class="timeline-checkbox" for="{escape(control_id, quote=True)}">'
+            f'<input type="checkbox" id="{escape(control_id, quote=True)}" '
+            f'name="{escape(name, quote=True)}" value="{escape(value, quote=True)}" '
+            f'data-filter="{escape(name, quote=True)}">'
+            f'<span>{escape(value)}</span></label>'
+        )
+    return "\n".join(labels)
+
+
+def enhance_timeline_body(body):
+    """Add filter metadata and controls to the timeline's main Markdown table."""
+    table_match = re.search(r"<table\b[^>]*>.*?</table>", body, flags=re.S)
+    if table_match is None:
+        raise ValueError("Timeline document must contain a Markdown table")
+
+    table_html = table_match.group(0)
+    tbody_match = re.search(r"(<tbody\b[^>]*>)(.*?)(</tbody>)", table_html, flags=re.S)
+    if tbody_match is None:
+        raise ValueError("Timeline table must contain a tbody")
+
+    row_matches = re.findall(
+        r"<tr\b[^>]*>.*?</tr>", tbody_match.group(2), flags=re.S
+    )
+    if not row_matches:
+        raise ValueError("Timeline table must contain at least one data row")
+
+    enhanced_rows = []
+    metadata_rows = []
+    for row in row_matches:
+        cells = re.findall(r"<td\b[^>]*>(.*?)</td>", row, flags=re.S)
+        if len(cells) != len(TIMELINE_COLUMNS):
+            raise ValueError(
+                "Timeline table rows must contain exactly "
+                f"{len(TIMELINE_COLUMNS)} columns"
+            )
+        metadata = _timeline_row_metadata(cells)
+        metadata_rows.append(metadata)
+        attributes = " ".join(
+            f'data-{key.replace("_", "-")}="{escape(value, quote=True)}"'
+            for key, value in metadata.items()
+        )
+        enhanced_rows.append(
+            re.sub(
+                r"<tr\b[^>]*>",
+                f'<tr {attributes}>',
+                row,
+                count=1,
+            )
+        )
+
+    new_tbody = (
+        tbody_match.group(1)
+        + "\n"
+        + "\n".join(enhanced_rows)
+        + "\n"
+        + tbody_match.group(3)
+    )
+    table_html = table_html[: tbody_match.start()] + new_tbody + table_html[tbody_match.end() :]
+    table_html = table_html.replace(
+        "<table>",
+        '<table class="timeline-table" id="timeline-table" '
+        'aria-describedby="timeline-result-count">',
+        1,
+    )
+    table_html = f'<div class="timeline-table-wrap">{table_html}</div>'
+
+    suppliers = list(dict.fromkeys(row["supplier"] for row in metadata_rows))
+    years = sorted(
+        {row["year"] for row in metadata_rows if row["year"]},
+        key=lambda value: int(value),
+    )
+    controls = f"""
+<section class="timeline-controls" id="timeline-controls" aria-label="时间线筛选与导出">
+  <div class="timeline-filter-panel">
+    <div class="timeline-panel-title">筛选时间线</div>
+    <div class="timeline-filter-grid">
+      <fieldset class="timeline-fieldset">
+        <legend>供应商（可多选）</legend>
+        <div class="timeline-checkbox-list" aria-label="按供应商筛选">
+          {_timeline_checkbox_group("supplier", suppliers)}
+        </div>
+      </fieldset>
+      <fieldset class="timeline-fieldset">
+        <legend>年份（可多选）</legend>
+        <div class="timeline-checkbox-list" aria-label="按年份筛选">
+          {_timeline_checkbox_group("year", years)}
+        </div>
+      </fieldset>
+      <div class="timeline-select-group">
+        <label for="timeline-multimodal-filter">多模态</label>
+        <select id="timeline-multimodal-filter" class="timeline-select" aria-label="按多模态筛选">
+          <option value="">全部</option>
+          <option value="yes">是</option>
+          <option value="no">否</option>
+        </select>
+      </div>
+      <div class="timeline-select-group">
+        <label for="timeline-open-source-filter">开源 / 开放权重</label>
+        <select id="timeline-open-source-filter" class="timeline-select" aria-label="按开源或开放权重筛选">
+          <option value="">全部</option>
+          <option value="yes">是</option>
+          <option value="no">否</option>
+        </select>
+      </div>
+    </div>
+    <div class="timeline-filter-actions">
+      <button id="timeline-clear-filters" class="timeline-button timeline-button-secondary" type="button">清除筛选</button>
+      <span id="timeline-result-count" class="timeline-result-count" aria-live="polite">显示 {len(metadata_rows)} / {len(metadata_rows)} 条</span>
+    </div>
+  </div>
+  <div class="timeline-export-panel" aria-label="导出当前筛选结果">
+    <span class="timeline-panel-title">导出当前结果</span>
+    <div class="timeline-export-actions">
+      <button id="timeline-export-csv" class="timeline-button" type="button">导出 CSV</button>
+      <button id="timeline-export-json" class="timeline-button" type="button">导出 JSON</button>
+      <button id="timeline-export-markdown" class="timeline-button" type="button">导出 Markdown</button>
+    </div>
+  </div>
+  <p id="timeline-empty-state" class="timeline-empty-state" hidden>当前筛选没有匹配记录。</p>
+</section>
+"""
+    enhanced_body = (
+        body[: table_match.start()]
+        + controls
+        + table_html
+        + body[table_match.end() :]
+    )
+    return enhanced_body
+
+
+TIMELINE_SCRIPT = r"""
+<script>
+  (() => {
+    const timelineColumnKeys = [
+      'release_date', 'supplier', 'model', 'type', 'release_form',
+      'features', 'lineage', 'official_source', 'notes'
+    ];
+    const timelineColumnLabels = [
+      '发布时间', '公司 / 阵营', '模型', '类型', '发布形态',
+      '关键特点', '前后继关系', '官方来源', '备注'
+    ];
+    const table = document.querySelector('#timeline-table');
+    const rows = table ? Array.from(table.querySelectorAll('tbody tr')) : [];
+    const count = document.querySelector('#timeline-result-count');
+    const emptyState = document.querySelector('#timeline-empty-state');
+    const exportButtons = [
+      document.querySelector('#timeline-export-csv'),
+      document.querySelector('#timeline-export-json'),
+      document.querySelector('#timeline-export-markdown')
+    ].filter(Boolean);
+
+    function cellText(cell) {
+      return cell ? cell.textContent.trim() : '';
+    }
+
+    function cellMarkdown(cell) {
+      if (!cell) return '';
+      const clone = cell.cloneNode(true);
+      clone.querySelectorAll('a').forEach((link) => {
+        const label = link.textContent.trim();
+        const href = link.getAttribute('href') || '';
+        link.replaceWith(document.createTextNode(`[${label}](${href})`));
+      });
+      return clone.textContent.trim();
+    }
+
+    const timelineRecords = rows.map((row, index) => {
+      const cells = Array.from(row.cells);
+      const record = {
+        release_date: cellText(cells[0]),
+        supplier: row.dataset.supplier || cellText(cells[1]),
+        model: cellText(cells[2]),
+        type: cellText(cells[3]),
+        release_form: cellText(cells[4]),
+        features: cellText(cells[5]),
+        lineage: cellText(cells[6]),
+        official_source: cellMarkdown(cells[7]),
+        notes: cellText(cells[8]),
+        year: row.dataset.year || '',
+        multimodal: row.dataset.multimodal === 'yes',
+        open_source: row.dataset.openSource === 'yes',
+        _sourceText: cellText(cells[7]),
+        _row: row,
+        _index: index
+      };
+      return record;
+    });
+
+    function selectedValues(filterName) {
+      return Array.from(
+        document.querySelectorAll(`input[data-filter="${filterName}"]:checked`)
+      ).map((input) => input.value);
+    }
+
+    function filterState() {
+      return {
+        supplier: selectedValues('supplier'),
+        year: selectedValues('year'),
+        multimodal: document.querySelector('#timeline-multimodal-filter')?.value || '',
+        open_source: document.querySelector('#timeline-open-source-filter')?.value || ''
+      };
+    }
+
+    function splitParameter(value) {
+      return (value || '').split(',').map((item) => item.trim()).filter(Boolean);
+    }
+
+    function restoreFiltersFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      for (const filterName of ['supplier', 'year']) {
+        const selected = new Set(splitParameter(params.get(filterName)));
+        document.querySelectorAll(`input[data-filter="${filterName}"]`).forEach((input) => {
+          input.checked = selected.has(input.value);
+        });
+      }
+      for (const [filterName, elementId] of [
+        ['multimodal', '#timeline-multimodal-filter'],
+        ['open_source', '#timeline-open-source-filter']
+      ]) {
+        const element = document.querySelector(elementId);
+        const value = params.get(filterName);
+        if (element && (value === 'yes' || value === 'no')) element.value = value;
+      }
+    }
+
+    function syncFiltersToUrl() {
+      const state = filterState();
+      const url = new URL(window.location.href);
+      for (const filterName of ['supplier', 'year']) {
+        if (state[filterName].length) {
+          url.searchParams.set(filterName, state[filterName].join(','));
+        } else {
+          url.searchParams.delete(filterName);
+        }
+      }
+      for (const filterName of ['multimodal', 'open_source']) {
+        if (state[filterName]) {
+          url.searchParams.set(filterName, state[filterName]);
+        } else {
+          url.searchParams.delete(filterName);
+        }
+      }
+      window.history.replaceState(
+        null,
+        '',
+        `${url.pathname}${url.search}${url.hash}`
+      );
+    }
+
+    function matches(record, state) {
+      if (state.supplier.length && !state.supplier.includes(record.supplier)) return false;
+      if (state.year.length && !state.year.includes(record.year)) return false;
+      if (state.multimodal && (record.multimodal ? 'yes' : 'no') !== state.multimodal) return false;
+      if (state.open_source && (record.open_source ? 'yes' : 'no') !== state.open_source) return false;
+      return true;
+    }
+
+    function visibleRecords() {
+      const state = filterState();
+      return timelineRecords.filter((record) => matches(record, state));
+    }
+
+    function applyTimelineFilters() {
+      const visible = visibleRecords();
+      const visibleRows = new Set(visible);
+      timelineRecords.forEach((record) => {
+        record._row.hidden = !visibleRows.has(record);
+      });
+      if (count) count.textContent = `显示 ${visible.length} / ${timelineRecords.length} 条`;
+      if (emptyState) emptyState.hidden = visible.length !== 0;
+      exportButtons.forEach((button) => {
+        button.disabled = visible.length === 0;
+        button.setAttribute('aria-disabled', String(visible.length === 0));
+      });
+      return visible;
+    }
+
+    function csvCell(value) {
+      const text = String(value ?? '');
+      return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+    }
+
+    function exportValue(record, key) {
+      return key === 'official_source' ? record._sourceText : record[key];
+    }
+
+    function toExportRecord(record) {
+      const result = {};
+      timelineColumnKeys.forEach((key) => { result[key] = record[key]; });
+      result.year = record.year;
+      result.multimodal = record.multimodal;
+      result.open_source = record.open_source;
+      return result;
+    }
+
+    function downloadFile(filename, content, mimeType) {
+      const blob = new Blob([content], {type: `${mimeType};charset=utf-8`});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+
+    function exportCsv(records) {
+      const header = timelineColumnLabels.map(csvCell).join(',');
+      const lines = records.map((record) =>
+        timelineColumnKeys.map((key) => csvCell(exportValue(record, key))).join(',')
+      );
+      downloadFile(
+        'model-release-timeline-filtered.csv',
+        `\ufeff${[header, ...lines].join('\r\n')}\r\n`,
+        'text/csv'
+      );
+    }
+
+    function exportJson(records) {
+      downloadFile(
+        'model-release-timeline-filtered.json',
+        JSON.stringify(records.map(toExportRecord), null, 2),
+        'application/json'
+      );
+    }
+
+    function markdownCell(value) {
+      return String(value ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>');
+    }
+
+    function exportMarkdown(records) {
+      const lines = [
+        '# 模型发布时间时间线（筛选结果）',
+        '',
+        `| ${timelineColumnLabels.join(' | ')} |`,
+        `| ${timelineColumnLabels.map(() => '---').join(' | ')} |`
+      ];
+      records.forEach((record) => {
+        const values = timelineColumnKeys.map((key) =>
+          key === 'official_source' ? record[key] : markdownCell(record[key])
+        );
+        lines.push(`| ${values.join(' | ')} |`);
+      });
+      if (!records.length) {
+        lines.push('', '> 当前筛选没有匹配记录。');
+      }
+      downloadFile(
+        'model-release-timeline-filtered.md',
+        `${lines.join('\n')}\n`,
+        'text/markdown'
+      );
+    }
+
+    function clearFilters() {
+      document.querySelectorAll('input[data-filter]').forEach((input) => { input.checked = false; });
+      document.querySelectorAll('#timeline-multimodal-filter, #timeline-open-source-filter').forEach((select) => {
+        select.value = '';
+      });
+      syncFiltersToUrl();
+      applyTimelineFilters();
+    }
+
+    document.querySelectorAll('input[data-filter], #timeline-multimodal-filter, #timeline-open-source-filter')
+      .forEach((control) => control.addEventListener('change', () => {
+        syncFiltersToUrl();
+        applyTimelineFilters();
+      }));
+    document.querySelector('#timeline-clear-filters')?.addEventListener('click', clearFilters);
+    document.querySelector('#timeline-export-csv')?.addEventListener('click', () => exportCsv(visibleRecords()));
+    document.querySelector('#timeline-export-json')?.addEventListener('click', () => exportJson(visibleRecords()));
+    document.querySelector('#timeline-export-markdown')?.addEventListener('click', () => exportMarkdown(visibleRecords()));
+
+    restoreFiltersFromUrl();
+    applyTimelineFilters();
+    window.timelineRecords = timelineRecords;
+    window.applyTimelineFilters = applyTimelineFilters;
+    window.exportTimelineCsv = exportCsv;
+    window.exportTimelineJson = exportJson;
+    window.exportTimelineMarkdown = exportMarkdown;
+  })();
+</script>
+"""
+
 CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap');
 
@@ -602,6 +1038,142 @@ td {
 }
 tr:last-child td { border-bottom: none; }
 tr:hover { background: rgba(88, 166, 255, 0.04); }
+
+/* ─── Model release timeline ─── */
+.timeline-controls {
+  display: grid;
+  gap: 18px;
+  margin: 24px 0 28px;
+}
+.timeline-filter-panel,
+.timeline-export-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.timeline-panel-title {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.timeline-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.25fr) minmax(180px, 0.85fr) minmax(140px, 0.6fr) minmax(170px, 0.75fr);
+  gap: 16px;
+  align-items: start;
+}
+.timeline-fieldset {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.timeline-fieldset legend {
+  padding: 0 6px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+.timeline-checkbox-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.timeline-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.timeline-checkbox input {
+  accent-color: var(--accent);
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+.timeline-select-group {
+  display: grid;
+  gap: 7px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+.timeline-select {
+  width: 100%;
+  min-height: 40px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg-code);
+  color: var(--text);
+  font: inherit;
+}
+.timeline-select:focus-visible,
+.timeline-button:focus-visible,
+.timeline-checkbox input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.timeline-filter-actions,
+.timeline-export-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.timeline-export-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.timeline-button {
+  min-height: 38px;
+  padding: 7px 14px;
+  border: 1px solid var(--accent-dim);
+  border-radius: 7px;
+  background: rgba(31, 111, 235, 0.18);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.timeline-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(88, 166, 255, 0.2);
+}
+.timeline-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.timeline-button-secondary {
+  border-color: var(--border);
+  background: transparent;
+}
+.timeline-result-count {
+  color: var(--text-secondary);
+  font-size: 0.92em;
+}
+.timeline-empty-state {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(210, 153, 34, 0.55);
+  border-radius: 8px;
+  color: var(--orange);
+}
+.timeline-table-wrap {
+  overflow-x: auto;
+  margin: 16px 0 24px;
+  border-radius: 10px;
+}
+.timeline-table {
+  min-width: 1280px;
+  margin: 0;
+}
+.timeline-table tbody tr[hidden] {
+  display: none;
+}
 
 /* ─── Horizontal Rule ─── */
 hr {
@@ -863,6 +1435,13 @@ details > *:not(summary) {
   .doc-grid { grid-template-columns: 1fr; }
   table { font-size: 0.82em; }
   th, td { padding: 8px 10px; }
+  .timeline-filter-grid { grid-template-columns: 1fr; }
+  .timeline-filter-panel,
+  .timeline-export-panel { align-items: stretch; }
+  .timeline-filter-actions,
+  .timeline-export-panel { flex-direction: column; align-items: stretch; }
+  .timeline-export-actions { display: grid; grid-template-columns: 1fr; }
+  .timeline-button { width: 100%; }
 }
 
 /* ─── Strong emphasis with accent ─── */
@@ -896,6 +1475,10 @@ def render_doc(doc):
         extension_configs=extension_configs,
     )
     body = render_mermaid_blocks(body)
+    timeline_script = ""
+    if doc.get("type") == "timeline":
+        body = enhance_timeline_body(body)
+        timeline_script = TIMELINE_SCRIPT
     body, toc_html = split_body_and_toc(body)
     sidebar_html = (
         '<aside id="doc-sidebar" class="doc-sidebar" aria-label="文档目录">\n'
@@ -986,6 +1569,7 @@ def render_doc(doc):
     }});
   }}
 </script>
+{timeline_script}
 </body>
 </html>"""
 
