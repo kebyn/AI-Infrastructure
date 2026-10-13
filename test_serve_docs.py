@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import json
 import re
 import tempfile
@@ -7,9 +8,12 @@ from contextlib import redirect_stdout
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from io import StringIO
+from html import unescape
+from html.parser import HTMLParser
 from pathlib import Path
 from threading import Thread
 from unittest.mock import patch
+from urllib.parse import unquote, urlsplit
 
 try:
     from playwright.sync_api import sync_playwright
@@ -17,6 +21,88 @@ except ImportError:
     sync_playwright = None
 
 import serve_docs
+
+
+class DocumentGraphParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.ids = []
+        self.links = []
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if "id" in attrs:
+            self.ids.append(attrs["id"])
+        if tag == "a" and "href" in attrs:
+            self.links.append(attrs["href"])
+
+
+class DocumentMigrationTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.root = Path(__file__).resolve().parent
+        cls.manifest = json.loads((cls.root / "docs_migration.json").read_text())
+        cls.graph = {}
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(StringIO()):
+            for doc in serve_docs.DOCS:
+                target = Path(directory) / Path(doc["dst"]).name
+                serve_docs.render_doc(dict(doc, dst=str(target)))
+                parser = DocumentGraphParser()
+                parser.feed(target.read_text())
+                cls.graph[Path(doc["src"]).name] = parser
+
+    def test_registered_document_links_and_fragments_resolve(self):
+        by_page = {Path(doc["dst"]).name: Path(doc["src"]).name for doc in serve_docs.DOCS}
+        for filename, parser in self.graph.items():
+            self.assertEqual(len(parser.ids), len(set(parser.ids)), filename)
+            for href in parser.links:
+                url = urlsplit(href)
+                if url.scheme or url.netloc or url.path == "/":
+                    continue
+                with self.subTest(document=filename, link=href):
+                    self.assertFalse(url.path.endswith(".md"), href)
+                    target = by_page.get(Path(url.path).name) if url.path else filename
+                    self.assertIn(target, self.graph)
+                    if url.fragment:
+                        self.assertTrue(unquote(url.fragment) in self.graph[target].ids, href)
+
+    def test_all_original_sections_have_a_valid_disposition(self):
+        for old, source in self.manifest["sources"].items():
+            self.assertFalse((self.root / old).exists())
+            self.assertFalse((self.root / old.replace(".md", ".html")).exists())
+            self.assertTrue(source["sections"])
+            for row in source["sections"]:
+                with self.subTest(source=old, heading=row["heading"]):
+                    self.assertIn(row["action"], ("保留", "合并", "去重"))
+                    self.assertTrue(row["reason"])
+                    target = urlsplit(row["target"])
+                    self.assertIn(target.path, self.graph)
+                    self.assertTrue(unquote(target.fragment) in self.graph[target.path].ids, row["target"])
+
+    def test_migration_preserves_original_code_and_official_evidence(self):
+        for old, source in self.manifest["sources"].items():
+            text = (self.root / source["document"]).read_text()
+            codes = re.findall(r"^(`{3,}|~{3,})[^\n]*\n(.*?)^\1\s*$", text, re.M | re.S)
+            hashes = {hashlib.sha256(code.encode()).hexdigest() for _, code in codes}
+            with self.subTest(source=old):
+                self.assertTrue(set(source["code_blocks"]) <= hashes)
+                for url in source["evidence_urls"]:
+                    self.assertIn(url, text)
+
+    def test_local_markdown_links_keep_queries_fragments_and_external_urls(self):
+        source = serve_docs.DOCS[0]["src"]
+        target = serve_docs.DOCS[-1]
+        name = Path(target["src"]).name
+        body = (f'<a href="{name}?format=table&amp;x=1#版本">relative</a>'
+                f'<a href="/{name}#版本">root</a>'
+                f'<a href="{target["src"]}#版本">absolute</a>'
+                '<a href="https://example.com/file.md#ref">external</a>'
+                '<a href="unregistered.md#ref">other</a>')
+        result = serve_docs.rewrite_document_links(body, source)
+        self.assertIn(f'href="{target["href"]}?format=table&amp;x=1#版本"', result)
+        self.assertEqual(result.count(f'href="{target["href"]}#版本"'), 2)
+        self.assertIn('href="https://example.com/file.md#ref"', result)
+        self.assertIn('href="unregistered.md#ref"', result)
 
 
 def render_visual_fixture(directory):
@@ -379,7 +465,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         deep_dive_docs = [doc for doc in serve_docs.DOCS if doc.get("type") != "timeline"]
         registered_docs = {Path(doc["src"]).name for doc in deep_dive_docs}
 
-        self.assertEqual(len(markdown_docs), 15)
+        self.assertEqual(len(markdown_docs), 13)
         self.assertEqual(registered_docs, markdown_docs)
         for doc in deep_dive_docs:
             with self.subTest(document=Path(doc["src"]).name):
@@ -883,7 +969,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         doc = next(
             doc
             for doc in serve_docs.DOCS
-            if Path(doc["src"]).name == "LLM-Benchmark-Deep-Dive.md"
+            if Path(doc["src"]).name == "AI-Inference-Deep-Dive.md"
         )
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
@@ -1007,7 +1093,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         doc = next(
             doc
             for doc in serve_docs.DOCS
-            if Path(doc["src"]).name == "LLM-Benchmark-Deep-Dive.md"
+            if Path(doc["src"]).name == "AI-Inference-Deep-Dive.md"
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -1017,10 +1103,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             html = Path(rendered_doc["dst"]).read_text(encoding="utf-8")
 
         self.assertIn(
-            '<a class="toc-chapter" href="#第九章sglang-bench">', html
+            '<a href="#benchmark-sglang-bench">', html
         )
         self.assertIn(
-            '<a class="toc-chapter" href="#第十二章vllm-bench">', html
+            '<a href="#benchmark-vllm-bench">', html
         )
         self.assertIn('<div class="mermaid">', html)
         self.assertNotIn('class="language-mermaid"', html)
@@ -1030,46 +1116,46 @@ class RenderDocLayoutTest(unittest.TestCase):
     def test_refreshed_stable_release_commits_are_pinned(self):
         docs_dir = Path(__file__).resolve().parent
         expected_commits = {
-            "E2B-Deep-Dive.md": (
+            ("E2B-Deep-Dive.md", "component"): (
                 "f32ee8a2a50052f32e3632ceb451111a98dd5104",
                 "ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b",
                 "810726d89c71da77cdc82668bca1b00f5cd21ed8",
             ),
-            "Teleport-Deep-Dive.md": (
+            ("Teleport-Deep-Dive.md", "component"): (
                 "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
                 "76042ed40db3bab9506b689f436716b6df624f23",
             ),
-            "Multica-Deep-Dive.md": (
+            ("Multica-Deep-Dive.md", "component"): (
                 "ff8b285497809e084915016c40c2bc5e5991ffbc",
                 "12f8f3f31111564e5e1b9aac3f7f916e8bba4039",
             ),
-            "NVIDIA-GPU-Operator-Deep-Dive.md": (
+            ("NVIDIA-GPU-Operator-Deep-Dive.md", "component"): (
                 "dbacf43d4938816fefe62690ab868a640a195282",
             ),
-            "HAMi-Deep-Dive.md": (
+            ("HAMi-Deep-Dive.md", "component"): (
                 "4707fb02c91c545bc7343ce26dba4c32919f9a3e",
             ),
-            "Dynamo-Deep-Dive.md": (
+            ('AI-Inference-Deep-Dive.md', 'dynamo'): (
                 "b83b1d9304ebfc624709ac46db32b1b6f1ff1615",
                 "e91f650aa6a1847959e7f7da1b39c19e16b312e3",
             ),
-            "Mooncake-Deep-Dive.md": (
+            ('AI-Inference-Deep-Dive.md', 'mooncake'): (
                 "719735896c86b56fabec6cf3e825fb2ea640597a",
             ),
-            "Kubernetes-Native-Scheduler-Deep-Dive.md": (
+            ("Kubernetes-Native-Scheduler-Deep-Dive.md", "component"): (
                 "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
-            "Kubernetes-Blog-Feature-Deep-Dive.md": (
+            ("Kubernetes-Blog-Feature-Deep-Dive.md", "component"): (
                 "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
-            "Kubernetes-AI-Schedulers-Deep-Dive.md": (
+            ("Kubernetes-AI-Schedulers-Deep-Dive.md", "component"): (
                 "f0e95cea51b5591e0177fbe0fa06a299f36db548",
                 "af2df1ffff0ae7a1135554564a6240a3f22f2c35",
                 "2df9a1ffca535d602d57023074b824606e312797",
                 "1462fb7b4835970708717456e3aed85e697ec2eb",
                 "618b581b32668e317b0d18523d46cf9f55b549d8",
             ),
-            "LLM-Benchmark-Deep-Dive.md": (
+            ('AI-Inference-Deep-Dive.md', 'benchmark'): (
                 "794f8bb75f8582f22e412d7e650fc71ca2a3d21a",
                 "291a6e609c3eb52d6eadcedecc7a056e396cd5eb",
                 "5804ea6b7ebd2bfceff29cf113311ed3af95146e",
@@ -1078,15 +1164,15 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "ced6857afa0ea7b2e3f0846a62e1394e90f15607",
                 "9e441efe48756928e453ff26694d6e5af1a9c71d",
             ),
-            "KServe-Deep-Dive.md": (
+            ("KServe-Deep-Dive.md", "component"): (
                 "d1482554fc4f66dd41aee70e01f5174e24f265bd",
                 "bb22cc477a6bd317bb2c7e357a85efcab8c7462a",
             ),
-            "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
+            ("Volcano-Upgrade-Compatibility-Deep-Dive.md", "component"): (
                 "1462fb7b4835970708717456e3aed85e697ec2eb",
             ),
         }
-        for filename, commits in expected_commits.items():
+        for (filename, component), commits in expected_commits.items():
             markdown_text = (docs_dir / filename).read_text(encoding="utf-8")
             for commit in commits:
                 with self.subTest(document=filename, commit=commit):
@@ -1095,30 +1181,30 @@ class RenderDocLayoutTest(unittest.TestCase):
     def test_annotated_tags_distinguish_tag_objects_from_source_commits(self):
         docs_dir = Path(__file__).resolve().parent
         cases = {
-            "Kubernetes-Native-Scheduler-Deep-Dive.md": (
+            ("Kubernetes-Native-Scheduler-Deep-Dive.md", "component"): (
                 "d2b770f4c94636a992534a8d3156b6b2d8e82ac3",
                 "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
-            "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
+            ("Volcano-Upgrade-Compatibility-Deep-Dive.md", "component"): (
                 "f0917e48403c4ffa2d8a022f05f1f5097fbe9c10",
                 "1462fb7b4835970708717456e3aed85e697ec2eb",
             ),
-            "E2B-Deep-Dive.md": (
+            ("E2B-Deep-Dive.md", "component"): (
                 "51849efaec0186dd6394d4037424f2cb49bef56e",
                 "810726d89c71da77cdc82668bca1b00f5cd21ed8",
             ),
-            "Multica-Deep-Dive.md": (
+            ("Multica-Deep-Dive.md", "component"): (
                 "207e227163d97889651d614d191f094732c18744",
                 "ff8b285497809e084915016c40c2bc5e5991ffbc",
             ),
-            "Kubernetes-AI-Schedulers-Deep-Dive.md": (
+            ("Kubernetes-AI-Schedulers-Deep-Dive.md", "component"): (
                 "e28d01afc0aae90ec5ad8f0bc00ee6ab9294b11b",
                 "f0e95cea51b5591e0177fbe0fa06a299f36db548",
             ),
         }
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
 
-        for filename, (tag_object, source_commit) in cases.items():
+        for (filename, component), (tag_object, source_commit) in cases.items():
             markdown_text = (docs_dir / filename).read_text(encoding="utf-8")
             with self.subTest(document=filename):
                 self.assertIn(tag_object, markdown_text)
@@ -1129,34 +1215,34 @@ class RenderDocLayoutTest(unittest.TestCase):
     def test_current_cards_exclude_superseded_primary_baselines(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
         expected = {
-            "Mooncake-Deep-Dive.md": ("v0.3.13.post1", "v0.3.12.post1"),
-            "Dynamo-Deep-Dive.md": ("Dynamo v1.5.0", "Dynamo v1.4.2"),
-            "Teleport-Deep-Dive.md": ("Teleport v18.10.0", "Teleport v19"),
-            "E2B-Deep-Dive.md": ("E2B Infra 2026.30", "E2B Infra 2026.29"),
-            "Multica-Deep-Dive.md": ("Multica v0.5.3", "Multica v0.4.44"),
-            "LLM-Benchmark-Deep-Dive.md": ("vLLM v0.30.0", "vLLM v0.29.0"),
-            "Kubernetes-AI-Schedulers-Deep-Dive.md": (
+            ('AI-Inference-Deep-Dive.md', 'mooncake'): ("v0.3.13.post1", "v0.3.12.post1"),
+            ('AI-Inference-Deep-Dive.md', 'dynamo'): ("Dynamo v1.5.0", "Dynamo v1.4.2"),
+            ("Teleport-Deep-Dive.md", "component"): ("Teleport v18.10.0", "Teleport v19"),
+            ("E2B-Deep-Dive.md", "component"): ("E2B Infra 2026.30", "E2B Infra 2026.29"),
+            ("Multica-Deep-Dive.md", "component"): ("Multica v0.5.3", "Multica v0.4.44"),
+            ('AI-Inference-Deep-Dive.md', 'benchmark'): ("vLLM v0.30.0", "vLLM v0.29.0"),
+            ("Kubernetes-AI-Schedulers-Deep-Dive.md", "component"): (
                 "Kueue v0.19.6",
                 "Kueue v0.19.4",
             ),
-            "KServe-Deep-Dive.md": ("KServe v0.21.0", "KServe v0.20.0"),
-            "Kubernetes-Native-Scheduler-Deep-Dive.md": (
+            ("KServe-Deep-Dive.md", "component"): ("KServe v0.21.0", "KServe v0.20.0"),
+            ("Kubernetes-Native-Scheduler-Deep-Dive.md", "component"): (
                 "Kubernetes v1.37.1",
                 "Kubernetes v1.37.0",
             ),
-            "Volcano-Upgrade-Compatibility-Deep-Dive.md": (
+            ("Volcano-Upgrade-Compatibility-Deep-Dive.md", "component"): (
                 "v1.8.2 → v1.15.2",
                 "v1.8.2 → v1.15.1",
             ),
         }
-        for filename, (current, superseded) in expected.items():
+        for (filename, component), (current, superseded) in expected.items():
             with self.subTest(document=filename):
                 self.assertIn(current, docs_by_src[filename]["meta"])
                 self.assertNotIn(superseded, docs_by_src[filename]["meta"])
 
     def test_refreshed_release_behavior_is_documented(self):
         docs_dir = Path(__file__).resolve().parent
-        mooncake_text = (docs_dir / "Mooncake-Deep-Dive.md").read_text(
+        mooncake_text = (docs_dir / "AI-Inference-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
         kai_text = (docs_dir / "Kubernetes-AI-Schedulers-Deep-Dive.md").read_text(
@@ -1199,7 +1285,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             with self.subTest(document="KAI-Scheduler", required_text=required_text):
                 self.assertIn(required_text, kai_text)
 
-        dynamo_text = (docs_dir / "Dynamo-Deep-Dive.md").read_text(
+        dynamo_text = (docs_dir / "AI-Inference-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
         for required_text in (
@@ -1258,7 +1344,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         dynamo_doc = next(
             doc
             for doc in serve_docs.DOCS
-            if Path(doc["src"]).name == "Dynamo-Deep-Dive.md"
+            if Path(doc["src"]).name == "AI-Inference-Deep-Dive.md"
         )
         self.assertIn("Dynamo v1.5.0", dynamo_doc["meta"])
         self.assertIn("source@b83b1d9", dynamo_doc["meta"])

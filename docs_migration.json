@@ -1,0 +1,3533 @@
+{
+  "schema": 1,
+  "original_commit": "fff941d03c585e58a1d826f418ccfd54259f2eec",
+  "audit_date": "2026-09-26",
+  "note": "记录整理前每个标题的保留、合并或去重落点；仅用于维护与验收，不提供旧页面重定向。代码块按正文内容的 SHA-256 验证，官方证据 URL 必须保留。",
+  "sources": {
+    "Mooncake-Deep-Dive.md": {
+      "document": "AI-Inference-Deep-Dive.md",
+      "part_anchor": "mooncake",
+      "sections": [
+        {
+          "old_anchor": "mooncake-深度技术文档",
+          "heading": "Mooncake 深度技术文档",
+          "line": 1,
+          "action": "合并",
+          "target": "AI-Inference-Deep-Dive.md#mooncake",
+          "reason": "页头与导航归入组件分篇"
+        },
+        {
+          "old_anchor": "目录",
+          "heading": "目录",
+          "line": 13,
+          "action": "合并",
+          "target": "AI-Inference-Deep-Dive.md#mooncake",
+          "reason": "页头与导航归入组件分篇"
+        },
+        {
+          "old_anchor": "第一章引言--为什么需要-mooncake",
+          "heading": "第一章：引言 — 为什么需要 Mooncake",
+          "line": 37,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-引言--为什么需要-mooncake",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-1-大模型服务的核心矛盾",
+          "heading": "1.1 大模型服务的核心矛盾",
+          "line": 39,
+          "action": "合并",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-大模型服务的核心矛盾",
+          "reason": "资源背景集中到公共概念，组件处保留引用"
+        },
+        {
+          "old_anchor": "1-2-mooncake-的核心洞察",
+          "heading": "1.2 Mooncake 的核心洞察",
+          "line": 49,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-1-2-mooncake-的核心洞察",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-3-核心成果一览",
+          "heading": "1.3 核心成果一览",
+          "line": 59,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-1-3-核心成果一览",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-4-v0-3-12-post1-稳定版收敛范围",
+          "heading": "1.4 v0.3.12.post1 稳定版收敛范围",
+          "line": 68,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-1-4-v0-3-12-post1-稳定版收敛范围",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-5-v0-3-13-与-v0-3-13-post1-稳定增量",
+          "heading": "1.5 v0.3.13 与 v0.3.13.post1 稳定增量",
+          "line": 83,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-1-5-v0-3-13-与-v0-3-13-post1-稳定增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第二章架构总览--分离式-kvcache-中心架构",
+          "heading": "第二章：架构总览 — 分离式 KVCache 中心架构",
+          "line": 100,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-架构总览--分离式-kvcache-中心架构",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-1-三大集群",
+          "heading": "2.1 三大集群",
+          "line": 102,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-2-1-三大集群",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-2-请求生命周期",
+          "heading": "2.2 请求生命周期",
+          "line": 114,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-2-2-请求生命周期",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-3-生态组件地图",
+          "heading": "2.3 生态组件地图",
+          "line": 136,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-2-3-生态组件地图",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-4-关键架构决策",
+          "heading": "2.4 关键架构决策",
+          "line": 149,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-2-4-关键架构决策",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第三章transfer-engine--零拷贝数据移动基石",
+          "heading": "第三章：Transfer Engine — 零拷贝数据移动基石",
+          "line": 157,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-transfer-engine--零拷贝数据移动基石",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-1-设计哲学与核心抽象",
+          "heading": "3.1 设计哲学与核心抽象",
+          "line": 161,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3-1-设计哲学与核心抽象",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-2-传输矩阵",
+          "heading": "3.2 传输矩阵",
+          "line": 173,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3-2-传输矩阵",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-3-传输后端",
+          "heading": "3.3 传输后端",
+          "line": 183,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3-3-传输后端",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-4-拓扑感知路径选择",
+          "heading": "3.4 拓扑感知路径选择",
+          "line": 197,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3-4-拓扑感知路径选择",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-5-多-nic-聚合与切片策略",
+          "heading": "3.5 多 NIC 聚合与切片策略",
+          "line": 207,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3-5-多-nic-聚合与切片策略",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-6-端点管理",
+          "heading": "3.6 端点管理",
+          "line": 213,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3-6-端点管理",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-7-容错与自动恢复",
+          "heading": "3.7 容错与自动恢复",
+          "line": 220,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3-7-容错与自动恢复",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-8-运行时调优参数",
+          "heading": "3.8 运行时调优参数",
+          "line": 228,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3-8-运行时调优参数",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "qp-与连接配置",
+          "heading": "QP 与连接配置",
+          "line": 230,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-qp-与连接配置",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "网络参数",
+          "heading": "网络参数",
+          "line": 239,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-网络参数",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "性能调优",
+          "heading": "性能调优",
+          "line": 249,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-性能调优",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "连接与传输控制",
+          "heading": "连接与传输控制",
+          "line": 258,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-连接与传输控制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "ecmp-lag-优化",
+          "heading": "ECMP/LAG 优化",
+          "line": 267,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-ecmp-lag-优化",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "gpu-内存注册",
+          "heading": "GPU 内存注册",
+          "line": 275,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-gpu-内存注册",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第四章tent--传输引擎下一代演进",
+          "heading": "第四章：TENT — 传输引擎下一代演进",
+          "line": 283,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-tent--传输引擎下一代演进",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-1-经典-te-的局限",
+          "heading": "4.1 经典 TE 的局限",
+          "line": 287,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-4-1-经典-te-的局限",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-2-三大核心支柱",
+          "heading": "4.2 三大核心支柱",
+          "line": 294,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-4-2-三大核心支柱",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-3-tent-架构",
+          "heading": "4.3 TENT 架构",
+          "line": 308,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-4-3-tent-架构",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-4-经典-te-vs-tent-对比",
+          "heading": "4.4 经典 TE vs TENT 对比",
+          "line": 340,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-4-4-经典-te-vs-tent-对比",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第五章mooncake-store--分布式-kv-缓存存储引擎",
+          "heading": "第五章：Mooncake Store — 分布式 KV 缓存存储引擎",
+          "line": 352,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-mooncake-store--分布式-kv-缓存存储引擎",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-1-设计动机与定位",
+          "heading": "5.1 设计动机与定位",
+          "line": 356,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-1-设计动机与定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-2-整体架构master-与-client-双角色",
+          "heading": "5.2 整体架构：Master 与 Client 双角色",
+          "line": 366,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-2-整体架构master-与-client-双角色",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-3-三种部署模式",
+          "heading": "5.3 三种部署模式",
+          "line": 394,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-3-三种部署模式",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "模式一嵌入模式embedded",
+          "heading": "模式一：嵌入模式（Embedded）",
+          "line": 396,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-模式一嵌入模式embedded",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "模式二嵌入-dummy-real-分离模式",
+          "heading": "模式二：嵌入 + Dummy-Real 分离模式",
+          "line": 439,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-模式二嵌入-dummy-real-分离模式",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "模式三独立存储服务standalone-store-service",
+          "heading": "模式三：独立存储服务（Standalone Store Service）",
+          "line": 470,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-模式三独立存储服务standalone-store-service",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "三种模式对比",
+          "heading": "三种模式对比",
+          "line": 538,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-三种模式对比",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-4-支持的协议类型",
+          "heading": "5.4 支持的协议类型",
+          "line": 550,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-4-支持的协议类型",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-5-客户端配置三种方法",
+          "heading": "5.5 客户端配置三种方法",
+          "line": 562,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-5-客户端配置三种方法",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "方法-a编程-setup",
+          "heading": "方法 A：编程 `setup()`",
+          "line": 564,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-方法-a编程-setup",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "方法-bmooncake_-环境变量",
+          "heading": "方法 B：`MOONCAKE_*` 环境变量",
+          "line": 588,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-方法-bmooncake_-环境变量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "方法-cmooncake_client-独立-rpc-进程",
+          "heading": "方法 C：`mooncake_client` 独立 RPC 进程",
+          "line": 618,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-方法-cmooncake_client-独立-rpc-进程",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-6-高可用部署",
+          "heading": "5.6 高可用部署",
+          "line": 622,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-6-高可用部署",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-7-分层存储架构总览",
+          "heading": "5.7 分层存储架构总览",
+          "line": 651,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-7-分层存储架构总览",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-7-1-存储类型详解",
+          "heading": "5.7.1 存储类型详解",
+          "line": 693,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-7-1-存储类型详解",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "存储类型全景图",
+          "heading": "存储类型全景图",
+          "line": 697,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-存储类型全景图",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "内存存储dram-vram--主存储层",
+          "heading": "内存存储（DRAM/VRAM）— 主存储层",
+          "line": 707,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-内存存储dram-vram--主存储层",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "文件存储--dfs-本地-ssd-offload",
+          "heading": "文件存储 — DFS/本地 SSD Offload",
+          "line": 718,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-文件存储--dfs-本地-ssd-offload",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "dfs-持久化存储",
+          "heading": "DFS 持久化存储",
+          "line": 722,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-dfs-持久化存储",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "ssd-卸载存储",
+          "heading": "SSD 卸载存储",
+          "line": 733,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-ssd-卸载存储",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "块存储--nvme-of-ssd-池实验性",
+          "heading": "块存储 — NVMe-oF SSD 池（实验性）",
+          "line": 815,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-块存储--nvme-of-ssd-池实验性",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "架构",
+          "heading": "架构",
+          "line": 819,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-架构",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "部署步骤",
+          "heading": "部署步骤",
+          "line": 845,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-部署步骤",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "客户端-qos-控制",
+          "heading": "客户端 QoS 控制",
+          "line": 900,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-客户端-qos-控制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "master-侧-nof-参数",
+          "heading": "Master 侧 NoF 参数",
+          "line": 910,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-master-侧-nof-参数",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "性能测试",
+          "heading": "性能测试",
+          "line": 920,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-性能测试",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "vllm-lmcache-集成示例",
+          "heading": "vLLM + LMCache 集成示例",
+          "line": 930,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-vllm-lmcache-集成示例",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "cxl-内存存储",
+          "heading": "CXL 内存存储",
+          "line": 950,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-cxl-内存存储",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3fs-usrbio-原生存储实验性",
+          "heading": "3FS USRBIO 原生存储（实验性）",
+          "line": 961,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-3fs-usrbio-原生存储实验性",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "文件存储-vs-块存储对比",
+          "heading": "文件存储 vs 块存储对比",
+          "line": 971,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-文件存储-vs-块存储对比",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-7-2-dfs-持久化存储限制不支持-dfs-驱逐",
+          "heading": "5.7.2 DFS 持久化存储限制：不支持 DFS 驱逐",
+          "line": 985,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-7-2-dfs-持久化存储限制不支持-dfs-驱逐",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-7-3-使用场景与容量治理dfs-ssd-offload-nvme-of",
+          "heading": "5.7.3 使用场景与容量治理：DFS、SSD Offload、NVMe-oF",
+          "line": 1055,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-7-3-使用场景与容量治理dfs-ssd-offload-nvme-of",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "dfs-持久化存储-vs-ssd-卸载存储",
+          "heading": "DFS 持久化存储 vs SSD 卸载存储",
+          "line": 1062,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-dfs-持久化存储-vs-ssd-卸载存储",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "容量治理一dfs-persistence",
+          "heading": "容量治理一：DFS persistence",
+          "line": 1104,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-容量治理一dfs-persistence",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "容量治理二ssd-offload",
+          "heading": "容量治理二：SSD offload",
+          "line": 1138,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-容量治理二ssd-offload",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "容量治理三nvme-of-块存储",
+          "heading": "容量治理三：NVMe-oF 块存储",
+          "line": 1159,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-容量治理三nvme-of-块存储",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "选型建议",
+          "heading": "选型建议",
+          "line": 1200,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-选型建议",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-7-4-dfs-外部文件生命周期清理",
+          "heading": "5.7.4 DFS 外部文件生命周期清理",
+          "line": 1225,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-7-4-dfs-外部文件生命周期清理",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "外部清理要解决的问题",
+          "heading": "外部清理要解决的问题",
+          "line": 1231,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-外部清理要解决的问题",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "不建议直接按文件时间删除",
+          "heading": "不建议直接按文件时间删除",
+          "line": 1245,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-不建议直接按文件时间删除",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "推荐清理层级",
+          "heading": "推荐清理层级",
+          "line": 1263,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-推荐清理层级",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "方案一业务驱动的对象级清理",
+          "heading": "方案一：业务驱动的对象级清理",
+          "line": 1280,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-方案一业务驱动的对象级清理",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "方案二元数据感知的-mark-and-sweep-gc",
+          "heading": "方案二：元数据感知的 mark-and-sweep GC",
+          "line": 1316,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-方案二元数据感知的-mark-and-sweep-gc",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "方案三manifest-驱动清理",
+          "heading": "方案三：Manifest 驱动清理",
+          "line": 1346,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-方案三manifest-驱动清理",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "quarantine-优先于直接删除",
+          "heading": "Quarantine 优先于直接删除",
+          "line": 1376,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-quarantine-优先于直接删除",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "并发与一致性防护",
+          "heading": "并发与一致性防护",
+          "line": 1397,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-并发与一致性防护",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "监控与告警",
+          "heading": "监控与告警",
+          "line": 1410,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-监控与告警",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "最小可行实践",
+          "heading": "最小可行实践",
+          "line": 1430,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-最小可行实践",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-8-对象生命周期管理",
+          "heading": "5.8 对象生命周期管理",
+          "line": 1447,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-8-对象生命周期管理",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-8-1-缓存管理详解",
+          "heading": "5.8.1 缓存管理详解",
+          "line": 1487,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-8-1-缓存管理详解",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "缓存对象模型",
+          "heading": "缓存对象模型",
+          "line": 1491,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-缓存对象模型",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "缓存管理控制面",
+          "heading": "缓存管理控制面",
+          "line": 1516,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-缓存管理控制面",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "dram-主缓存层",
+          "heading": "DRAM 主缓存层",
+          "line": 1536,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-dram-主缓存层",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "内存淘汰近似-lru-安全过滤",
+          "heading": "内存淘汰：近似 LRU + 安全过滤",
+          "line": 1552,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-内存淘汰近似-lru-安全过滤",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "ttl-lease-和-pin-的真实语义",
+          "heading": "TTL、Lease 和 Pin 的真实语义",
+          "line": 1583,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-ttl-lease-和-pin-的真实语义",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "分层缓存dram-到-ssd",
+          "heading": "分层缓存：DRAM 到 SSD",
+          "line": 1601,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-分层缓存dram-到-ssd",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "ssd-本地缓存后端和磁盘淘汰",
+          "heading": "SSD 本地缓存后端和磁盘淘汰",
+          "line": 1635,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-ssd-本地缓存后端和磁盘淘汰",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "local-hot-cache",
+          "heading": "Local Hot Cache",
+          "line": 1649,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-local-hot-cache",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "对象分组对缓存管理的影响",
+          "heading": "对象分组对缓存管理的影响",
+          "line": 1668,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-对象分组对缓存管理的影响",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "多租户缓存管理",
+          "heading": "多租户缓存管理",
+          "line": 1678,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-多租户缓存管理",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "多模型-发布与请求组隔离",
+          "heading": "多模型、发布与请求组隔离",
+          "line": 1691,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-多模型-发布与请求组隔离",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "调优思路",
+          "heading": "调优思路",
+          "line": 1704,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-调优思路",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-9-僵尸对象清理",
+          "heading": "5.9 僵尸对象清理",
+          "line": 1717,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-9-僵尸对象清理",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-10-分配策略",
+          "heading": "5.10 分配策略",
+          "line": 1724,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-10-分配策略",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-11-驱逐策略",
+          "heading": "5.11 驱逐策略",
+          "line": 1738,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-11-驱逐策略",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-12-对象分组",
+          "heading": "5.12 对象分组",
+          "line": 1749,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-12-对象分组",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-13-租户配额",
+          "heading": "5.13 租户配额",
+          "line": 1756,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-13-租户配额",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-14-python-bufferpool",
+          "heading": "5.14 Python BufferPool",
+          "line": 1794,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-14-python-bufferpool",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-15-客户端-api-完整参考",
+          "heading": "5.15 客户端 API 完整参考",
+          "line": 1807,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-15-客户端-api-完整参考",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "c-客户端-api",
+          "heading": "C++ 客户端 API",
+          "line": 1809,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-c-客户端-api",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "master-protobuf-rpc-api",
+          "heading": "Master Protobuf RPC API",
+          "line": 1824,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-master-protobuf-rpc-api",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "upsert-生命周期",
+          "heading": "Upsert 生命周期",
+          "line": 1843,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-upsert-生命周期",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-15-1-python-结构化对象与-dataproto-接口",
+          "heading": "5.15.1 Python 结构化对象与 DataProto 接口",
+          "line": 1851,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-15-1-python-结构化对象与-dataproto-接口",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-16-快照与恢复",
+          "heading": "5.16 快照与恢复",
+          "line": 1888,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-16-快照与恢复",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-17-元数据服务",
+          "heading": "5.17 元数据服务",
+          "line": 1899,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-17-元数据服务",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-18-监控与可观测性",
+          "heading": "5.18 监控与可观测性",
+          "line": 1909,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-18-监控与可观测性",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-19-运行时调优环境变量",
+          "heading": "5.19 运行时调优环境变量",
+          "line": 1929,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-19-运行时调优环境变量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "rpc-调优",
+          "heading": "RPC 调优",
+          "line": 1931,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-rpc-调优",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "传输引擎",
+          "heading": "传输引擎",
+          "line": 1939,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-传输引擎",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "内存优化",
+          "heading": "内存优化",
+          "line": 1949,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-内存优化",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "端口与日志",
+          "heading": "端口与日志",
+          "line": 1959,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-端口与日志",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-20-压力测试",
+          "heading": "5.20 压力测试",
+          "line": 1969,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-5-20-压力测试",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第六章ssd-自由比优先分配",
+          "heading": "第六章：SSD 自由比优先分配",
+          "line": 1993,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-ssd-自由比优先分配",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-1-问题ddr-only-策略对-ssd-的盲区",
+          "heading": "6.1 问题：DDR-only 策略对 SSD 的盲区",
+          "line": 1997,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-6-1-问题ddr-only-策略对-ssd-的盲区",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-2-ssd-自由比计算",
+          "heading": "6.2 SSD 自由比计算",
+          "line": 2001,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-6-2-ssd-自由比计算",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-3-有界候选采样",
+          "heading": "6.3 有界候选采样",
+          "line": 2011,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-6-3-有界候选采样",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-4-ssdmetricsprovider-接口",
+          "heading": "6.4 SsdMetricsProvider 接口",
+          "line": 2015,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-6-4-ssdmetricsprovider-接口",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-5-ssd-使用量追踪",
+          "heading": "6.5 SSD 使用量追踪",
+          "line": 2026,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-6-5-ssd-使用量追踪",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-6-完整流程",
+          "heading": "6.6 完整流程",
+          "line": 2032,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-6-6-完整流程",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第七章conductor--缓存感知路由的-kv-索引器",
+          "heading": "第七章：Conductor — 缓存感知路由的 KV 索引器",
+          "line": 2044,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-conductor--缓存感知路由的-kv-索引器",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-1-三层架构",
+          "heading": "7.1 三层架构",
+          "line": 2048,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-7-1-三层架构",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-2-核心组件",
+          "heading": "7.2 核心组件",
+          "line": 2075,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-7-2-核心组件",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-3-数据模型modelcontext",
+          "heading": "7.3 数据模型：ModelContext",
+          "line": 2085,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-7-3-数据模型modelcontext",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-4-事件流",
+          "heading": "7.4 事件流",
+          "line": 2100,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-7-4-事件流",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-5-查询流",
+          "heading": "7.5 查询流",
+          "line": 2112,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-7-5-查询流",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第八章hicache--与-sglang-深度集成的分层-kv-缓存",
+          "heading": "第八章：HiCache — 与 SGLang 深度集成的分层 KV 缓存",
+          "line": 2123,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-hicache--与-sglang-深度集成的分层-kv-缓存",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-1-三级缓存层次",
+          "heading": "8.1 三级缓存层次",
+          "line": 2127,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-1-三级缓存层次",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-2-hiradixtree",
+          "heading": "8.2 HiRadixTree",
+          "line": 2137,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-2-hiradixtree",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-3-三大核心工作流",
+          "heading": "8.3 三大核心工作流",
+          "line": 2147,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-3-三大核心工作流",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-3-1-本地匹配",
+          "heading": "8.3.1 本地匹配",
+          "line": 2149,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-3-1-本地匹配",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-3-2-l3-预取",
+          "heading": "8.3.2 L3 预取",
+          "line": 2155,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-3-2-l3-预取",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-3-3-数据写回",
+          "heading": "8.3.3 数据写回",
+          "line": 2179,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-3-3-数据写回",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-4-数据传输优化",
+          "heading": "8.4 数据传输优化",
+          "line": 2193,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-4-数据传输优化",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-5-mla-写回优化",
+          "heading": "8.5 MLA 写回优化",
+          "line": 2208,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-5-mla-写回优化",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-6-多-rank-同步",
+          "heading": "8.6 多 Rank 同步",
+          "line": 2212,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-6-多-rank-同步",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-7-pd-分离集成",
+          "heading": "8.7 PD 分离集成",
+          "line": 2218,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-8-7-pd-分离集成",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第九章mooncake-ep--专家并行通信运行时",
+          "heading": "第九章：Mooncake EP — 专家并行通信运行时",
+          "line": 2226,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-mooncake-ep--专家并行通信运行时",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-1-moe-推理三阶段流程",
+          "heading": "9.1 MoE 推理三阶段流程",
+          "line": 2230,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-1-moe-推理三阶段流程",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-2-运行时对象",
+          "heading": "9.2 运行时对象",
+          "line": 2246,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-2-运行时对象",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-3-三条执行路径",
+          "heading": "9.3 三条执行路径",
+          "line": 2263,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-3-三条执行路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-4-元数据交换",
+          "heading": "9.4 元数据交换",
+          "line": 2273,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-4-元数据交换",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-5-dispatch-内部机制",
+          "heading": "9.5 Dispatch 内部机制",
+          "line": 2285,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-5-dispatch-内部机制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-6-combine-内部机制",
+          "heading": "9.6 Combine 内部机制",
+          "line": 2303,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-6-combine-内部机制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-7-rank-活跃度与超时",
+          "heading": "9.7 Rank 活跃度与超时",
+          "line": 2314,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-7-rank-活跃度与超时",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-8-流同步模型",
+          "heading": "9.8 流同步模型",
+          "line": 2321,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-8-流同步模型",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-9-恢复集成",
+          "heading": "9.9 恢复集成",
+          "line": 2331,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-9-9-恢复集成",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十章mooncake-backend-pg--容错分布式执行后端",
+          "heading": "第十章：Mooncake Backend (PG) — 容错分布式执行后端",
+          "line": 2342,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-mooncake-backend-pg--容错分布式执行后端",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-1-后端注册",
+          "heading": "10.1 后端注册",
+          "line": 2346,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-10-1-后端注册",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-2-mooncakebackendoptions",
+          "heading": "10.2 MooncakeBackendOptions",
+          "line": 2354,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-10-2-mooncakebackendoptions",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-3-transfer-engine-集成",
+          "heading": "10.3 Transfer Engine 集成",
+          "line": 2362,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-10-3-transfer-engine-集成",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-4-初始化生命周期",
+          "heading": "10.4 初始化生命周期",
+          "line": 2366,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-10-4-初始化生命周期",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-5-size-与-activesize-的区别",
+          "heading": "10.5 size 与 activeSize 的区别",
+          "line": 2377,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-10-5-size-与-activesize-的区别",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-6-两阶段弹性恢复协议",
+          "heading": "10.6 两阶段弹性恢复协议",
+          "line": 2386,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-10-6-两阶段弹性恢复协议",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-7-集合通信行为",
+          "heading": "10.7 集合通信行为",
+          "line": 2400,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-10-7-集合通信行为",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十一章p2p-store--去中心化检查点分发引擎",
+          "heading": "第十一章：P2P Store — 去中心化检查点分发引擎",
+          "line": 2414,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-p2p-store--去中心化检查点分发引擎",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-1-设计动机",
+          "heading": "11.1 设计动机",
+          "line": 2418,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-11-1-设计动机",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-2-bittorrent-式架构",
+          "heading": "11.2 BitTorrent 式架构",
+          "line": 2424,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-11-2-bittorrent-式架构",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-3-核心-api",
+          "heading": "11.3 核心 API",
+          "line": 2438,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-11-3-核心-api",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-4-rdma-分片传输",
+          "heading": "11.4 RDMA 分片传输",
+          "line": 2449,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-11-4-rdma-分片传输",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-5-典型工作流",
+          "heading": "11.5 典型工作流",
+          "line": 2455,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-11-5-典型工作流",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十二章engramstore-后端--嵌入表存储",
+          "heading": "第十二章：EngramStore 后端 — 嵌入表存储",
+          "line": 2474,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-engramstore-后端--嵌入表存储",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-1-定位与边界",
+          "heading": "12.1 定位与边界",
+          "line": 2478,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-12-1-定位与边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-2-配置",
+          "heading": "12.2 配置",
+          "line": 2482,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-12-2-配置",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-3-populate-流程",
+          "heading": "12.3 Populate 流程",
+          "line": 2493,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-12-3-populate-流程",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-4-lookup-流程",
+          "heading": "12.4 Lookup 流程",
+          "line": 2503,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-12-4-lookup-流程",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-5-数据契约",
+          "heading": "12.5 数据契约",
+          "line": 2511,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-12-5-数据契约",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十三章统一并行张量-io",
+          "heading": "第十三章：统一并行张量 IO",
+          "line": 2521,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-统一并行张量-io",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-1-问题api-膨胀的危机",
+          "heading": "13.1 问题：API 膨胀的危机",
+          "line": 2525,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-13-1-问题api-膨胀的危机",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-2-核心模型并行即轴列表",
+          "heading": "13.2 核心模型：并行即轴列表",
+          "line": 2531,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-13-2-核心模型并行即轴列表",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-3-写入侧统一",
+          "heading": "13.3 写入侧统一",
+          "line": 2541,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-13-3-写入侧统一",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-4-读取侧统一readtarget",
+          "heading": "13.4 读取侧统一：ReadTarget",
+          "line": 2557,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-13-4-读取侧统一readtarget",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-5-源-目标布局矩阵",
+          "heading": "13.5 源-目标布局矩阵",
+          "line": 2569,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-13-5-源-目标布局矩阵",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-6-兼容性封装",
+          "heading": "13.6 兼容性封装",
+          "line": 2579,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-13-6-兼容性封装",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十四章过载调度--预测性早期拒绝",
+          "heading": "第十四章：过载调度 — 预测性早期拒绝",
+          "line": 2585,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-过载调度--预测性早期拒绝",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-1-尽力服务的陷阱",
+          "heading": "14.1 尽力服务的陷阱",
+          "line": 2589,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-14-1-尽力服务的陷阱",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-2-朴素早期拒绝与反相波动",
+          "heading": "14.2 朴素早期拒绝与反相波动",
+          "line": 2593,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-14-2-朴素早期拒绝与反相波动",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-3-基于预测的早期拒绝",
+          "heading": "14.3 基于预测的早期拒绝",
+          "line": 2604,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-14-3-基于预测的早期拒绝",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十五章prefill-池优化",
+          "heading": "第十五章：Prefill 池优化",
+          "line": 2620,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-prefill-池优化",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "15-1-多节点-prefill分块流水线并行-chunked-pipeline-parallelism",
+          "heading": "15.1 多节点 Prefill：分块流水线并行 (Chunked Pipeline Parallelism)",
+          "line": 2622,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-15-1-多节点-prefill分块流水线并行-chunked-pipeline-parallelism",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "15-2-层级-prefill计算与传输重叠",
+          "heading": "15.2 层级 Prefill：计算与传输重叠",
+          "line": 2629,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-15-2-层级-prefill计算与传输重叠",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "15-3-与调度器的协同",
+          "heading": "15.3 与调度器的协同",
+          "line": 2637,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-15-3-与调度器的协同",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十六章集成生态",
+          "heading": "第十六章：集成生态",
+          "line": 2646,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-集成生态",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "16-1-框架集成矩阵",
+          "heading": "16.1 框架集成矩阵",
+          "line": 2648,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-16-1-框架集成矩阵",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "16-2-多硬件生态",
+          "heading": "16.2 多硬件生态",
+          "line": 2668,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-16-2-多硬件生态",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十七章性能基准与生产实践",
+          "heading": "第十七章：性能基准与生产实践",
+          "line": 2688,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-性能基准与生产实践",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "17-1-transfer-engine-性能",
+          "heading": "17.1 Transfer Engine 性能",
+          "line": 2690,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-17-1-transfer-engine-性能",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "17-2-端到端推理性能",
+          "heading": "17.2 端到端推理性能",
+          "line": 2698,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-17-2-端到端推理性能",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "17-3-kimi-k2-生产部署",
+          "heading": "17.3 Kimi K2 生产部署",
+          "line": 2706,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-17-3-kimi-k2-生产部署",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "17-4-p2p-store-性能",
+          "heading": "17.4 P2P Store 性能",
+          "line": 2712,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-17-4-p2p-store-性能",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "17-5-hicache-性能",
+          "heading": "17.5 HiCache 性能",
+          "line": 2719,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-17-5-hicache-性能",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十八章总结与未来方向",
+          "heading": "第十八章：总结与未来方向",
+          "line": 2726,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-总结与未来方向",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "18-1-核心设计原则回顾",
+          "heading": "18.1 核心设计原则回顾",
+          "line": 2728,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-18-1-核心设计原则回顾",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "18-2-开放问题与演进方向",
+          "heading": "18.2 开放问题与演进方向",
+          "line": 2740,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-18-2-开放问题与演进方向",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "18-3-社区与开源",
+          "heading": "18.3 社区与开源",
+          "line": 2748,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-18-3-社区与开源",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "附录",
+          "heading": "附录",
+          "line": 2757,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-附录",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "附录-amooncake-store-master-启动参数速查",
+          "heading": "附录 A：Mooncake Store Master 启动参数速查",
+          "line": 2759,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-附录-amooncake-store-master-启动参数速查",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "rpc-参数",
+          "heading": "RPC 参数",
+          "line": 2764,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-rpc-参数",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "元数据服务",
+          "heading": "元数据服务",
+          "line": 2774,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-元数据服务",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "内存与分配",
+          "heading": "内存与分配",
+          "line": 2781,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-内存与分配",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "过载与-ttl",
+          "heading": "过载与 TTL",
+          "line": 2787,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-过载与-ttl",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "租户配额",
+          "heading": "租户配额",
+          "line": 2796,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-租户配额",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "高可用",
+          "heading": "高可用",
+          "line": 2803,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-高可用",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "分层存储",
+          "heading": "分层存储",
+          "line": 2810,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-分层存储",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "附录-btransfer-engine-关键环境变量",
+          "heading": "附录 B：Transfer Engine 关键环境变量",
+          "line": 2824,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-附录-btransfer-engine-关键环境变量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "附录-c客户端三种配置方式对比",
+          "heading": "附录 C：客户端三种配置方式对比",
+          "line": 2841,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-附录-c客户端三种配置方式对比",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "附录-d故障排查要点",
+          "heading": "附录 D：故障排查要点",
+          "line": 2849,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#mooncake-附录-d故障排查要点",
+          "reason": "保留组件专有内容"
+        }
+      ],
+      "code_blocks": [
+        "ea6c37f5e32df2c187c52d33baebe689fe3da03ebd4e36e8f17ca2efb7b1fa41",
+        "41692a7d90face0162699e613409bccfc282b3ffefc69de3af57f2fe5da43172",
+        "a64938975e4f3f7d2afeaa320cb3f5a6b984e61349d0f745f4807c4c872c6798",
+        "608e099d5970b0b1e1d845f3c81b51ef4341bb310eeb6cb188dd0beba0db2dc2",
+        "9327296227bfb1581919ea1cb2770757e4ed4db0ea26f371854ddc38e2e2f5dc",
+        "c829f5e13f48e767b98af29fa28f8bfba71a5d29da9c5b6e89203a76f88cb024",
+        "1d0d869cbe86d1f267ce448a7c1be219d57a4a35149a9aa632a19041209a9eaf",
+        "40240a5eae0eb3b3e3df486cf2b89e3692def9f4dbe1f11371db8e98140e9b7c",
+        "2ffdadeb99ec3be6fa09886c2422fd4b2a0eca67dea602e1719a525d0bc74b2c",
+        "e774a46ccbd7eefb4dc0eba785afa3f5f6a068ca385618d952dcbb1e4f7f8dfa",
+        "01772cddec5b50211e6b082a998adc5737210acff9dd0717656ed5609c76e6af",
+        "631fc746a3eea7e52b174617b2fabace4ae887ceaa7910384b9e20c2c76880cd",
+        "f5961e7cfe1d99f951a18fe2ae0116322c883a33933bf7cd469b0a73a16f161b",
+        "fc00f5b6424143e0709760a39312fda30cfe7f9ec242518a43a501b9449600c9",
+        "39e3a2488dcd1bd86b120c214d22ac35f9189d88842641f2f5510c185dd9ffb7",
+        "888969961b35ab72e53869c150acca5e4ba185878ea7830cadefdf9f08cf57d2",
+        "1f03e1bcdcbea09a570e630de5c24e998b18c3b00b7899d4fa499e598d618f91",
+        "b244dca8939bf1b0ca506f9dbdc62eac392708eda8995a4a4e1fee47769a53fc",
+        "f0a9e68d5d6ce6c7f6c9bc02a0a96aadc9dc5f7c154851cfa20b1b767de965db",
+        "e3f85d71cd5dd82551a316eab2cec98e5276b943e7030b44f929e9346345500e",
+        "db04bddc6dfcf15cc243f6314866dc328d07140990d9b8efbda139cf4f6f98b8",
+        "e2e371392f41e55671f612635113a58f000c4d280051e9cabe66563bb00d5f94",
+        "991598b2a9b4b6d172675b547dcd2cb2dc48c8e42f790061b3ab3230bc658595",
+        "37db5be34927e25b0b5fb61ca82571bd198eb9a43036a0dcec58354c2a4caf7c",
+        "7b01b3d41dd9f2b7d17a9e89cfae76e851d00d6b656cf64651914a870a383287",
+        "2c7fb65d03fc80190367012d0c4e6f5c3b760577fa92bc3336102d044349011b",
+        "2f8e2b1d156992b92e6d117cf64258636497ff8810722529a004638b328427ab",
+        "9df1b048c0ce5ba0754a17f190f8bb1026a356a8b406016aab91c769c9e8d6ee",
+        "eb854c127e9d14e9e56e66c231ffa6c94391ac17a1ed6850cea81381ce7294d6",
+        "d57bc496cdaaf88c0065c15869d9bf8269f1bc8b23d27d44802ad43a9de7a86d",
+        "4de7dbc704105de0325961435ec0aebab5dc584e65f576ec0cee5cdc7d8d91b1",
+        "037303056704fbe7c11b92c466ba89b2d7bc9c5e1cea2599c38ff5f834f93e16",
+        "5e7f45654d29ea9cd3c1f0d9fb1e7cedf8a480153bc4c00a16d30e261e982d64",
+        "e98f178937fc56a3ecb262f1303e6022c7b8d8cec557f762c55fb1b315db875c",
+        "5b599132c87f38eff03a66ea6e10847440bdd041e869852c0fe1262ede2ee7f6",
+        "d6f5db0d14cbb53cef246f34c2dfa6049f8a26c65fe6138c9c44ba79bcd0ba42",
+        "11f7c3a5925a5a8ee21223c9039d71bbfa10d954c93d5efd3609e544f2d86e39",
+        "6689a654c88a70b7f8f6efb9744e6e56f888f23ada281e637b1b142c48b13637",
+        "6ea211f4ae6efc4cf371b349caefd4338712a0f9fad99087bf713fa97c613924",
+        "e95cf13afa1b880742940e8b038db3517d661d2988e5f8a500633f117f629e89",
+        "d82fdf4f1f65f7d8bc8476a2347dce10b0fe4c099ff89514bba486432978701c",
+        "8db38d4899e26784c829da74ed6ccd291218dbd4e0ac8eb869738283e7af993b",
+        "42b3d18d7d56d027c26b27e36daabf633fc7f714dd2769db2f283e58df2fe99f",
+        "3a9f9d2b9ae759a8442c4a14b4d128fa42c5aa3f599a5ceff1be762d833f5475",
+        "9e77539ce786666ce3011ce5b9ce60e5691d76b65e51e1a26f937445ddad2570",
+        "f886060f6a298cbd9480cacedfd53c7b073c5dfe2ad3560ff5d007187891cc53",
+        "893ebb60dba6cb2e273a6190aeb7922d453bdd875aaa1ccfc280710e456bf541",
+        "e7c115aa99fdfa82883e0a5302962681b48b31f4a31ddbad01fc0c4207ecc865",
+        "9abde65b9e64731687f45cb622711872a6de79779f7a2a89d85cfc02df6c9265",
+        "4b9cf8f6181101e4b6b3c93a585e6a4b7e7a453a45c718eb89471a9d1519fc0f",
+        "ee7186262684d14f0c568947e7c832f96e1023e0e84a1530dbfb215398982805",
+        "a680e9ccc2421ffe7acf5048a214851ad3d146912c0d1fcf76b994abfa873fc9",
+        "a84f82e4565356f2cb5af996f8e9252fe5454aeb8dfc9626f922ac603deb2676",
+        "b9b1d09e76635f54e61d1ebeed791d57f0c9f1e1547a8707e546236e8c4cb1f2",
+        "d55da6b6fb426d914bb76327a018cac303d30f470035f7eb7770315d85644c61",
+        "13c8228731029a341880f3d2707f727d2c1474438e5a16fb1193876c1b51a67b",
+        "2b29d965d70737dfcf59edd1d868a57d8e0d81776b83ccbe953137f48a53969e",
+        "8ecb2298b1ca8f1e928836bba4cf939e8d5931f2cb8ff680f720af99beaa2e0b",
+        "25b72dea0663ae32b5adcbbcf8a02f24dde86744eaccc54703abfc7d78c610e5",
+        "04dd1ff371b1cfc845ee8d43eba3afd1d55aeb1833df83066aa7d21bb1d0c3c2",
+        "8f7e95062ecc4d64e8a0b8f7d0c04b033d159b16b0e6afd07fb863bc1d990104",
+        "1983bdf80f2c4053ec3e6eedf6b755df91782fb44229fdafbac5dfec3f311515",
+        "f462918d137682e0c07b2facb9330455278645865bf0918bbc1716e957926417",
+        "50c23e88ae16522cb5507be00e7fd70127eff5761973a6c9d8a125325556b811"
+      ],
+      "evidence_urls": [
+        "https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/api-reference/python/dataproto-structured-object-transfer.md",
+        "https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/mooncake-store-deployment-guide.md",
+        "https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/multi-tenancy.md",
+        "https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/ssd/nvme-kv.md",
+        "https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/ssd/ssd-offload.md",
+        "https://github.com/kvcache-ai/Mooncake/compare/v0.3.12.post1...v0.3.13.post1",
+        "https://github.com/kvcache-ai/Mooncake/releases/tag/v0.3.13"
+      ]
+    },
+    "Dynamo-Deep-Dive.md": {
+      "document": "AI-Inference-Deep-Dive.md",
+      "part_anchor": "dynamo",
+      "sections": [
+        {
+          "old_anchor": "dynamo-深度技术文档",
+          "heading": "Dynamo 深度技术文档",
+          "line": 1,
+          "action": "合并",
+          "target": "AI-Inference-Deep-Dive.md#dynamo",
+          "reason": "页头与导航归入组件分篇"
+        },
+        {
+          "old_anchor": "目录",
+          "heading": "目录",
+          "line": 11,
+          "action": "合并",
+          "target": "AI-Inference-Deep-Dive.md#dynamo",
+          "reason": "页头与导航归入组件分篇"
+        },
+        {
+          "old_anchor": "第一章dynamo-的定位",
+          "heading": "第一章：Dynamo 的定位",
+          "line": 17,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-dynamo-的定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-1-dynamo-是什么",
+          "heading": "1.1 Dynamo 是什么",
+          "line": 19,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-1-1-dynamo-是什么",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-2-什么时候应该用-dynamo",
+          "heading": "1.2 什么时候应该用 Dynamo",
+          "line": 38,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-1-2-什么时候应该用-dynamo",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-3-dynamo-解决的核心矛盾",
+          "heading": "1.3 Dynamo 解决的核心矛盾",
+          "line": 53,
+          "action": "去重",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-1-3-dynamo-解决的核心矛盾",
+          "reason": "重复的领域介绍集中到主讲章节"
+        },
+        {
+          "old_anchor": "1-4-设计目标",
+          "heading": "1.4 设计目标",
+          "line": 65,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-1-4-设计目标",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-5-v1-3-0-与-v1-4-0-稳定版增量",
+          "heading": "1.5 v1.3.0 与 v1.4.0 稳定版增量",
+          "line": 77,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-1-5-v1-3-0-与-v1-4-0-稳定版增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-6-v1-4-0-新增行为-边界与迁移",
+          "heading": "1.6 v1.4.0 新增行为、边界与迁移",
+          "line": 95,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-1-6-v1-4-0-新增行为-边界与迁移",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "router跨数据中心前缀与预留重放",
+          "heading": "Router：跨数据中心前缀与预留重放",
+          "line": 99,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-router跨数据中心前缀与预留重放",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "frontend实验协议-tokenizer-cache-与-thinking-默认值",
+          "heading": "Frontend：实验协议、tokenizer cache 与 thinking 默认值",
+          "line": 109,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-frontend实验协议-tokenizer-cache-与-thinking-默认值",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "多模态与-omni",
+          "heading": "多模态与 Omni",
+          "line": 117,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-多模态与-omni",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "planner-与仿真",
+          "heading": "Planner 与仿真",
+          "line": 123,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-planner-与仿真",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "kubernetes-operator-与-gateway",
+          "heading": "Kubernetes、Operator 与 Gateway",
+          "line": 129,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-kubernetes-operator-与-gateway",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "可观测性",
+          "heading": "可观测性",
+          "line": 139,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-可观测性",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "v1-4-0-兼容性与-breaking-changes",
+          "heading": "v1.4.0 兼容性与 breaking changes",
+          "line": 143,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-v1-4-0-兼容性与-breaking-changes",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-7-v1-4-1-与-v1-4-2-补丁分层",
+          "heading": "1.7 v1.4.1 与 v1.4.2 补丁分层",
+          "line": 157,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-1-7-v1-4-1-与-v1-4-2-补丁分层",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "1-8-v1-5-0-minor-增量与迁移",
+          "heading": "1.8 v1.5.0 minor 增量与迁移",
+          "line": 172,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-1-8-v1-5-0-minor-增量与迁移",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第二章总体架构",
+          "heading": "第二章：总体架构",
+          "line": 191,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-总体架构",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-1-三个平面",
+          "heading": "2.1 三个平面",
+          "line": 193,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-2-1-三个平面",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-2-request-plane请求执行路径",
+          "heading": "2.2 Request Plane：请求执行路径",
+          "line": 247,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-2-2-request-plane请求执行路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-3-control-plane期望状态与扩缩",
+          "heading": "2.3 Control Plane：期望状态与扩缩",
+          "line": 261,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-2-3-control-plane期望状态与扩缩",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-4-storage-events-planekv-状态与数据移动",
+          "heading": "2.4 Storage & Events Plane：KV 状态与数据移动",
+          "line": 273,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-2-4-storage-events-planekv-状态与数据移动",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-5-aggregated-与-disaggregated",
+          "heading": "2.5 Aggregated 与 Disaggregated",
+          "line": 286,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-2-5-aggregated-与-disaggregated",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第三章端到端请求生命周期",
+          "heading": "第三章：端到端请求生命周期",
+          "line": 299,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-端到端请求生命周期",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-1-aggregated-模式请求路径",
+          "heading": "3.1 Aggregated 模式请求路径",
+          "line": 301,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-3-1-aggregated-模式请求路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-2-disaggregated-模式请求路径",
+          "heading": "3.2 Disaggregated 模式请求路径",
+          "line": 327,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-3-2-disaggregated-模式请求路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-3-后端转移元数据差异",
+          "heading": "3.3 后端转移元数据差异",
+          "line": 370,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-3-3-后端转移元数据差异",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-4-xpydprefill-decode-比例可变",
+          "heading": "3.4 xPyD：Prefill/Decode 比例可变",
+          "line": 382,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-3-4-xpydprefill-decode-比例可变",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第四章kv-aware-router",
+          "heading": "第四章：KV-Aware Router",
+          "line": 397,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-kv-aware-router",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-1-router-的核心思想",
+          "heading": "4.1 Router 的核心思想",
+          "line": 399,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-4-1-router-的核心思想",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-2-成本函数",
+          "heading": "4.2 成本函数",
+          "line": 413,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-4-2-成本函数",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-3-kvindexer-与全局前缀树",
+          "heading": "4.3 KvIndexer 与全局前缀树",
+          "line": 445,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-4-3-kvindexer-与全局前缀树",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-4-事件传输模式",
+          "heading": "4.4 事件传输模式",
+          "line": 479,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-4-4-事件传输模式",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-5-router-副本之间的同步",
+          "heading": "4.5 Router 副本之间的同步",
+          "line": 490,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-4-5-router-副本之间的同步",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-6-配置与限制",
+          "heading": "4.6 配置与限制",
+          "line": 502,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-4-6-配置与限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第五章dynamo-的缓存管理",
+          "heading": "第五章：Dynamo 的缓存管理",
+          "line": 542,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-dynamo-的缓存管理",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-1-两类缓存管理不要混淆",
+          "heading": "5.1 两类缓存管理不要混淆",
+          "line": 544,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-1-两类缓存管理不要混淆",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-2-kvbm-的定位",
+          "heading": "5.2 KVBM 的定位",
+          "line": 555,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-2-kvbm-的定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-3-kvbm-分层",
+          "heading": "5.3 KVBM 分层",
+          "line": 570,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-3-kvbm-分层",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-4-block-生命周期",
+          "heading": "5.4 Block 生命周期",
+          "line": 605,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-4-block-生命周期",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-5-kvbm-的数据流",
+          "heading": "5.5 KVBM 的数据流",
+          "line": 627,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-5-kvbm-的数据流",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-6-nixl-在缓存管理中的作用",
+          "heading": "5.6 NIXL 在缓存管理中的作用",
+          "line": 652,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-6-nixl-在缓存管理中的作用",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-7-缓存治理策略",
+          "heading": "5.7 缓存治理策略",
+          "line": 666,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-7-缓存治理策略",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-8-kvbm-支持矩阵",
+          "heading": "5.8 KVBM 支持矩阵",
+          "line": 688,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-8-kvbm-支持矩阵",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-9-适用场景",
+          "heading": "5.9 适用场景",
+          "line": 704,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-5-9-适用场景",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第六章planner-弹性伸缩",
+          "heading": "第六章：Planner 弹性伸缩",
+          "line": 727,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-planner-弹性伸缩",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-1-为什么-hpa-keda-不够",
+          "heading": "6.1 为什么 HPA/KEDA 不够",
+          "line": 729,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-6-1-为什么-hpa-keda-不够",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-2-两种扩缩模式",
+          "heading": "6.2 两种扩缩模式",
+          "line": 744,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-6-2-两种扩缩模式",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-3-runtime-pipeline",
+          "heading": "6.3 Runtime pipeline",
+          "line": 755,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-6-3-runtime-pipeline",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-4-optimization-target",
+          "heading": "6.4 Optimization target",
+          "line": 775,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-6-4-optimization-target",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-5-connector",
+          "heading": "6.5 Connector",
+          "line": 800,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-6-5-connector",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-6-已知限制",
+          "heading": "6.6 已知限制",
+          "line": 817,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-6-6-已知限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第七章后端集成",
+          "heading": "第七章：后端集成",
+          "line": 828,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-后端集成",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-1-总览",
+          "heading": "7.1 总览",
+          "line": 830,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-7-1-总览",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-2-vllm",
+          "heading": "7.2 vLLM",
+          "line": 843,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-7-2-vllm",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-3-sglang",
+          "heading": "7.3 SGLang",
+          "line": 865,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-7-3-sglang",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-4-tensorrt-llm",
+          "heading": "7.4 TensorRT-LLM",
+          "line": 885,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-7-4-tensorrt-llm",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-5-rl-tito-与多模态路径",
+          "heading": "7.5 RL、TITO 与多模态路径",
+          "line": 899,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-7-5-rl-tito-与多模态路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第八章kubernetes-与-operator",
+          "heading": "第八章：Kubernetes 与 Operator",
+          "line": 907,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-kubernetes-与-operator",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-1-为什么-kubernetes-是生产主路径",
+          "heading": "8.1 为什么 Kubernetes 是生产主路径",
+          "line": 909,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-8-1-为什么-kubernetes-是生产主路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-2-crd-体系",
+          "heading": "8.2 CRD 体系",
+          "line": 922,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-8-2-crd-体系",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-3-operator-控制器",
+          "heading": "8.3 Operator 控制器",
+          "line": 936,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-8-3-operator-控制器",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-4-请求入口拓扑",
+          "heading": "8.4 请求入口拓扑",
+          "line": 951,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-8-4-请求入口拓扑",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-5-三种部署视角",
+          "heading": "8.5 三种部署视角",
+          "line": 976,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-8-5-三种部署视角",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第九章部署与运行入口",
+          "heading": "第九章：部署与运行入口",
+          "line": 997,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-部署与运行入口",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-1-容器-quickstart",
+          "heading": "9.1 容器 quickstart",
+          "line": 999,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-9-1-容器-quickstart",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-2-frontend-常用入口",
+          "heading": "9.2 Frontend 常用入口",
+          "line": 1031,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-9-2-frontend-常用入口",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-3-kubernetes-quickstart",
+          "heading": "9.3 Kubernetes quickstart",
+          "line": 1057,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-9-3-kubernetes-quickstart",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-4-示例目录",
+          "heading": "9.4 示例目录",
+          "line": 1092,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-9-4-示例目录",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十章可观测性-容错与性能",
+          "heading": "第十章：可观测性、容错与性能",
+          "line": 1108,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-可观测性-容错与性能",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-1-可观测性",
+          "heading": "10.1 可观测性",
+          "line": 1110,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-10-1-可观测性",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-2-容错路径",
+          "heading": "10.2 容错路径",
+          "line": 1125,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-10-2-容错路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-3-性能收益来源",
+          "heading": "10.3 性能收益来源",
+          "line": 1137,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-10-3-性能收益来源",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十一章与周边系统的关系",
+          "heading": "第十一章：与周边系统的关系",
+          "line": 1152,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-与周边系统的关系",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-1-dynamo-与推理引擎",
+          "heading": "11.1 Dynamo 与推理引擎",
+          "line": 1154,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-1-dynamo-与推理引擎",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-2-dynamo-与-mooncake",
+          "heading": "11.2 Dynamo 与 Mooncake",
+          "line": 1166,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-2-dynamo-与-mooncake",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-3-vllm-kv-cache-offloading-总览",
+          "heading": "11.3 vLLM KV cache offloading 总览",
+          "line": 1180,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-3-vllm-kv-cache-offloading-总览",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-4-kvbmdynamo-内置-kv-block-manager",
+          "heading": "11.4 KVBM：Dynamo 内置 KV Block Manager",
+          "line": 1246,
+          "action": "去重",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-4-kvbmdynamo-内置-kv-block-manager",
+          "reason": "保留组件接口和限制；公共说明改为主讲章节引用"
+        },
+        {
+          "old_anchor": "11-5-lmcachevllm-侧-prefill-once-reuse-everywhere-缓存层",
+          "heading": "11.5 LMCache：vLLM 侧 prefill-once / reuse-everywhere 缓存层",
+          "line": 1290,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-5-lmcachevllm-侧-prefill-once-reuse-everywhere-缓存层",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-6-flexkv分布式多级-kv-cache-runtime",
+          "heading": "11.6 FlexKV：分布式多级 KV cache runtime",
+          "line": 1333,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-6-flexkv分布式多级-kv-cache-runtime",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-7-sglang-hicacheradixattention-的分层缓存扩展",
+          "heading": "11.7 SGLang HiCache：RadixAttention 的分层缓存扩展",
+          "line": 1391,
+          "action": "去重",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-7-sglang-hicacheradixattention-的分层缓存扩展",
+          "reason": "保留组件接口和限制；公共说明改为主讲章节引用"
+        },
+        {
+          "old_anchor": "11-8-四种路径对比与选型",
+          "heading": "11.8 四种路径对比与选型",
+          "line": 1440,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-8-四种路径对比与选型",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-9-dynamo-与-modelexpress",
+          "heading": "11.9 Dynamo 与 ModelExpress",
+          "line": 1469,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-11-9-dynamo-与-modelexpress",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "v0-6-0-稳定增量与升级边界",
+          "heading": "v0.6.0 稳定增量与升级边界",
+          "line": 1475,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-v0-6-0-稳定增量与升级边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "v0-5-1-历史补丁边界",
+          "heading": "v0.5.1 历史补丁边界",
+          "line": 1490,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-v0-5-1-历史补丁边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "核心定位",
+          "heading": "核心定位",
+          "line": 1506,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-核心定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "组件结构",
+          "heading": "组件结构",
+          "line": 1520,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-组件结构",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "两种-dynamo-集成路径",
+          "heading": "两种 Dynamo 集成路径",
+          "line": 1543,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-两种-dynamo-集成路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "metadata-与生命周期",
+          "heading": "metadata 与生命周期",
+          "line": 1592,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-metadata-与生命周期",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "cache-存储与清理策略",
+          "heading": "cache、存储与清理策略",
+          "line": 1615,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-cache-存储与清理策略",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "p2p-权重和-jit-artifact-传输",
+          "heading": "P2P 权重和 JIT artifact 传输",
+          "line": 1656,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-p2p-权重和-jit-artifact-传输",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "backend-选择",
+          "heading": "backend 选择",
+          "line": 1694,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-backend-选择",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "与-kvbm-lmcache-flexkv-hicache-的组合",
+          "heading": "与 KVBM、LMCache、FlexKV、HiCache 的组合",
+          "line": 1706,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-与-kvbm-lmcache-flexkv-hicache-的组合",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十二章实践建议",
+          "heading": "第十二章：实践建议",
+          "line": 1721,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-实践建议",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-1-选型路径",
+          "heading": "12.1 选型路径",
+          "line": 1723,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-12-1-选型路径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-2-常见误区",
+          "heading": "12.2 常见误区",
+          "line": 1735,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-12-2-常见误区",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-3-从-v1-2-x-升级到-v1-3-0",
+          "heading": "12.3 从 v1.2.x 升级到 v1.3.0",
+          "line": 1748,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-12-3-从-v1-2-x-升级到-v1-3-0",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "v1-4-2-efa-nixl-与-breaking-change-升级检查",
+          "heading": "v1.4.2 EFA、NIXL 与 breaking-change 升级检查",
+          "line": 1764,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-v1-4-2-efa-nixl-与-breaking-change-升级检查",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-4-生产落地检查清单",
+          "heading": "12.4 生产落地检查清单",
+          "line": 1781,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-12-4-生产落地检查清单",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "附录关键命令与参考资料",
+          "heading": "附录：关键命令与参考资料",
+          "line": 1798,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-附录关键命令与参考资料",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "a-1-常用命令",
+          "heading": "A.1 常用命令",
+          "line": 1800,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-a-1-常用命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "a-2-官方参考",
+          "heading": "A.2 官方参考",
+          "line": 1838,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#dynamo-a-2-官方参考",
+          "reason": "保留组件专有内容"
+        }
+      ],
+      "code_blocks": [
+        "f203bcefb995f97bfc9352ffb099da323a1fd2955378c29da76ddfbc6a873582",
+        "d1511c583e71db925b40e7b9fd0e3444c61eb1d5f5c91adea7a5fc5a1c11f0f7",
+        "a89af1c8201a5b10ae4fba8655b04c2602c62c1e424d5d2a7c195ee45097627a",
+        "2057e974ffd0bf4e62c3143983b1ea9687e8f63a408b12cd9f4df6f6fabe8d00",
+        "b9970ee6cc486a78464ae2d183272693ff2b885ecc94e7e673a5be6de4bc7f93",
+        "c7d9c31d9d7440f81e4cb584e448a21d26f138a229c9e85a03b9f8e17dabaa87",
+        "730feaaf8ff6ffc7a2f4185671079842ac8425dcd1354e1100f1206b41996157",
+        "d65da10a3872627c51dd122f79e421a9cf0c403e246c2467b0b454b24aec578e",
+        "d4fd566d406baa9d4ae3060c95777f6905067642964ace59c026431e9d744553",
+        "1bdca6774bd4b3d2d1ee4ba30ca5d4a9fc82d50ebf43cc69fd7c9ca7d9d191af",
+        "74ab34ec1b422c2126688f9f3567133264306ce3735884476bae7d17c4003fd7",
+        "b9b48fbf684b0b2e378ebbb0391f82dd81bd12aeb8e96abdded96e11e62b3e82",
+        "d85191716cd7dc36164298e91aa4ba2bb294784c4cdd3994c2fb88deb6f98478",
+        "4eb37ca9aa53708f8d25a555295d9c5b428b4fd19c20535a4e4f158fd1d43647",
+        "ddf46ce86b2f3dfd84919d50fd35c6cdc4d8d232605018ecd1bdea43d76c4c1d",
+        "28f03e1a3da6eaef88aa2d9ed0e6daa47c3068b90c1456f43aa72a6a760ff0b0",
+        "95af1343ea50adb7aee791b4d6c6e3701cb1711e8cbb37b0b9670a08ef49eed6",
+        "26a5866701f2cb8c6b81ae755a46bb7c4074b5794e0f4c9588a7714f7fb76f1c",
+        "e70b76eb5927801b60f579388c529bb9d5a7f3cb65129ce0716446f5b293bc7b",
+        "41d2d8191d9d7b4598c20819daa399b240ba9142061b03c755cb427fc1c6e451",
+        "c7d9c31d9d7440f81e4cb584e448a21d26f138a229c9e85a03b9f8e17dabaa87",
+        "cb6d7251c5b0a0f260b8f0a79faa0be7d7f1199e5ef09d99cab18ae09749caf8",
+        "a5b65575d34315be84aa92789f76bb9cf92670eee74ab70cda7f422101fb250d",
+        "8bd90bceaadef6e1fe218d293cb942061827073fb8df597a3bcbfa8cd3aa2919",
+        "9feadd482345b33c4c080c5876ce09d43bbbcc6e4f151464506f72530234572b",
+        "e46c50e096008b9c4457426b411e8a2e3b27f1ad128aece439792dce218d4ea8",
+        "0f1f051fe6a59a76b8d351ed3c1cad9cd0f174dc737a7bbe4462ea4a46ebba9d",
+        "1b79b6c93555803b60f9aca587122e0f9ff9a779d060c73ecd5b67cd865b0cae",
+        "d06362fd51a30baa69ce89a2bc031d47c43c5a648fdf5e913c35e02389d45c64",
+        "6c28583828a8dc107388344f090f859588b8dee2571e546425b3b16d86f46ec1",
+        "e222a174a8c61a3f24f158d08805791ebc6f95341c7d6c0b65a03aceac37675e",
+        "40b1a430324831b5a7646a6c3350b78dcd78122d0279c83b135b1a272a4c999a",
+        "b83d03a8cb157ce046b340c7a9cf1a863c3d350c3f2d61306b96de24321fd8d4",
+        "0da579512dc2a381e36e58e22c47200d9a5b31bc2f1a6981b176a49e7b1e850d",
+        "34684295add771b074b909c8a29c15f1a8795137eafc66a161880058db8e3156",
+        "1a83ac6af93dfbf76bfd33259c0fb95a035fe5cb88cc3a2297066a2927556800",
+        "8aefa001c41123f3d5a8f4cf0336cd3a12f9dd78da1cabcf23018500aa30968c",
+        "645dc78a96d639dbe7d3bceddd5bfa7650831af0f23b9101023641d352b405b5",
+        "18d1dbfa03d01615eb776f349fb10355039059faa25125141ee9c9c7025f70d6",
+        "158b8301f1594b3430e1f21163b3d77a026a08c9b9f64687a2f2bb234ce87d2c",
+        "4ef06bd83d14f9e297c811f91c9ad65429b69c2097e0106954bd12e0e1576081",
+        "86f5aa88dce0f67c81e47cb0106b27602972cb5bff6cf8afb67c62be73fab364"
+      ],
+      "evidence_urls": []
+    },
+    "LLM-Benchmark-Deep-Dive.md": {
+      "document": "AI-Inference-Deep-Dive.md",
+      "part_anchor": "benchmark",
+      "sections": [
+        {
+          "old_anchor": "llm-压测工具深度对比",
+          "heading": "LLM 压测工具深度对比",
+          "line": 1,
+          "action": "合并",
+          "target": "AI-Inference-Deep-Dive.md#benchmark",
+          "reason": "页头与导航归入组件分篇"
+        },
+        {
+          "old_anchor": "目录",
+          "heading": "目录",
+          "line": 13,
+          "action": "合并",
+          "target": "AI-Inference-Deep-Dive.md#benchmark",
+          "reason": "页头与导航归入组件分篇"
+        },
+        {
+          "old_anchor": "第一章llm-压测为什么不同于普通-http-压测",
+          "heading": "第一章：LLM 压测为什么不同于普通 HTTP 压测",
+          "line": 19,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-llm-压测为什么不同于普通-http-压测",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第二章核心指标与口径",
+          "heading": "第二章：核心指标与口径",
+          "line": 44,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-核心指标与口径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-1-延迟指标",
+          "heading": "2.1 延迟指标",
+          "line": 46,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-2-1-延迟指标",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-2-吞吐指标",
+          "heading": "2.2 吞吐指标",
+          "line": 59,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-2-2-吞吐指标",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "2-3-统计口径",
+          "heading": "2.3 统计口径",
+          "line": 72,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-2-3-统计口径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第三章负载模型",
+          "heading": "第三章：负载模型",
+          "line": 90,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-负载模型",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-1-closed-loop-与-open-loop",
+          "heading": "3.1 closed-loop 与 open-loop",
+          "line": 92,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-3-1-closed-loop-与-open-loop",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-2-到达分布",
+          "heading": "3.2 到达分布",
+          "line": 101,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-3-2-到达分布",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "3-3-压测前必须对齐的参数",
+          "heading": "3.3 压测前必须对齐的参数",
+          "line": 112,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-3-3-压测前必须对齐的参数",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第四章工具总览矩阵",
+          "heading": "第四章：工具总览矩阵",
+          "line": 130,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-工具总览矩阵",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-1-能力对比",
+          "heading": "4.1 能力对比",
+          "line": 144,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-4-1-能力对比",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "4-2-简化选型图",
+          "heading": "4.2 简化选型图",
+          "line": 161,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-4-2-简化选型图",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第五章aiperf",
+          "heading": "第五章：AIPerf",
+          "line": 187,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-aiperf",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-1-定位",
+          "heading": "5.1 定位",
+          "line": 189,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-5-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-2-能力",
+          "heading": "5.2 能力",
+          "line": 197,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-5-2-能力",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-3-v0-12-0-稳定增量",
+          "heading": "5.3 v0.12.0 稳定增量",
+          "line": 211,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-5-3-v0-12-0-稳定增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-4-v0-13-0-稳定增量",
+          "heading": "5.4 v0.13.0 稳定增量",
+          "line": 227,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-5-4-v0-13-0-稳定增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-5-典型命令",
+          "heading": "5.5 典型命令",
+          "line": 243,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-5-5-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-6-适用场景",
+          "heading": "5.6 适用场景",
+          "line": 256,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-5-6-适用场景",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "5-7-限制",
+          "heading": "5.7 限制",
+          "line": 266,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-5-7-限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第六章guidellm",
+          "heading": "第六章：GuideLLM",
+          "line": 276,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-guidellm",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-1-定位",
+          "heading": "6.1 定位",
+          "line": 278,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-6-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-2-能力",
+          "heading": "6.2 能力",
+          "line": 286,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-6-2-能力",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-3-v0-7-2-增量",
+          "heading": "6.3 v0.7.2 增量",
+          "line": 297,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-6-3-v0-7-2-增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-4-v0-7-3-补丁边界",
+          "heading": "6.4 v0.7.3 补丁边界",
+          "line": 310,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-6-4-v0-7-3-补丁边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-5-v0-7-4-计量修正",
+          "heading": "6.5 v0.7.4 计量修正",
+          "line": 323,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-6-5-v0-7-4-计量修正",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-6-典型命令",
+          "heading": "6.6 典型命令",
+          "line": 335,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-6-6-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-7-适用场景",
+          "heading": "6.7 适用场景",
+          "line": 366,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-6-7-适用场景",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "6-8-限制",
+          "heading": "6.8 限制",
+          "line": 375,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-6-8-限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第七章inference-perf",
+          "heading": "第七章：inference-perf",
+          "line": 384,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-inference-perf",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-1-定位",
+          "heading": "7.1 定位",
+          "line": 386,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-7-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-2-能力",
+          "heading": "7.2 能力",
+          "line": 394,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-7-2-能力",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-3-v0-6-1-增量",
+          "heading": "7.3 v0.6.1 增量",
+          "line": 407,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-7-3-v0-6-1-增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-4-v0-7-0-agentic-trace-replay-与-token-口径",
+          "heading": "7.4 v0.7.0 agentic、trace replay 与 token 口径",
+          "line": 421,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-7-4-v0-7-0-agentic-trace-replay-与-token-口径",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-5-典型命令",
+          "heading": "7.5 典型命令",
+          "line": 436,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-7-5-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-6-适用场景",
+          "heading": "7.6 适用场景",
+          "line": 458,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-7-6-适用场景",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "7-7-限制",
+          "heading": "7.7 限制",
+          "line": 467,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-7-7-限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第八章genai-bench",
+          "heading": "第八章：genai-bench",
+          "line": 476,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-genai-bench",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-1-定位",
+          "heading": "8.1 定位",
+          "line": 478,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-8-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-2-能力",
+          "heading": "8.2 能力",
+          "line": 486,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-8-2-能力",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-3-典型命令",
+          "heading": "8.3 典型命令",
+          "line": 499,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-8-3-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-4-适用场景",
+          "heading": "8.4 适用场景",
+          "line": 543,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-8-4-适用场景",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "8-5-限制",
+          "heading": "8.5 限制",
+          "line": 552,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-8-5-限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第九章sglang-bench",
+          "heading": "第九章：SGLang Bench",
+          "line": 561,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-sglang-bench",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-1-定位",
+          "heading": "9.1 定位",
+          "line": 563,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-2-支持的后端与-endpoint",
+          "heading": "9.2 支持的后端与 endpoint",
+          "line": 577,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-2-支持的后端与-endpoint",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-3-数据集与负载模型",
+          "heading": "9.3 数据集与负载模型",
+          "line": 601,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-3-数据集与负载模型",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-4-关键运行参数",
+          "heading": "9.4 关键运行参数",
+          "line": 617,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-4-关键运行参数",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-5-指标与输出",
+          "heading": "9.5 指标与输出",
+          "line": 639,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-5-指标与输出",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-6-典型命令",
+          "heading": "9.6 典型命令",
+          "line": 664,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-6-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-7-适用场景与限制",
+          "heading": "9.7 适用场景与限制",
+          "line": 781,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-7-适用场景与限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-8-v0-5-18-运行与升级边界",
+          "heading": "9.8 v0.5.18 运行与升级边界",
+          "line": 792,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-8-v0-5-18-运行与升级边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-9-v0-5-19-服务能力与压测边界",
+          "heading": "9.9 v0.5.19 服务能力与压测边界",
+          "line": 806,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-9-v0-5-19-服务能力与压测边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "v0-5-19-benchmark-运行建议",
+          "heading": "v0.5.19 benchmark 运行建议",
+          "line": 820,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-v0-5-19-benchmark-运行建议",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "9-10-v0-5-20-服务能力与压测边界",
+          "heading": "9.10 v0.5.20 服务能力与压测边界",
+          "line": 831,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-9-10-v0-5-20-服务能力与压测边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "v0-5-20-benchmark-运行建议",
+          "heading": "v0.5.20 benchmark 运行建议",
+          "line": 849,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-v0-5-20-benchmark-运行建议",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十章llmperf",
+          "heading": "第十章：LLMPerf",
+          "line": 859,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-llmperf",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-1-定位",
+          "heading": "10.1 定位",
+          "line": 861,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-10-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-2-能力",
+          "heading": "10.2 能力",
+          "line": 869,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-10-2-能力",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-3-典型命令",
+          "heading": "10.3 典型命令",
+          "line": 879,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-10-3-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "10-4-适用场景与限制",
+          "heading": "10.4 适用场景与限制",
+          "line": 896,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-10-4-适用场景与限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十一章ollama-benchmark",
+          "heading": "第十一章：ollama-benchmark",
+          "line": 906,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-ollama-benchmark",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-1-定位",
+          "heading": "11.1 定位",
+          "line": 908,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-11-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-2-典型命令",
+          "heading": "11.2 典型命令",
+          "line": 916,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-11-2-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-3-v0-5-3-安全补丁边界",
+          "heading": "11.3 v0.5.3 安全补丁边界",
+          "line": 942,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-11-3-v0-5-3-安全补丁边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-4-v0-5-4-模型卸载边界",
+          "heading": "11.4 v0.5.4 模型卸载边界",
+          "line": 946,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-11-4-v0-5-4-模型卸载边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "11-5-适用场景与限制",
+          "heading": "11.5 适用场景与限制",
+          "line": 950,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-11-5-适用场景与限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十二章vllm-bench",
+          "heading": "第十二章：vLLM Bench",
+          "line": 960,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-vllm-bench",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-1-定位",
+          "heading": "12.1 定位",
+          "line": 962,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-12-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-2-工具类型",
+          "heading": "12.2 工具类型",
+          "line": 976,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-12-2-工具类型",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-3-典型命令",
+          "heading": "12.3 典型命令",
+          "line": 989,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-12-3-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-4-v0-27-x-benchmark-增量与边界",
+          "heading": "12.4 v0.27.x benchmark 增量与边界",
+          "line": 1017,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-12-4-v0-27-x-benchmark-增量与边界",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-5-v0-28-0-benchmark-增量",
+          "heading": "12.5 v0.28.0 benchmark 增量",
+          "line": 1055,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-12-5-v0-28-0-benchmark-增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-6-v0-29-0-服务端前提与破坏性变化",
+          "heading": "12.6 v0.29.0 服务端前提与破坏性变化",
+          "line": 1068,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-12-6-v0-29-0-服务端前提与破坏性变化",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-7-v0-30-0-服务端前提与破坏性变化",
+          "heading": "12.7 v0.30.0 服务端前提与破坏性变化",
+          "line": 1083,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-12-7-v0-30-0-服务端前提与破坏性变化",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "12-8-适用场景与限制",
+          "heading": "12.8 适用场景与限制",
+          "line": 1100,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-12-8-适用场景与限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十三章evalscope",
+          "heading": "第十三章：EvalScope",
+          "line": 1110,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-evalscope",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-1-定位",
+          "heading": "13.1 定位",
+          "line": 1112,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-1-定位",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-2-evalscope-perf-能力",
+          "heading": "13.2 `evalscope perf` 能力",
+          "line": 1120,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-2-evalscope-perf-能力",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-3-v1-9-1-基线增量",
+          "heading": "13.3 v1.9.1 基线增量",
+          "line": 1132,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-3-v1-9-1-基线增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-4-v1-10-0-稳定增量",
+          "heading": "13.4 v1.10.0 稳定增量",
+          "line": 1145,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-4-v1-10-0-稳定增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-5-v1-11-0-与-v1-11-1-正确性增量",
+          "heading": "13.5 v1.11.0 与 v1.11.1 正确性增量",
+          "line": 1169,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-5-v1-11-0-与-v1-11-1-正确性增量",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-6-v1-12-0-agentx-pd-指标与流式修复",
+          "heading": "13.6 v1.12.0 AgentX、PD 指标与流式修复",
+          "line": 1185,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-6-v1-12-0-agentx-pd-指标与流式修复",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-7-典型命令",
+          "heading": "13.7 典型命令",
+          "line": 1199,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-7-典型命令",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-8-vllm-bench-对齐",
+          "heading": "13.8 vLLM Bench 对齐",
+          "line": 1246,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-8-vllm-bench-对齐",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "13-9-限制",
+          "heading": "13.9 限制",
+          "line": 1261,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-13-9-限制",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十四章统一-vllm-endpoint-的可比压测模板",
+          "heading": "第十四章：统一 vLLM endpoint 的可比压测模板",
+          "line": 1271,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-统一-vllm-endpoint-的可比压测模板",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-1-启动-vllm-服务",
+          "heading": "14.1 启动 vLLM 服务",
+          "line": 1275,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-14-1-启动-vllm-服务",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-2-vllm-bench",
+          "heading": "14.2 vLLM Bench",
+          "line": 1297,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-14-2-vllm-bench",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-3-evalscope",
+          "heading": "14.3 EvalScope",
+          "line": 1315,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-14-3-evalscope",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-4-guidellm",
+          "heading": "14.4 GuideLLM",
+          "line": 1333,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-14-4-guidellm",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-5-inference-perf",
+          "heading": "14.5 inference-perf",
+          "line": 1344,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-14-5-inference-perf",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-6-aiperf",
+          "heading": "14.6 AIPerf",
+          "line": 1358,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-14-6-aiperf",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-7-genai-bench",
+          "heading": "14.7 genai-bench",
+          "line": 1373,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-14-7-genai-bench",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "14-8-sglang-bench",
+          "heading": "14.8 SGLang Bench",
+          "line": 1387,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-14-8-sglang-bench",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十五章生产选型建议",
+          "heading": "第十五章：生产选型建议",
+          "line": 1410,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-生产选型建议",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "15-1-按目标选工具",
+          "heading": "15.1 按目标选工具",
+          "line": 1412,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-15-1-按目标选工具",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "15-2-建议的压测流程",
+          "heading": "15.2 建议的压测流程",
+          "line": 1426,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-15-2-建议的压测流程",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "15-3-报告模板",
+          "heading": "15.3 报告模板",
+          "line": 1436,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-15-3-报告模板",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "第十六章常见误区",
+          "heading": "第十六章：常见误区",
+          "line": 1453,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-常见误区",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "附录官方参考与当前快照",
+          "heading": "附录：官方参考与当前快照",
+          "line": 1470,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-附录官方参考与当前快照",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "a-1-稳定版本快照",
+          "heading": "A.1 稳定版本快照",
+          "line": 1472,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-a-1-稳定版本快照",
+          "reason": "保留组件专有内容"
+        },
+        {
+          "old_anchor": "a-2-关键参考",
+          "heading": "A.2 关键参考",
+          "line": 1486,
+          "action": "保留",
+          "target": "AI-Inference-Deep-Dive.md#benchmark-a-2-关键参考",
+          "reason": "保留组件专有内容"
+        }
+      ],
+      "code_blocks": [
+        "952da6a1640e35cb6bef2b3e6680e78596471b936fb7d3f787aa33fcaebdde33",
+        "cb29f4545475de9fbb485c8e0cf0fbc09d6da0e2016eb7b8d743fb59af1164d7",
+        "a1dc4fd18a0b7a1828c39a83fd1bdcf0e05ff4efd692872ece13334136a90c64",
+        "46e0aaca507df4b29e24beeae1b7a74c704149e1da2ea4170578ebb2bbf9d062",
+        "79a80522645c2faf6ffe1a4fd9af3d56d6e4f743eff4faa1a512a714acb096cf",
+        "81a7388fa33efd95498f96a86888557f9f9466cf6479f123741d20013e4a59a6",
+        "2416c37ea44039f8e8524d6210023a7e940af0e8ed62d3d585d72a22bbce03d8",
+        "c405b7602429b835bba9c01b473d28d1a2b7a12f6b19bbf1909b8bba9052bd76",
+        "7b6e6bf49660bf2af60f94d60f698218195a7e99a96c64dbd8be5824517524d1",
+        "fbe085e7785a85c91190f15dfc30b1978d0901e00426a17ccd9abcba164a422e",
+        "162968816f31f2470c6aa881a0118e6bd3dda28082702ed1979e0ca1d5bc6625",
+        "ef901e1490d462029bfa4df55c50c3cac3a1455cd741d81b126e90dcb19c6623",
+        "d7948ff56307ae10b5a1f5d3c9cfaeb352b87ef3b549ec2cff1e3623320df179",
+        "4a9584d73cfe0dd38dbb4bc719c69cfd0f10bdffe8b7f55a1505424adc238f46",
+        "fbe55c0652b9b86eae49f93f6e4c53c04337f692e252418a59524394cfe5a509",
+        "0f36e09293547caa8c4617788ea736baddfac989dba93bc55ae39a9660db7d48",
+        "698af8e11fb927c739e4d8857f2168e04024f675ca802d9880d846404fce9803",
+        "5948a14fc0a0056ae80a34e51c1b85dd4d9f0e56bb1b3b9972d7486138e81a81",
+        "5800bb976639deb8e4b27641077097f7e29a45b0a57330bbb69f78b4b5ab22f4",
+        "a909d8de2b61791bd9795575339a6e572a78ee63a6e41279d19470f034472d13",
+        "44d00a95051d7e99aadca2848b2d63f846da57736fbdf23bac14dffce7e70978",
+        "18e8e4c90603b852cc5aed1e4289407fb5ee056afad42f3969cb6881ed4f5023",
+        "ae09ffc3269d70c40a959a649ec282189b32bda74a7dc782e2d9a86b36fb8155",
+        "93f87a3c059f541c05c9de065bd90e7cbc28f9e6f0f224bab5ef65c594315faf",
+        "f36728b51180355fa21e3d26afac5c85085f5e3a41e3ebf611f67e7579cbbe37",
+        "9fa173add048b173a615c02ed34533440d023965621c5034eddd5a238b786e17",
+        "26513f715432888e5470c9cd9f9ca65a1019c494402970421250d1beb9c7af63",
+        "604c40cd1343692dba5f4c863306ccbc2de4dc50044e25e02e8092ad503d13e7",
+        "61a8a70d0ead935ececf850b1b251acc987f3acfe0d61b14bbbbaee3ce3ee488",
+        "a1032bd1e1e891524981b9f01f4c3fa696ccd5879bc6ee8b1c9eb78b881c3721",
+        "6c84cfe6511c1e137339f9da4a4b834e5a7c0585964535067ee4089a0dcfd596",
+        "23c5bfb150f45e5b07164fb9884d3d2cbaac3bbd89dc55aef92af2ba057d8786",
+        "ddbaf0087827da6124b5aad263077f8c93e83c7878c5e0cdb6491578e8ffa308",
+        "b4474c7b871b3eabfecbaf7037b48a46bf6759d628864100272360f0a68017f6",
+        "6aa9e1fe1a9a9e6eaeae917abbe05d90d8dead59b20c1a7a5910f000c6619cb9",
+        "32c6817835f335052dbc913be4874baec1ca06857f69834df388f6c5de09fa98",
+        "cdf7444130705a02985a30331f050a943e3b4150a000a87648de4712cb5eeda0",
+        "6937a90c868098ecd7afb71f89845db9ac860e2671a0ccfd1440cc7cdc39b242",
+        "348f592d3fe327beb55dd6b6a8af473a4f61be1728040a600ee612851c8cead7",
+        "46fd1447032da22989035720a87d32663fd1f799f8789696d7eb3a44c5c73512"
+      ],
+      "evidence_urls": []
+    }
+  }
+}

@@ -32,12 +32,10 @@ KServe v0.21.0 把上一轮全部主线观察项纳入稳定版：LLMISVC rollou
 
 | 文档 | 版本基线 | 主题 | 适合读者 | 覆盖重点 |
 | --- | --- | --- | --- | --- |
-| [Mooncake-Deep-Dive.md](Mooncake-Deep-Dive.md) | `v0.3.13.post1` | Mooncake 分离式 LLM 推理架构 | 关注 KVCache、prefill/decode 分离、推理性能优化的工程师 | Transfer Engine/TENT 新 transport、Mooncake Store、NVMe/DFS、HA OpLog、Conductor、结构化对象与多租户 |
-| [Dynamo-Deep-Dive.md](Dynamo-Deep-Dive.md) | Dynamo `v1.5.0`；ModelExpress `v0.6.0` | Dynamo 数据中心级 LLM 推理编排 | 关注多节点推理服务、KV 路由和生产编排的工程师 | Request/Control/Storage 三平面、classify/pooling、NIXL loader、KV relay、Planner、Operator、KVBM 边界与 ModelExpress RL refit |
+| [推理系统与压测](AI-Inference-Deep-Dive.md) | Mooncake `v0.3.13.post1`；Dynamo `v1.5.0`；ModelExpress `v0.6.0`；AIPerf `v0.13.0`；SGLang `v0.5.20`；vLLM `v0.30.0`；EvalScope `v1.12.0` | 推理架构与容量评估 | 推理系统与性能工程师 | 公共概念、Mooncake、Dynamo、压测工具与评估方法、组合架构与选型 |
 | [E2B-Deep-Dive.md](E2B-Deep-Dive.md) | Infra `2026.30`；SDK `main@ccaf9fc0`；Agent Sandbox `v1.0.4` | E2B AI Sandbox 与自托管架构 | 关注代码执行沙箱、microVM、安全隔离、团队配额和私有化部署的工程师 | Firecracker、fork、filesystem-only resume、workload identity、Secrets、Kubernetes 分发与 Agent Sandbox scoped-token/迁移对照 |
 | [Teleport-Deep-Dive.md](Teleport-Deep-Dive.md) | Teleport `v18.10.0@ddaa46b`；The Bastion `v3.24.01`；Warpgate `v0.29.1`；Boundary `v0.21.3`；Pomerium `v0.33.3`；Guacamole `1.6.0` tag-only | Self-hosted 基础设施访问平台对比 | 需要在 OpenSSH/VPN/堡垒机、Teleport、The Bastion、Warpgate、Boundary、Pomerium 与 Guacamole 间做选型的平台、安全和运维工程师 | 统一能力矩阵、信任边界、身份/凭据生命周期、SSH/Kubernetes/DB/HTTP/RDP/VNC 协议深度、录制/SIEM、HA/故障、迁移验收与许可证边界 |
 | [Multica-Deep-Dive.md](Multica-Deep-Dive.md) | `v0.5.3`；main `12f8f3f3` | AI-native 团队任务管理与 coding agent 编排平台 | 关注 coding agent 团队协作、本地 CLI 执行、自托管和权限治理的工程师 | Issue lifecycle/Triage、Task/runs、Codex usage/thread、Channel/Desktop、25 种 protocol family、Squad、Autopilot、MCP 与无 Sandbox 边界 |
-| [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md) | AIPerf `v0.13.0`；GuideLLM `v0.7.4`；inference-perf `v0.7.0`；SGLang `v0.5.20`；vLLM `v0.30.0`；EvalScope `v1.12.0` | LLM 压测工具深度对比 | 需要选择或设计推理压测方案的工程师 | AgentX/agentic trace、token source/window、SGLang 缓存、vLLM MRV2/weight sync、EvalScope PD/流式指标与工具对比 |
 | [model_release_timeline.md](model_release_timeline.md) | 2022—2026-10-13；审校 2026-10-13 | 模型发布时间时间线 | 需要按厂商、年份或开放形态检索主线模型的读者 | 九大阵营、首次公开日期、发布形态、官方来源；页面支持供应商/年份/多模态/开放权重筛选和 CSV/JSON/Markdown 导出 |
 | [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md) | Lustre 官方资料；3FS `main@22fca04` | Lustre 与 3FS 深度技术文档 | 关注 AI 存储、HPC 并行文件系统、RDMA/NVMe 共享存储和 KVCache 落盘的工程师 | Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、dataloader、checkpoint、KV cache、生产选型 |
 | [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md) | `v26.7.1` | NVIDIA GPU Operator 节点软件栈与生命周期管理 | 负责 Kubernetes GPU 驱动、设备接入、共享隔离和生产运维的平台工程师 | Controller 调谐、ClusterPolicy、GPUCluster/DRA、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级排障 |
@@ -51,8 +49,7 @@ KServe v0.21.0 把上一轮全部主线观察项纳入稳定版：LLMISVC rollou
 
 ## 推荐阅读路径
 
-- LLM 推理架构：先读 [Mooncake-Deep-Dive.md](Mooncake-Deep-Dive.md)，再读 [Dynamo-Deep-Dive.md](Dynamo-Deep-Dive.md)。前者聚焦 KVCache 与分离式推理机制，后者聚焦数据中心级编排和路由。
-- 压测与容量评估：读 [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md)。它以 SGLang `v0.5.20`、vLLM `v0.30.0` 和 EvalScope `v1.12.0` 为关键基线，适合在选型推理引擎、比较吞吐/延迟指标、设计 SLO/goodput 压测方案前阅读。
+- LLM 推理与容量评估：按[公共概念](AI-Inference-Deep-Dive.md#inference-concepts) → [Mooncake](AI-Inference-Deep-Dive.md#mooncake) → [Dynamo](AI-Inference-Deep-Dive.md#dynamo) → [压测工具](AI-Inference-Deep-Dive.md#benchmark) → [组合选型](AI-Inference-Deep-Dive.md#inference-selection) 阅读。
 - 模型版本检索：读 [model_release_timeline.md](model_release_timeline.md)；它按首次公开日期整理九大阵营的主线模型，生成页面可按供应商、年份、多模态和开放权重筛选，并把当前结果导出为 CSV、JSON 或 Markdown。筛选状态会写入 URL，便于分享和复用。
 - AI 存储与文件系统：读 [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md)。它适合理解 Lustre、3FS、RDMA/NVMe 共享存储、checkpoint、dataloader 和 KV cache on disk 的架构取舍。
 - 基础设施身份与访问治理：读 [Teleport、The Bastion、Warpgate 对比文档](Teleport-Deep-Dive.md)。它先解释 Teleport 的 Auth/Proxy/Agent、短期证书、Role/标签、MFA、反向隧道和多协议审计，再用统一矩阵比较 The Bastion 的 Unix DAC/syslog/ttyrec、Warpgate 的单二进制与 SQLite、Boundary 的 Vault session broker、Pomerium 的 HTTP/TCP 零信任入口和 Guacamole 的浏览器 RDP/VNC 网关；Teleport 及这些平台都不替 Kubernetes/KServe/Kubeflow 的原生 RBAC、E2B 的 microVM 隔离、Multica 的 agent 协作编排或目标数据库/云 IAM 授权。
