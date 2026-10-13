@@ -403,6 +403,8 @@ curl --fail-with-body \
 
 HTTP Header 名称大小写不敏感，但本文沿用源码中的规范拼写。**这一固定版本不支持 `X-Sandbox-ID` 和 `X-Sandbox-Port`，它们不是兼容别名。** 如果企业网关对外采用自定义 `X-*` 名称，必须在进入 Client Proxy 前显式重写为 `E2b-Sandbox-Id` 和 `E2b-Sandbox-Port`。
 
+对照边界：Agent Sandbox `v1.0.6` 是 annotated tag；其 Go Router（对照，不是 E2B 能力）也有自己的 scoped-token、path routing 与 `X-Sandbox-*` 约定，exact source 为 `cd0761d5001baaf293460cd382ee318744d6b249`。不能因为两个项目都出现 Sandbox Router，就把 Agent Sandbox 的 Header、CRD 或 token 行为写成 E2B Infra 2026.30 的兼容接口。
+
 私有 ingress 还必须同时携带 Traffic Token；路由 Header 不是凭证，不提供认证或授权：
 
 ```bash
@@ -1617,3 +1619,30 @@ E2B 适合这些场景：
 | Python Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/python-sdk/e2b/sandbox_sync/main.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/e2b/sandbox_sync/main.py) |
 | Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/e2b/sandbox/main.py) |
 | Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |
+
+### A.1 合并前历史证据（迁移审计）
+
+以下链接来自合并前的 SDK 与 Agent Sandbox v1.0.4 文档。当前正文已升级到 SDK `main@62a17dfc` 与 Agent Sandbox `v1.0.6@cd0761d`；旧链接仅用于复核迁移前证据，不扩大 Infra `2026.30` 的稳定兼容范围。
+
+- E2B SDK 旧版 TypeScript connection config：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/js-sdk/src/connectionConfig.ts>
+- E2B SDK 旧版 TypeScript Sandbox：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/js-sdk/src/sandbox/index.ts>
+- E2B SDK 旧版网络测试：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/js-sdk/tests/sandbox/network.test.ts>
+- E2B SDK 旧版 Python sync client：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/python-sdk/e2b/api/client_sync/__init__.py>
+- E2B SDK 旧版 Python connection config：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/python-sdk/e2b/connection_config.py>
+- E2B SDK 旧版 Python envd client：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/python-sdk/e2b/envd/client_shared.py>
+- E2B SDK 旧版 Python Sandbox：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/python-sdk/e2b/sandbox/main.py>
+- E2B SDK 旧版 Python sync Sandbox：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/python-sdk/e2b/sandbox_sync/main.py>
+- E2B SDK 旧版网络测试：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/python-sdk/tests/sync/sandbox_sync/test_network.py>
+- Agent Sandbox v1.0.4 exact source：<https://github.com/kubernetes-sigs/agent-sandbox/tree/810726d89c71da77cdc82668bca1b00f5cd21ed8>
+- Agent Sandbox v1.0.4 Python Router：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py>
+- Agent Sandbox v1.0.4 migration guide：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/docs/api-migration-guide.md>
+- Agent Sandbox v1.0.4 RL fleet：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/examples/agent-sandbox-rl/agent_sandbox_rl/fleet.py>
+- Agent Sandbox v1.0.4 sandboxd guide：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/packages/sandboxd/USER_GUIDE.md>
+- Agent Sandbox v1.0.4 Router README：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/README.md>
+- Agent Sandbox v1.0.4 Authorizer：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/authz/authorizer.go>
+- Agent Sandbox v1.0.4 scoped-token v2：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/authz/scopedtoken_v2.go>
+- Agent Sandbox v1.0.4 Deployment：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/deploy/deployment.yaml>
+- Agent Sandbox v1.0.4 browser session：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/proxy/browsersession.go>
+- Agent Sandbox v1.0.4 Header parser：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/proxy/headers.go>
+- Agent Sandbox v1.0.4 proxy：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/proxy/proxy.go>
+- Agent Sandbox v1.0.4 path routing：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/proxy/pathroute.go>

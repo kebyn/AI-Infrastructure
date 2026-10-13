@@ -4339,7 +4339,7 @@
           "heading": "6.16 v0.20.1 tag-only 边界",
           "line": 919,
           "action": "保留",
-          "target": "Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers-6-16-v0-20-1-tag-only-边界",
+          "target": "Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers-6-17-v0-20-1-tag-only-边界",
           "reason": "保留组件专有内容"
         },
         {
@@ -4427,7 +4427,7 @@
           "heading": "7.10 优势与限制",
           "line": 1069,
           "action": "保留",
-          "target": "Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers-7-10-优势与限制",
+          "target": "Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers-7-11-优势与限制",
           "reason": "保留组件专有内容"
         },
         {
@@ -12986,7 +12986,7 @@
           "heading": "第三章：v1.8.2 到 v1.15.2 版本矩阵",
           "line": 102,
           "action": "保留",
-          "target": "Kubernetes-AI-Platform-Deep-Dive.md#volcano-upgrade-v1-8-2-到-v1-15-2-版本矩阵",
+          "target": "Kubernetes-AI-Platform-Deep-Dive.md#volcano-upgrade-v1-8-2-到-v1-15-3-版本矩阵",
           "reason": "保留组件专有内容"
         },
         {

@@ -138,7 +138,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
             'href="https://github.com/warp-tech/warpgate/releases/tag/v0.29.2">Warpgate '
             'v0.29.2</a>、<a href="https://developer.hashicorp.com/boundary/docs/concepts">Boundary '
             '官方文档</a>、<a href="https://github.com/pomerium/pomerium/releases/tag/v0.33.4">Pomerium '
-            'v0.33.4</a> 与 <a '
+            'v0.33.4</a>、<a href="https://www.pomerium.com/docs">Pomerium 官方文档</a> 与 <a '
             'href="https://guacamole.apache.org/doc/gug/">Guacamole 官方手册</a> 整理'},
  {'src': '/data/Multica-Deep-Dive.md',
   'dst': '/data/Multica-Deep-Dive.html',

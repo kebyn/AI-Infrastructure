@@ -7224,7 +7224,32 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | Releases | <https://github.com/volcano-sh/volcano/releases> |
 | CNCF Project Page | <https://www.cncf.io/projects/volcano/> |
 
-#### 5.9.8 CNCF AI 调度参考 {#ai-schedulers-a-8-cncf-ai-调度参考}
+#### 5.9.8 合并前历史证据（迁移审计）
+
+以下链接保留合并前 AI scheduler 文档使用的 exact source 和 release 证据。当前正文已升级到 Kueue v0.20.1、Grove alpha.15 与 KAI-Scheduler v0.18.5；历史链接只用于复核旧章节，不扩大当前稳定承诺。
+
+- Grove alpha.13 Release：<https://github.com/ai-dynamo/grove/releases/tag/v0.1.0-alpha.13>
+- Grove alpha.13 exact source：<https://github.com/ai-dynamo/grove/tree/af2df1ffff0ae7a1135554564a6240a3f22f2c35>
+- Grove alpha.13 Core Concepts：<https://github.com/ai-dynamo/grove/tree/af2df1ffff0ae7a1135554564a6240a3f22f2c35/docs/user-guide/01_core-concepts>
+- Grove alpha.13 Operator API：<https://github.com/ai-dynamo/grove/blob/af2df1ffff0ae7a1135554564a6240a3f22f2c35/docs/api-reference/operator-api.md>
+- Grove alpha.13 Scheduler API：<https://github.com/ai-dynamo/grove/blob/af2df1ffff0ae7a1135554564a6240a3f22f2c35/docs/api-reference/scheduler-api.md>
+- Grove alpha.13 Scheduler Backend Framework：<https://github.com/ai-dynamo/grove/blob/af2df1ffff0ae7a1135554564a6240a3f22f2c35/docs/proposals/375-scheduler-backend-framework/README.md>
+- Grove alpha.13 KAI Backend Proposal：<https://github.com/ai-dynamo/grove/blob/af2df1ffff0ae7a1135554564a6240a3f22f2c35/docs/proposals/525-KAI-Scheduler-Backend/README.md>
+- Grove alpha.13 Topology-Aware Scheduling：<https://github.com/ai-dynamo/grove/blob/af2df1ffff0ae7a1135554564a6240a3f22f2c35/docs/user-guide/topology-aware-scheduling.md>
+- KAI-Scheduler v0.17.2 Release：<https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.17.2>
+- KAI-Scheduler v0.17.2 Batch：<https://github.com/kai-scheduler/KAI-Scheduler/tree/2df9a1ffca535d602d57023074b824606e312797/docs/batch>
+- KAI-Scheduler v0.17.2 Fairness：<https://github.com/kai-scheduler/KAI-Scheduler/tree/2df9a1ffca535d602d57023074b824606e312797/docs/fairness>
+- KAI-Scheduler v0.17.2 GPU sharing：<https://github.com/kai-scheduler/KAI-Scheduler/tree/2df9a1ffca535d602d57023074b824606e312797/docs/gpu-sharing>
+- KAI-Scheduler v0.17.2 Migration Guides：<https://github.com/kai-scheduler/KAI-Scheduler/tree/2df9a1ffca535d602d57023074b824606e312797/docs/migrationguides>
+- KAI-Scheduler v0.17.2 Queues：<https://github.com/kai-scheduler/KAI-Scheduler/tree/2df9a1ffca535d602d57023074b824606e312797/docs/queues>
+- KAI-Scheduler v0.17.2 Quickstart：<https://github.com/kai-scheduler/KAI-Scheduler/tree/2df9a1ffca535d602d57023074b824606e312797/docs/quickstart>
+- KAI-Scheduler v0.17.2 Topology：<https://github.com/kai-scheduler/KAI-Scheduler/tree/2df9a1ffca535d602d57023074b824606e312797/docs/topology>
+- KAI-Scheduler v0.17.2 Preemption Delay：<https://github.com/kai-scheduler/KAI-Scheduler/blob/2df9a1ffca535d602d57023074b824606e312797/docs/preemption-delay/README.md>
+- KAI-Scheduler v0.17.2 PodGroup API：<https://github.com/kai-scheduler/KAI-Scheduler/blob/2df9a1ffca535d602d57023074b824606e312797/pkg/apis/scheduling/v2alpha2/podgroup_types.go>
+- KAI-Scheduler v0.17.2 PyTorch grouper：<https://github.com/kai-scheduler/KAI-Scheduler/blob/2df9a1ffca535d602d57023074b824606e312797/pkg/podgrouper/podgrouper/plugins/kubeflow/pytorch/pytorch_grouper.go>
+- Kueue v0.19.4 Release：<https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.4>
+
+#### 5.9.9 CNCF AI 调度参考 {#ai-schedulers-a-8-cncf-ai-调度参考}
 
 | 主题 | 链接 |
 |------|------|

@@ -1168,3 +1168,13 @@ Teleport OSS 最有价值的能力是把多协议访问统一到同一组 CA、�
 6. Guacamole 的 `1.6.0` 只有 tag-only exact source、审校日无 GitHub Release；它是可复核的源码边界而非厂商 Release 兼容承诺，正式发行包出现后必须重新核对 server/client 两个仓库和协议矩阵；
 7. `master`、`v19.*-dev.*`、Teleport Cloud 行为、商业插件和其它平台的 SaaS/Enterprise 功能不扩大本文固定版本兼容承诺；
 8. 许可条款、SSO/MFA 和高级审计能力可能变化，生产使用应在获取源码或二进制时重新审查对应文件，并让法务/采购复核商业条件。
+
+### B.5 合并前历史证据（迁移审计）
+
+以下链接来自合并前 Warpgate v0.29.1 与 Pomerium v0.33.3 的证据清单。当前正文已升级到 Warpgate v0.29.2 与 Pomerium v0.33.4；旧链接只用于复核历史版本，不改变当前稳定矩阵。
+
+- Pomerium v0.33.3 LICENSE：<https://github.com/pomerium/pomerium/blob/76042ed40db3bab9506b689f436716b6df624f23/LICENSE>
+- Pomerium v0.33.3 exact source：<https://github.com/pomerium/pomerium/tree/76042ed40db3bab9506b689f436716b6df624f23>
+- Warpgate v0.29.1 LICENSE：<https://github.com/warp-tech/warpgate/blob/54f93c807be2c161a94c0df764242849125161a8/LICENSE>
+- Warpgate v0.29.1 Release：<https://github.com/warp-tech/warpgate/releases/tag/v0.29.1>
+- Warpgate v0.29.1 exact source：<https://github.com/warp-tech/warpgate/tree/54f93c807be2c161a94c0df764242849125161a8>

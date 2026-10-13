@@ -6240,6 +6240,31 @@ python3 -m sglang.benchmark.serving \
 | EvalScope Examples | <https://github.com/modelscope/evalscope/blob/498027686e6e3cf4eb32405a3fd21c65ff9237f1/docs/zh/user_guides/stress_test/examples.md> |
 | EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/498027686e6e3cf4eb32405a3fd21c65ff9237f1/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
 
+#### 4.12.3 合并前历史证据（迁移审计）
+
+以下链接来自合并前的 Dynamo、ModelExpress 和 LLM benchmark 文档。当前章节已分别升级到新的稳定基线，但保留这些 exact source/文件链接，使 `docs_migration.json` 中的原始官方证据仍可复核；它们不改变当前版本矩阵。
+
+- Dynamo v1.5.0 README：<https://github.com/ai-dynamo/dynamo/blob/b83b1d9304ebfc624709ac46db32b1b6f1ff1615/README.md>
+- ModelExpress v0.6.0 架构：<https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/ARCHITECTURE.md>
+- ModelExpress v0.6.0 部署：<https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/DEPLOYMENT.md>
+- ModelExpress v0.6.0 Kubernetes backend：<https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/K8S_SERVICE_BACKEND.md>
+- ModelExpress v0.6.0 SGLang：<https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/SGLANG.md>
+- ModelExpress v0.6.0 metadata：<https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/docs/metadata.md>
+- ModelExpress model cache 示例：<https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/examples/dynamo_model_cache_k8s/README.md>
+- ModelExpress P2P transfer 示例：<https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/examples/dynamo_p2p_transfer_k8s/README.md>
+- ModelExpress refit client：<https://github.com/ai-dynamo/modelexpress/blob/e91f650aa6a1847959e7f7da1b39c19e16b312e3/modelexpress_client/python/modelexpress/refit/README.md>
+- ModelExpress v0.6.0 Release：<https://github.com/ai-dynamo/modelexpress/releases/tag/v0.6.0>
+- ModelExpress v0.6.0 exact source：<https://github.com/ai-dynamo/modelexpress/tree/e91f650aa6a1847959e7f7da1b39c19e16b312e3>
+- ModelExpress TensorRT-LLM engine：<https://github.com/ai-dynamo/modelexpress/tree/e91f650aa6a1847959e7f7da1b39c19e16b312e3/modelexpress_client/python/modelexpress/engines/trtllm>
+- EvalScope v1.12.0 README：<https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/README_zh.md>
+- EvalScope v1.12.0 quick start：<https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/quick_start.md>
+- EvalScope v1.12.0 parameters：<https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/parameters.md>
+- EvalScope v1.12.0 examples：<https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/examples.md>
+- EvalScope v1.12.0 vs vLLM Bench：<https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/vs_vllm_bench.md>
+- vLLM v0.30.0 benchmark 目录：<https://github.com/vllm-project/vllm/tree/ced6857afa0ea7b2e3f0846a62e1394e90f15607/benchmarks>
+- vLLM v0.30.0 CLI：<https://github.com/vllm-project/vllm/blob/ced6857afa0ea7b2e3f0846a62e1394e90f15607/docs/benchmarking/cli.md>
+- vLLM v0.30.0 Rust benchmark：<https://github.com/vllm-project/vllm/blob/ced6857afa0ea7b2e3f0846a62e1394e90f15607/rust/src/bench/README.md>
+
 ## 第5篇：组合架构与选型 {#inference-selection}
 
 先确定计算、路由、缓存和测量各层的职责，再选择组件与容量验证方法。

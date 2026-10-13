@@ -1458,3 +1458,47 @@ Release 链：[v0.4.41](https://github.com/multica-ai/multica/releases/tag/v0.4.
 - [NOTICE](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/NOTICE)
 
 本文固定的是 2026-10-13 的 `v0.6.2`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
+
+### E.7 合并前历史证据（迁移审计）
+
+以下链接和配置片段来自合并前 `v0.5.3`/`main@12f8f3f` 文档。当前正文已升级到 `v0.6.2@7ab92d7`；历史证据只用于复核迁移前内容，不改变当前 release 的稳定边界。
+
+- v0.5.3 LICENSE：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/LICENSE>
+- v0.5.3 NOTICE：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/NOTICE>
+- v0.5.3 README.zh.md：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/README.zh.md>
+- v0.5.3 Channel 文档：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/content/docs/channels.zh.mdx>
+- v0.5.3 Desktop 文档：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/content/docs/desktop-app.zh.mdx>
+- v0.5.3 Agent Runtime 文档：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/content/docs/install-agent-runtime.zh.mdx>
+- v0.5.3 Task 文档：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/content/docs/tasks.zh.mdx>
+- v0.5.3 Workspace 图片：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/public/images/docs/workspace-overview.webp>
+- v0.5.3 Issue lifecycle rollout：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/docs/issue-status-lifecycle-rollout.md>
+- v0.5.3 开发环境脚本：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/scripts/dev-env.sh>
+- v0.5.3 daemon config：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/daemon/config.go>
+- v0.5.3 Agent activity 回归：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/handler/agent_activity_outcomes_test.go>
+- v0.5.3 Triage guard：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/handler/issue_triage_guard.go>
+- v0.5.3 Triage no-run 回归：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/handler/issue_triage_no_run_test.go>
+- v0.5.3 Plugin hook：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/handler/plugin_hook.go>
+- v0.5.3 WeCom relay：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/integrations/wecom/relay_outbound.go>
+- v0.5.3 lifecycle migration：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/migrations/478_issue_status_category_expand.up.sql>
+- v0.5.3 Triage state migration：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/migrations/483_issue_triage_state.up.sql>
+- v0.5.3 Triage validation migration：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/migrations/489_issue_triage_state_validate.up.sql>
+- v0.5.3 reserved Triage key migration：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/migrations/490_drop_triage_status_key_reservation.up.sql>
+- v0.5.3 Agent contract：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/pkg/agent/agent.go>
+- v0.5.3 Codex adapter：<https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/pkg/agent/codex.go>
+- v0.5.3 exact source：<https://github.com/multica-ai/multica/tree/ff8b285497809e084915016c40c2bc5e5991ffbc>
+- 合并前 main exact source：<https://github.com/multica-ai/multica/tree/12f8f3f31111564e5e1b9aac3f7f916e8bba4039>
+- v0.5.3 Workspace 图片 raw source：<https://raw.githubusercontent.com/multica-ai/multica/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/public/images/docs/workspace-overview.webp>
+
+合并前部署配置代码块保留如下，作为原始代码块 SHA-256 的验收锚点：
+
+```text
+MULTICA_IMAGE_TAG=v0.5.3
+```
+
+```yaml
+images:
+  backend:
+    tag: v0.5.3
+  frontend:
+    tag: v0.5.3
+```
