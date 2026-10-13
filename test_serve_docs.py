@@ -441,7 +441,7 @@ class PageBrowserTest(unittest.TestCase):
         self.assertIn("multimodal=yes", self.page.url)
         self.assertTrue(rows.evaluate_all("nodes => nodes.every(node => node.dataset.multimodal === 'yes')"))
         self.page.click("#timeline-clear-filters")
-        self.assertEqual(rows.count(), 117)
+        self.assertEqual(rows.count(), 121)
         self.assertNotIn("supplier=", self.page.url)
         self.page.locator('input[data-filter="supplier"][value="Xiaomi / MiMo"]').check()
         self.page.locator('input[data-filter="year"][value="2022"]').check()
@@ -553,13 +553,13 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in deep_dive_docs:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-09-26", doc["meta"])
+                self.assertIn("2026-10-13", doc["meta"])
                 self.assertNotIn("2026-09-17", doc["meta"])
                 self.assertNotIn("2026-09-06", doc["meta"])
                 self.assertNotIn("2026-09-01", doc["meta"])
                 self.assertNotIn("2026-08-22", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-09-26", markdown_text)
+                self.assertIn("审校日期：2026-10-13", markdown_text)
                 self.assertNotIn("审校日期：2026-09-17", markdown_text)
                 self.assertNotIn("审校日期：2026-09-06", markdown_text)
                 self.assertNotIn("审校日期：2026-08-22", markdown_text)
@@ -593,10 +593,10 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn('/model_release_timeline.html', html)
         self.assertIn("2026-10-13", html)
 
-    def test_timeline_source_has_117_rows_and_rendered_rows_have_filter_metadata(self):
+    def test_timeline_source_has_121_rows_and_rendered_rows_have_filter_metadata(self):
         source = Path(__file__).resolve().parent / "model_release_timeline.md"
         source_rows = re.findall(r"^\| 20", source.read_text(encoding="utf-8"), re.M)
-        self.assertEqual(len(source_rows), 117)
+        self.assertEqual(len(source_rows), 121)
 
         doc = next(doc for doc in serve_docs.DOCS if doc.get("type") == "timeline")
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -609,7 +609,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             r'data-multimodal="(yes|no)" data-open-source="(yes|no)">',
             html,
         )
-        self.assertEqual(len(rendered_rows), 117)
+        self.assertEqual(len(rendered_rows), 121)
         self.assertEqual(
             {row[0] for row in rendered_rows},
             {"2022", "2023", "2024", "2025", "2026"},
@@ -742,7 +742,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         entries = re.findall(r"^\| \[.*?\]\(([^)#]+\.md)\)", readme, re.M)
         self.assertEqual(set(entries), {Path(doc["src"]).name for doc in serve_docs.DOCS})
         self.assertEqual(len(entries), 7)
-        for term in ("2026-09-26", "2026-10-13", "exact source commit", "tag-only", "未发布主线快照", "26.03.1", "v0.21.0", "docs_migration.json", "不提供旧地址重定向"):
+        for term in ("2026-10-13", "exact source commit", "tag-only", "未发布主线快照", "26.03.1", "v0.21.0", "docs_migration.json", "不提供旧地址重定向"):
             self.assertIn(term, readme)
         # All former README revision pins remain verifiable in their domain documents.
         corpus = "\n".join(Path(doc["src"]).read_text() for doc in serve_docs.DOCS)
@@ -764,7 +764,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["hero"], "基础设施访问治理：Self-hosted 平台对比")
         self.assertEqual(
             doc["meta"],
-            "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.1 · Boundary v0.21.3 · Pomerium v0.33.3 · Guacamole 1.6.0 tag-only · 2026-09-26",
+            "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.2 · Boundary v0.21.3 · Pomerium v0.33.4 · Guacamole 1.6.0 tag-only · 2026-10-13",
         )
         for summary_term in (
             "六个平台",
@@ -782,7 +782,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "https://github.com/gravitational/teleport/tree/"
             "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
             "https://github.com/ovh/the-bastion/releases/tag/v3.24.01",
-            "https://github.com/warp-tech/warpgate/releases/tag/v0.29.1",
+            "https://github.com/warp-tech/warpgate/releases/tag/v0.29.2",
             "https://developer.hashicorp.com/boundary/docs/concepts",
             "https://www.pomerium.com/docs",
             "https://guacamole.apache.org/doc/gug/",
@@ -792,9 +792,9 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
         for required_text in (
-            "审校日期：2026-09-26",
+            "审校日期：2026-10-13",
             "v18.10.0",
-            "v0.29.1@54f93c807be2c161a94c0df764242849125161a8",
+            "v0.29.2@5c5ee3f2e300ff01d305c3fe9301fe68ec1ad934",
             "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
             "lightweight tag",
             "GNU AGPL-3.0",
@@ -828,7 +828,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "proxy-sync",
             "Auth→Proxy→Agent",
             "v19.*-dev.*",
-            "v0.33.3@76042ed40db3bab9506b689f436716b6df624f23",
+            "v0.33.4@5cd94927fee53f35a2bbd77797cc9524094bff78",
             "v0.33.2` 虽有 tag，但 release build 失败",
         ):
             with self.subTest(required_text=required_text):
@@ -905,7 +905,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
         for required_text in (
-            "审校日期：2026-09-26",
+            "审校日期：2026-10-13",
             "v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308",
             "2026-09-02",
             "2026-09-03",
@@ -976,22 +976,22 @@ class RenderDocLayoutTest(unittest.TestCase):
             "AIPerf v0.13.0",
             "GuideLLM v0.7.4",
             "inference-perf v0.7.0",
-            "SGLang v0.5.20",
-            "vLLM v0.30.0",
-            "EvalScope v1.12.0",
+            "SGLang v0.5.21",
+            "vLLM v0.31.0",
+            "EvalScope v1.13.0",
         ):
             self.assertIn(release, doc["meta"])
         self.assertIn("genai-bench/tree/v0.0.5", doc["footer"])
-        self.assertIn("94602c9c2b7cbdb8efd5c52802dac6a1c180089e", doc["footer"])
-        self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", doc["footer"])
+        self.assertIn("e00930c5489053f26d86b179cee0d087f846acbb", doc["footer"])
+        self.assertIn("db9527a46873454610df6dbedf79a36d6bf1a7f6", doc["footer"])
         for exact_commit in (
             "794f8bb75f8582f22e412d7e650fc71ca2a3d21a",
             "291a6e609c3eb52d6eadcedecc7a056e396cd5eb",
             "5804ea6b7ebd2bfceff29cf113311ed3af95146e",
-            "f09e55de5d5f0a0953cd90aa7b0382b45859c4f5",
+            "498027686e6e3cf4eb32405a3fd21c65ff9237f1",
             "4f873e03719c947a101647c6646954d5ebc3d35b",
-            "94602c9c2b7cbdb8efd5c52802dac6a1c180089e",
-            "ced6857afa0ea7b2e3f0846a62e1394e90f15607",
+            "e00930c5489053f26d86b179cee0d087f846acbb",
+            "db9527a46873454610df6dbedf79a36d6bf1a7f6",
             "9e441efe48756928e453ff26694d6e5af1a9c71d",
         ):
             self.assertIn(exact_commit, markdown_text)
@@ -1109,24 +1109,24 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn('<div class="mermaid">', html)
         self.assertNotIn('class="language-mermaid"', html)
-        self.assertIn("94602c9c2b7cbdb8efd5c52802dac6a1c180089e", html)
-        self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", html)
+        self.assertIn("e00930c5489053f26d86b179cee0d087f846acbb", html)
+        self.assertIn("db9527a46873454610df6dbedf79a36d6bf1a7f6", html)
 
     def test_refreshed_stable_release_commits_are_pinned(self):
         docs_dir = Path(__file__).resolve().parent
         expected_commits = {
             ("E2B-Deep-Dive.md", "component"): (
                 "f32ee8a2a50052f32e3632ceb451111a98dd5104",
-                "ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b",
-                "810726d89c71da77cdc82668bca1b00f5cd21ed8",
+                "62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3",
+                "cd0761d5001baaf293460cd382ee318744d6b249",
             ),
             ("Teleport-Deep-Dive.md", "component"): (
                 "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
-                "76042ed40db3bab9506b689f436716b6df624f23",
+                "5c5ee3f2e300ff01d305c3fe9301fe68ec1ad934",
+                "5cd94927fee53f35a2bbd77797cc9524094bff78",
             ),
             ("Multica-Deep-Dive.md", "component"): (
-                "ff8b285497809e084915016c40c2bc5e5991ffbc",
-                "12f8f3f31111564e5e1b9aac3f7f916e8bba4039",
+                "7ab92d7622ecd81d179a8d83ae2dea74835a5069",
             ),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'gpu-operator'): (
                 "dbacf43d4938816fefe62690ab868a640a195282",
@@ -1135,8 +1135,8 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "4707fb02c91c545bc7343ce26dba4c32919f9a3e",
             ),
             ('AI-Inference-Deep-Dive.md', 'dynamo'): (
-                "b83b1d9304ebfc624709ac46db32b1b6f1ff1615",
-                "e91f650aa6a1847959e7f7da1b39c19e16b312e3",
+                "2093662a4d4e5fd318732935213dde08dc7be818",
+                "ac6d03a87a550c8188c3ed59f187b90d4f0554f5",
             ),
             ('AI-Inference-Deep-Dive.md', 'mooncake'): (
                 "719735896c86b56fabec6cf3e825fb2ea640597a",
@@ -1148,19 +1148,18 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'ai-schedulers'): (
-                "f0e95cea51b5591e0177fbe0fa06a299f36db548",
-                "af2df1ffff0ae7a1135554564a6240a3f22f2c35",
-                "2df9a1ffca535d602d57023074b824606e312797",
-                "1462fb7b4835970708717456e3aed85e697ec2eb",
-                "618b581b32668e317b0d18523d46cf9f55b549d8",
+                "237d77ecdf4a7551784bb5c07a497bb64c5dff2f",
+                "70f3e1b6afaa2c6fd29e840d917948704f6e2e36",
+                "36b2cabb463ef63e9cbde73c17ca8e4eac644f11",
+                "d2dd7024f4af3070f9d99d68a78973893908a743",
             ),
             ('AI-Inference-Deep-Dive.md', 'benchmark'): (
                 "794f8bb75f8582f22e412d7e650fc71ca2a3d21a",
                 "291a6e609c3eb52d6eadcedecc7a056e396cd5eb",
                 "5804ea6b7ebd2bfceff29cf113311ed3af95146e",
-                "f09e55de5d5f0a0953cd90aa7b0382b45859c4f5",
-                "94602c9c2b7cbdb8efd5c52802dac6a1c180089e",
-                "ced6857afa0ea7b2e3f0846a62e1394e90f15607",
+                "498027686e6e3cf4eb32405a3fd21c65ff9237f1",
+                "e00930c5489053f26d86b179cee0d087f846acbb",
+                "db9527a46873454610df6dbedf79a36d6bf1a7f6",
                 "9e441efe48756928e453ff26694d6e5af1a9c71d",
             ),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'kserve'): (
@@ -1168,7 +1167,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "bb22cc477a6bd317bb2c7e357a85efcab8c7462a",
             ),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'volcano-upgrade'): (
-                "1462fb7b4835970708717456e3aed85e697ec2eb",
+                "d2dd7024f4af3070f9d99d68a78973893908a743",
             ),
         }
         for (filename, component), commits in expected_commits.items():
@@ -1185,20 +1184,20 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "f78e722310e50bcaca9276be22276d9e91d91308",
             ),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'volcano-upgrade'): (
-                "f0917e48403c4ffa2d8a022f05f1f5097fbe9c10",
-                "1462fb7b4835970708717456e3aed85e697ec2eb",
+                "72a1885f88ce90aa3f89bd23442c448e1ca6fada",
+                "d2dd7024f4af3070f9d99d68a78973893908a743",
             ),
             ("E2B-Deep-Dive.md", "component"): (
-                "51849efaec0186dd6394d4037424f2cb49bef56e",
-                "810726d89c71da77cdc82668bca1b00f5cd21ed8",
+                "cdeac1ba4f4d29a20c8426a76cff25fcf326d5ea",
+                "cd0761d5001baaf293460cd382ee318744d6b249",
             ),
             ("Multica-Deep-Dive.md", "component"): (
-                "207e227163d97889651d614d191f094732c18744",
-                "ff8b285497809e084915016c40c2bc5e5991ffbc",
+                "0854695681139a5b0dce03aaf3583752a65409ed",
+                "7ab92d7622ecd81d179a8d83ae2dea74835a5069",
             ),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'ai-schedulers'): (
-                "e28d01afc0aae90ec5ad8f0bc00ee6ab9294b11b",
-                "f0e95cea51b5591e0177fbe0fa06a299f36db548",
+                "a88dc455091a6c204c982884043b9ccf8d585ab5",
+                "237d77ecdf4a7551784bb5c07a497bb64c5dff2f",
             ),
         }
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
@@ -1215,13 +1214,13 @@ class RenderDocLayoutTest(unittest.TestCase):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
         expected = {
             ('AI-Inference-Deep-Dive.md', 'mooncake'): ("v0.3.13.post1", "v0.3.12.post1"),
-            ('AI-Inference-Deep-Dive.md', 'dynamo'): ("Dynamo v1.5.0", "Dynamo v1.4.2"),
+            ('AI-Inference-Deep-Dive.md', 'dynamo'): ("Dynamo v1.5.1", "Dynamo v1.4.2"),
             ("Teleport-Deep-Dive.md", "component"): ("Teleport v18.10.0", "Teleport v19"),
             ("E2B-Deep-Dive.md", "component"): ("E2B Infra 2026.30", "E2B Infra 2026.29"),
-            ("Multica-Deep-Dive.md", "component"): ("Multica v0.5.3", "Multica v0.4.44"),
-            ('AI-Inference-Deep-Dive.md', 'benchmark'): ("vLLM v0.30.0", "vLLM v0.29.0"),
+            ("Multica-Deep-Dive.md", "component"): ("Multica v0.6.2", "Multica v0.4.44"),
+            ('AI-Inference-Deep-Dive.md', 'benchmark'): ("vLLM v0.31.0", "vLLM v0.29.0"),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'ai-schedulers'): (
-                "Kueue v0.19.6",
+                "Kueue v0.20.1",
                 "Kueue v0.19.4",
             ),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'kserve'): ("KServe v0.21.0", "KServe v0.20.0"),
@@ -1230,7 +1229,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "Kubernetes v1.37.0",
             ),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'volcano-upgrade'): (
-                "v1.8.2 → v1.15.2",
+                "v1.8.2 → v1.15.3",
                 "v1.8.2 → v1.15.1",
             ),
         }
@@ -1275,7 +1274,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc",
             "tag，但它没有对应的正式 GitHub Release",
             "不能仅按 tag 排序",
-            "不替代上表的 v0.18.0",
+            "不替代上表的 v0.18.5",
             "hierarchical gang floors",
             "同名 PodGroup 按 Kubernetes namespace 隔离",
             "releasing Pods 不再阻塞 required inter-pod anti-affinity",
@@ -1288,14 +1287,14 @@ class RenderDocLayoutTest(unittest.TestCase):
             encoding="utf-8"
         )
         for required_text in (
-            "v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615",
+            "v1.5.1@2093662a4d4e5fd318732935213dde08dc7be818",
             "nixl==1.3.2",
             "EFA Installer `1.49.0`",
             "EFA Installer `1.50`",
             "libfabric `2.4.0amzn5.0`",
             "Lost connection with prefill instance",
             "空 HTTP 200/零 token",
-            "ModelExpress 独立稳定版 `v0.6.0",
+            "ModelExpress 独立稳定版 `v0.7.0",
             "/v1/classify",
             "/v1/pooling",
             "logprob_token_ids",
@@ -1345,10 +1344,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             for doc in serve_docs.DOCS
             if Path(doc["src"]).name == "AI-Inference-Deep-Dive.md"
         )
-        self.assertIn("Dynamo v1.5.0", dynamo_doc["meta"])
-        self.assertIn("source@b83b1d9", dynamo_doc["meta"])
+        self.assertIn("Dynamo v1.5.1", dynamo_doc["meta"])
+        self.assertIn("source@2093662", dynamo_doc["meta"])
         self.assertIn(
-            "b83b1d9304ebfc624709ac46db32b1b6f1ff1615", dynamo_doc["footer"]
+            "2093662a4d4e5fd318732935213dde08dc7be818", dynamo_doc["footer"]
         )
         self.assertNotIn(
             "a49702e4432e7fa43cbc88175bddb31604340f19", dynamo_text
@@ -1378,12 +1377,12 @@ class RenderDocLayoutTest(unittest.TestCase):
             == "Kubernetes-AI-Platform-Deep-Dive.md"
         )
 
-        self.assertIn("KAI-Scheduler v0.18.0", ai_doc["meta"])
+        self.assertIn("KAI-Scheduler v0.18.5", ai_doc["meta"])
         self.assertIn("prerelease", ai_text)
-        self.assertIn("Kueue v0.19.6", ai_doc["meta"])
-        self.assertIn("Grove alpha.13", ai_doc["meta"])
-        self.assertIn("Volcano v1.15.2", ai_doc["meta"])
-        self.assertIn("v1.8.2 → v1.15.2", volcano_doc["meta"])
+        self.assertIn("Kueue v0.20.1", ai_doc["meta"])
+        self.assertIn("Grove alpha.15", ai_doc["meta"])
+        self.assertIn("Volcano v1.15.3", ai_doc["meta"])
+        self.assertIn("v1.8.2 → v1.15.3", volcano_doc["meta"])
         for revision in (
             "1462fb7b4835970708717456e3aed85e697ec2eb",
             "f5258704d7ef5bda28f31ba51950cdea9adbe921",
@@ -1420,9 +1419,9 @@ class RenderDocLayoutTest(unittest.TestCase):
         ):
             self.assertIn(required_text, volcano_text)
 
-        self.assertIn("KAI-Scheduler v0.18.0", native_text)
-        self.assertIn("Kueue v0.19.6", native_text)
-        self.assertIn("Volcano v1.15.2", native_text)
+        self.assertIn("KAI-Scheduler v0.18.5", native_text)
+        self.assertIn("Kueue v0.20.1", native_text)
+        self.assertIn("Volcano v1.15.3", native_text)
         self.assertIn("preemption delay", native_text)
         self.assertIn("DRADeviceCompatibilityGroups", native_text)
         self.assertIn("5922dc7d1a4661d3fc43d60943f92a775c892bdc", ai_text)
@@ -1507,7 +1506,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/"
+            "62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -1543,8 +1542,8 @@ class RenderDocLayoutTest(unittest.TestCase):
             "按 Sandbox lifecycle 计数",
             "超限返回 `429`",
             "E2B 固定版本不支持 `X-Sandbox-Namespace`",
-            "Agent Sandbox v1.0.4 Go Router（对照，不是 E2B 能力）",
-            "810726d89c71da77cdc82668bca1b00f5cd21ed8",
+            "Agent Sandbox `v1.0.6` 是 annotated tag",
+            "cd0761d5001baaf293460cd382ee318744d6b249",
             "preview=true",
             "Docker image 或 guest 应用不需要解析路由 Header",
             "它不会启动 guest 服务",
@@ -1603,7 +1602,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/"
+            "62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -1618,7 +1617,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         agent_sandbox_commit_base = (
             "https://github.com/kubernetes-sigs/agent-sandbox/blob/"
-            "810726d89c71da77cdc82668bca1b00f5cd21ed8/"
+            "cd0761d5001baaf293460cd382ee318744d6b249/"
         )
         for source_path in (
             "clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py",
@@ -1668,7 +1667,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "ConnectivityInClusterService",
             "FleetConfig.adopt_existing=True",
             "Infra `2026.30` 是 lightweight tag",
-            "Agent Sandbox `v1.0.4` 是 annotated tag",
+            "Agent Sandbox `v1.0.6` 是 annotated tag",
         ):
             with self.subTest(required_text=required_text):
                 self.assertIn(required_text, markdown_text)
@@ -1891,7 +1890,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Agent 协作与编排：Multica")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.5.3 · source@ff8b285 · main@12f8f3f · 2026-09-26",
+            "Multica v0.6.2 · source@7ab92d7 · main@7ab92d7 · 2026-10-13",
         )
         for summary_term in (
             "Issue 四类 lifecycle",
@@ -1910,7 +1909,7 @@ class RenderDocLayoutTest(unittest.TestCase):
                 self.assertIn(summary_term, doc["summary"])
         self.assertIn(
             "https://github.com/multica-ai/multica/tree/"
-            "ff8b285497809e084915016c40c2bc5e5991ffbc",
+            "7ab92d7622ecd81d179a8d83ae2dea74835a5069",
             doc["footer"],
         )
         self.assertIn("https://multica.ai/docs", doc["footer"])
@@ -1926,7 +1925,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("Agent 协作与编排：Multica", html)
         self.assertIn('/Multica-Deep-Dive.html', html)
-        self.assertIn("Multica v0.5.3", html)
+        self.assertIn("Multica v0.6.2", html)
         self.assertIn("无 Sandbox", html)
 
     def test_multica_execution_and_security_contract_is_documented(self):
@@ -1938,12 +1937,11 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
 
         for required_text in (
-            "v0.5.3",
-            "ff8b285497809e084915016c40c2bc5e5991ffbc",
-            "12f8f3f31111564e5e1b9aac3f7f916e8bba4039",
-            "207e227163d97889651d614d191f094732c18744",
-            "审校日期：2026-09-26",
-            "MULTICA_IMAGE_TAG=v0.5.3",
+            "v0.6.2",
+            "7ab92d7622ecd81d179a8d83ae2dea74835a5069",
+            "0854695681139a5b0dce03aaf3583752a65409ed",
+            "审校日期：2026-10-13",
+            "MULTICA_IMAGE_TAG=v0.6.2",
             "没有强制的 Issue 状态转换图",
             "Task 完成不等于 Issue 完成",
             "Task 与目标 Runtime 固定绑定且不会自动迁移",
@@ -2057,7 +2055,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         markdown_text = Path("/data/Multica-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
-        stable_commit = "ff8b285497809e084915016c40c2bc5e5991ffbc"
+        stable_commit = "7ab92d7622ecd81d179a8d83ae2dea74835a5069"
         product_image = (
             "https://raw.githubusercontent.com/multica-ai/multica/"
             f"{stable_commit}/apps/docs/public/images/docs/workspace-overview.webp"
@@ -2077,7 +2075,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             markdown_text,
             r"https://raw\.githubusercontent\.com/multica-ai/multica/(?:main|master)/",
         )
-        self.assertIn("`v0.5.3` 是本轮审校采用的最新正式 release", markdown_text)
+        self.assertIn("`v0.6.2` 是本轮审校采用的最新正式 release", markdown_text)
         self.assertIn("未发布主线和 tag-only 证据不反推为稳定能力", markdown_text)
         self.assertNotIn("0dfaac266eed3b7ac710de33d8207e4f71cfb20b", markdown_text)
         self.assertNotIn("c7f259c70a60bff30011c403fada79ab382f608a", markdown_text)
@@ -2108,7 +2106,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("stateDiagram-v2", html)
         self.assertIn(
             "https://raw.githubusercontent.com/multica-ai/multica/"
-            "ff8b285497809e084915016c40c2bc5e5991ffbc/"
+            "7ab92d7622ecd81d179a8d83ae2dea74835a5069/"
             "apps/docs/public/images/docs/workspace-overview.webp",
             html,
         )
