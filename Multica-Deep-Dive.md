@@ -4,11 +4,11 @@
 >
 > 基于 Multica 官方仓库和官方文档整理：<https://github.com/multica-ai/multica>
 >
-> 稳定版本基线：annotated tag `v0.5.3` 解引用后的 `ff8b285497809e084915016c40c2bc5e5991ffbc`；未发布主线审计快照 `main@12f8f3f31111564e5e1b9aac3f7f916e8bba4039`；审校日期：2026-09-26。正文的产品契约、默认参数和部署行为只以 `v0.5.3` 的 peeled source commit 为准；主线快照不扩大稳定兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
+> 稳定版本基线：annotated tag `v0.6.2` 的 tag object 为 `0854695681139a5b0dce03aaf3583752a65409ed`，解引用后的 source commit 为 `7ab92d7622ecd81d179a8d83ae2dea74835a5069`；当前 `main` 也指向该 commit；审校日期：2026-10-13。正文的产品契约、默认参数和部署行为以 `v0.6.2` 的 peeled source commit 为准；`main` 与 release 当前重合不等于未来主线兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
 
-![Multica v0.5.3 Workspace 概览：成员与 AI Agent 在同一工作区围绕 Issue、Project 与执行记录协作](https://raw.githubusercontent.com/multica-ai/multica/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/public/images/docs/workspace-overview.webp)
+![Multica v0.6.2 Workspace 概览：成员与 AI Agent 在同一工作区围绕 Issue、Project 与执行记录协作](https://raw.githubusercontent.com/multica-ai/multica/7ab92d7622ecd81d179a8d83ae2dea74835a5069/apps/docs/public/images/docs/workspace-overview.webp)
 
-> 图片来源：Multica 官方仓库 [`workspace-overview.webp`](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/public/images/docs/workspace-overview.webp)，固定到 `v0.5.3` exact source commit；本仓库不复制该二进制文件。
+> 图片来源：Multica 官方仓库 [`workspace-overview.webp`](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/apps/docs/public/images/docs/workspace-overview.webp)，固定到 `v0.6.2` exact source commit；本仓库不复制该二进制文件。
 
 ---
 
@@ -61,10 +61,10 @@ Multica 的核心产品价值不是“给模型一台隔离机器”，而是把
 
 本文使用以下优先级：
 
-1. `v0.5.3` peeled commit 中的数据库 migration、Go 服务端、daemon 和 provider adapter 源码；
+1. `v0.6.2` peeled commit 中的数据库 migration、Go 服务端、daemon 和 provider adapter 源码；
 2. 同一 commit 中的中文官方文档、`README.zh.md` 和自托管指南；
 3. annotated tag 与 GitHub Release 元数据；
-4. 本文只以 `v0.5.3` release 为稳定证据；`main@12f8f3f31111564e5e1b9aac3f7f916e8bba4039` 只记录审计时未发布分支头，不纳入兼容承诺。
+4. 本文只以 `v0.6.2` release 为稳定证据；当前 `main@7ab92d7622ecd81d179a8d83ae2dea74835a5069` 与 release peeled commit 重合，仍不作为独立的未来兼容承诺。
 
 本文所有 GitHub 稳定行为链接都固定到 tag 或 40 位 exact commit，不使用浮动 `main`/`master` URL。官网路由适合日常阅读，但未来可能随发布更新；需要审计时应回到附录 E 的固定源码链接。
 
@@ -83,7 +83,7 @@ Multica 的核心产品价值不是“给模型一台隔离机器”，而是把
 | Workspace teardown | 删除过程改为单事务、有界 keyset page、owner/task fence 和 10 秒 lock wait 上限 | 避免无限等待或提交半清理租户；失败会回滚并要求重试，不代表跨存储自动删除 Runtime 本地数据 |
 | provider/权限修复 | 修复跨 Workspace project 更新、PR close intent 歧义、Reasonix per-task deny、Cursor MCP shape 与 resumed auth recovery | 这些修复收紧租户、工具与恢复边界，不放宽 Agent Access 或主机权限 |
 
-`v0.5.3` 是本轮审校采用的最新正式 release；未发布主线和 tag-only 证据不反推为稳定能力。此前误把 E2B SDK 的 `b8029973...` 写成 Multica 主线提交，本轮已按 Multica 仓库真实分支头纠正。
+`v0.6.2` 是本轮审校采用的最新正式 release；未发布主线和 tag-only 证据不反推为稳定能力。此前误把 E2B SDK 的 `b8029973...` 写成 Multica 主线提交，本轮已按 Multica 仓库真实分支头纠正。
 
 ### 1.6 v0.4.25/v0.4.32 执行与治理增量
 
@@ -238,6 +238,19 @@ v0.5.x 是新的 minor 线。四个 release 以连续补丁节奏发布，产品
 | v0.5.3：thread 与 TLS | thread 回复按发送时间而不是触发时间排序；自托管对不可信 TLS 证书给出解释，并支持通过 Helm 信任私有 CA | 排序口径变化会影响既有 thread 审计导出；私有 CA 信任只作用于部署层，不改变 daemon 本机证书校验责任 |
 
 升级到 v0.5.x 后至少回归：OpenCode 最低版本探测与 2.x 混合 fleet、WeCom 限速/分片与 Telegram 去重、duplicate 标记与原子创建、task start ack fence、向进行中 run 追加消息、PR closing-keyword 完成判定、cache-write hit rate 口径、resumed session usage 报表与 thread 排序。
+
+### 1.12 v0.6.2 稳定增量与迁移边界
+
+`v0.6.2` 于 2026-10-13 发布，tag object 为 `0854695681139a5b0dce03aaf3583752a65409ed`，peeled source 为 `7ab92d7622ecd81d179a8d83ae2dea74835a5069`。本版 release notes 的变化集中在集成可靠性、宿主兼容和诊断，不改变本文对 Issue/Task、Runtime 权限或“默认无 Sandbox”的基本判断：
+
+| 领域 | v0.6.2 稳定增量 | 升级边界 |
+| --- | --- | --- |
+| Channel 与通知 | 清除 Lark typing 状态；企业微信 Issue 通知以实际 acting agent bot 发送 | 复测多副本、重试、机器人身份和消息去重；不能把通知送达当作 Task 终态 |
+| 宿主与 API | Windows host 临时目录保留；未分类服务错误不直接暴露 raw `500`；增加 wakeup diagnostics 和 workspace search | Windows daemon、错误映射、日志脱敏和搜索权限需要回归；错误码变化可能影响客户端重试策略 |
+| Provider 与恢复 | 检测 ChatGPT.app 中的 Codex；Pi MCP delivery；Codex resume worktree；CodeBuddy startup 与 daemon recovery 修复 | 这些是 provider/daemon 集成行为，不新增 protocol family，也不替代 Runtime 主机隔离；resume 必须验证 worktree、凭据和未完成 Task |
+| 模板与 CLI | 增加 Kimi Code CLI template 等 provider 配置更新 | provider 可用性仍以 CLI 版本、登录态和 capability probe 为准，不把模板存在写成服务端保证 |
+
+Release notes 未把上述修复描述为数据库 migration 或 API schema breaking change；生产升级仍应先在 staging 执行 Channel 通知、Windows 临时目录、服务错误、Codex resume、Pi MCP、CodeBuddy 启动和 daemon 重启回归。`v0.6.2` 的新 provider/诊断能力不扩大 Multica 的 Sandbox 边界，执行过程仍继承 daemon OS 用户可访问的文件、凭据和网络。
 
 ---
 
@@ -981,7 +994,7 @@ flowchart TB
 固定生产版本时不要使用 Compose 默认的 mutable `latest`。应在 `.env` 中显式设置：
 
 ```dotenv
-MULTICA_IMAGE_TAG=v0.5.3
+MULTICA_IMAGE_TAG=v0.6.2
 ```
 
 Backend entrypoint 先运行 `./migrate up`，成功后再启动 server。Compose 默认只把 frontend/backend 绑定到 `127.0.0.1`；对外访问应由 TLS reverse proxy 转发，不能为了省事直接把原始端口改成 `0.0.0.0`。
@@ -1000,9 +1013,9 @@ Backend entrypoint 先运行 `./migrate up`，成功后再启动 server。Compos
 ```yaml
 images:
   backend:
-    tag: v0.5.3
+    tag: v0.6.2
   frontend:
-    tag: v0.5.3
+    tag: v0.6.2
 ```
 
 Secret 由 `existingSecret` 引用，真实值不应进入 values 文件和 Git。默认 uploads PVC 是 `ReadWriteOnce`；需要多个 backend replica 时，应使用 S3-compatible storage、支持 `ReadWriteMany` 的存储，或明确设计附件共享。
@@ -1029,10 +1042,10 @@ Secret 由 `existingSecret` 引用，真实值不应进入 values 文件和 Git�
 
 Compose、Chart 和源码示例中的 `latest` 适合快速体验，不适合作为生产变更控制。生产基线应同时固定：
 
-- backend image `v0.5.3`；
-- frontend image `v0.5.3`；
+- backend image `v0.6.2`；
+- frontend image `v0.6.2`；
 - matching Helm Chart version 或固定 Chart digest；
-- daemon/CLI `v0.5.3`；
+- daemon/CLI `v0.6.2`；
 - provider CLI 版本与登录方式；
 - PostgreSQL 17/pgvector、附件存储和 reverse proxy 配置。
 
@@ -1166,9 +1179,9 @@ Multica 不是简单的 Apache-2.0 项目。准确表述是：
 
 ### 11.3 固定官方文本
 
-- [`LICENSE`](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/LICENSE)
-- [`NOTICE`](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/NOTICE)
-- [`README.zh.md`](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/README.zh.md)
+- [`LICENSE`](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/LICENSE)
+- [`NOTICE`](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/NOTICE)
+- [`README.zh.md`](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/README.zh.md)
 
 本文只说明固定版本文本中的工程边界，不提供法律意见。对外托管、产品嵌入、品牌修改、再分发或商业使用前，应让有资质的法律顾问审查你的具体使用方式和当时有效许可证。
 
@@ -1221,12 +1234,12 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 | 对象 | 固定值 | 本文用途 | 兼容承诺 |
 | --- | --- | --- | --- |
-| Stable tag | `v0.5.3` | 官方最新稳定基线 | 是 |
-| Annotated tag object | `207e227163d97889651d614d191f094732c18744` | 证明 tag 类型；不是源码 commit | 否 |
-| Peeled source commit | `ff8b285497809e084915016c40c2bc5e5991ffbc` | 正文所有稳定实现与文档证据 | 是 |
-| Unreleased main | `12f8f3f31111564e5e1b9aac3f7f916e8bba4039` | 审计时分支头，仅作后续观察 | 否 |
-| 审校日期 | `2026-09-26` | 本文证据截止日 | 不代表未来版本 |
-| Release | [`v0.5.3`](https://github.com/multica-ai/multica/releases/tag/v0.5.3) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
+| Stable tag | `v0.6.2` | 官方最新稳定基线 | 是 |
+| Annotated tag object | `0854695681139a5b0dce03aaf3583752a65409ed` | 证明 tag 类型；不是源码 commit | 否 |
+| Peeled source commit | `7ab92d7622ecd81d179a8d83ae2dea74835a5069` | 正文所有稳定实现与文档证据 | 是 |
+| Current main | `7ab92d7622ecd81d179a8d83ae2dea74835a5069` | 审校时与 release peeled commit 重合；不作为未来兼容承诺 | 否 |
+| 审校日期 | `2026-10-13` | 本文证据截止日 | 不代表未来版本 |
+| Release | [`v0.6.2`](https://github.com/multica-ai/multica/releases/tag/v0.6.2) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
 
 版本升级时应重新解引用 tag，并分别记录 tag object、source commit、Chart、backend/frontend image digest 和 daemon/CLI 版本。
 
@@ -1234,7 +1247,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 ## 附录 B：25 种 protocol family 与 Oh-My-Pi Runtime
 
-以下是 `v0.5.3` 的 25 种 protocol family，以及复用 Pi family 的 Oh-My-Pi Runtime identity。命令名、会话恢复和 MCP 能力来自固定 README、provider 文档与 adapter 源码；“Multica 管理 MCP”是指 Agent 配置中的 MCP server 会在执行前传给该工具，不代表该工具自身不能通过其他方式配置 MCP。实际支持模型、版本、Skill 和 usage 解析能力仍应以目标 CLI 的当前兼容性检查为准。
+以下是 `v0.6.2` 继承的 25 种 protocol family，以及复用 Pi family 的 Oh-My-Pi Runtime identity。命令名、会话恢复和 MCP 能力来自固定 README、provider 文档与 adapter 源码；“Multica 管理 MCP”是指 Agent 配置中的 MCP server 会在执行前传给该工具，不代表该工具自身不能通过其他方式配置 MCP。实际支持模型、版本、Skill 和 usage 解析能力仍应以目标 CLI 的当前兼容性检查为准。
 
 | # | 产品/CLI | provider key | 默认命令 | 会话恢复 | Multica 管理 MCP |
 | ---: | --- | --- | --- | :---: | :---: |
@@ -1271,7 +1284,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 ## 附录 C：默认超时与并发参数
 
-| 参数/行为 | v0.5.3 默认值 | 作用与边界 |
+| 参数/行为 | v0.6.2 默认值（继承项） | 作用与边界 |
 | --- | ---: | --- |
 | daemon heartbeat | 15 秒 | Runtime 存活信号 |
 | runtime stale threshold | 150 秒 | 加 30 秒 sweeper 周期，最迟约 3 分钟判离线 |
@@ -1298,8 +1311,8 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 ### D.1 版本与供应链
 
-- [ ] Backend、frontend、daemon/CLI 全部固定 `v0.5.3` 或 image digest，不使用 `latest`。
-- [ ] 记录 `v0.5.3` tag 解引用后的 peeled source commit `ff8b285497809e084915016c40c2bc5e5991ffbc`，不要把 tag object 当源码 commit。
+- [ ] Backend、frontend、daemon/CLI 全部固定 `v0.6.2` 或 image digest，不使用 `latest`。
+- [ ] 记录 `v0.6.2` tag 解引用后的 peeled source commit `7ab92d7622ecd81d179a8d83ae2dea74835a5069`，不要把 tag object 当源码 commit。
 - [ ] 固定 Helm Chart version/digest、PostgreSQL/pgvector 和 provider CLI 版本。
 - [ ] 检查镜像来源、SBOM/CVE、TLS reverse proxy 和依赖 registry。
 
@@ -1342,29 +1355,29 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 
 ## 附录 E：官方文档与源码证据
 
-以下原有链接固定到 `v0.4.32` peeled commit `d60775aa9394b911b18701a326f655465604e7d1`，用于复核 1.5–1.7 节及既有章节的历史基础；v0.4.33–v0.5.3 的新增或已变化行为另固定到当前 peeled commit `ff8b285497809e084915016c40c2bc5e5991ffbc`：
+以下原有链接固定到 `v0.4.32` peeled commit `d60775aa9394b911b18701a326f655465604e7d1`，用于复核 1.5–1.7 节及既有章节的历史基础；v0.4.33–v0.6.2 的新增或已变化行为另固定到当前 peeled commit `7ab92d7622ecd81d179a8d83ae2dea74835a5069`：
 
-- [v0.5.3 exact source](https://github.com/multica-ai/multica/tree/ff8b285497809e084915016c40c2bc5e5991ffbc)
-- [25 个 protocol family 与统一 Backend 接口](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/pkg/agent/agent.go)
-- [CodeArts 与其他 Runtime 安装前置](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/content/docs/install-agent-runtime.zh.mdx)
-- [v0.5.3 Task 排队、Runtime 恢复与并发语义](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/content/docs/tasks.zh.mdx)
-- [v0.5.3 daemon 默认超时与进程管理](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/daemon/config.go)
-- [Issue lifecycle rollout 与混合版本协议](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/docs/issue-status-lifecycle-rollout.md)
-- [四类 lifecycle 兼容 migration](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/migrations/478_issue_status_category_expand.up.sql)
-- [Triage 独立 column 与无 backfill migration](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/migrations/483_issue_triage_state.up.sql)
-- [Triage constraint validation](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/migrations/489_issue_triage_state_validate.up.sql)
-- [撤回 reserved Triage key](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/migrations/490_drop_triage_status_key_reservation.up.sql)
-- [Triage write guard](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/handler/issue_triage_guard.go)
-- [Triage no-executor 回归测试](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/handler/issue_triage_no_run_test.go)
-- [Codex usage 与 thread ownership](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/pkg/agent/codex.go)
-- [Agent activity outcome 统计](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/handler/agent_activity_outcomes_test.go)
-- [Desktop 与 self-hosted 配置](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/content/docs/desktop-app.zh.mdx)
-- [Channel 支持与社区维护边界](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/apps/docs/content/docs/channels.zh.mdx)
-- [Plugin Public API / hook handler](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/handler/plugin_hook.go)
-- [多副本 WeCom reply relay](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/server/internal/integrations/wecom/relay_outbound.go)
-- [命名开发环境生命周期脚本](https://github.com/multica-ai/multica/blob/ff8b285497809e084915016c40c2bc5e5991ffbc/scripts/dev-env.sh)
+- [v0.6.2 exact source](https://github.com/multica-ai/multica/tree/7ab92d7622ecd81d179a8d83ae2dea74835a5069)
+- [25 个 protocol family 与统一 Backend 接口](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/pkg/agent/agent.go)
+- [CodeArts 与其他 Runtime 安装前置](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/apps/docs/content/docs/install-agent-runtime.zh.mdx)
+- [v0.6.2 Task 排队、Runtime 恢复与并发语义](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/apps/docs/content/docs/tasks.zh.mdx)
+- [v0.6.2 daemon 默认超时与进程管理](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/internal/daemon/config.go)
+- [Issue lifecycle rollout 与混合版本协议](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/docs/issue-status-lifecycle-rollout.md)
+- [四类 lifecycle 兼容 migration](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/migrations/478_issue_status_category_expand.up.sql)
+- [Triage 独立 column 与无 backfill migration](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/migrations/483_issue_triage_state.up.sql)
+- [Triage constraint validation](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/migrations/489_issue_triage_state_validate.up.sql)
+- [撤回 reserved Triage key](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/migrations/490_drop_triage_status_key_reservation.up.sql)
+- [Triage write guard](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/internal/handler/issue_triage_guard.go)
+- [Triage no-executor 回归测试](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/internal/handler/issue_triage_no_run_test.go)
+- [Codex usage 与 thread ownership](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/pkg/agent/codex.go)
+- [Agent activity outcome 统计](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/internal/handler/agent_activity_outcomes_test.go)
+- [Desktop 与 self-hosted 配置](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/apps/docs/content/docs/desktop-app.zh.mdx)
+- [Channel 支持与社区维护边界](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/apps/docs/content/docs/channels.zh.mdx)
+- [Plugin Public API / hook handler](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/internal/handler/plugin_hook.go)
+- [多副本 WeCom reply relay](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/server/internal/integrations/wecom/relay_outbound.go)
+- [命名开发环境生命周期脚本](https://github.com/multica-ai/multica/blob/7ab92d7622ecd81d179a8d83ae2dea74835a5069/scripts/dev-env.sh)
 
-Release 链：[v0.4.41](https://github.com/multica-ai/multica/releases/tag/v0.4.41)、[v0.4.42](https://github.com/multica-ai/multica/releases/tag/v0.4.42)、[v0.4.43](https://github.com/multica-ai/multica/releases/tag/v0.4.43)、[v0.4.44](https://github.com/multica-ai/multica/releases/tag/v0.4.44)、[v0.5.0](https://github.com/multica-ai/multica/releases/tag/v0.5.0)、[v0.5.1](https://github.com/multica-ai/multica/releases/tag/v0.5.1)、[v0.5.2](https://github.com/multica-ai/multica/releases/tag/v0.5.2)、[v0.5.3](https://github.com/multica-ai/multica/releases/tag/v0.5.3)。未发布证据只固定为 [`main@12f8f3f`](https://github.com/multica-ai/multica/tree/12f8f3f31111564e5e1b9aac3f7f916e8bba4039)，不用于承诺 v0.5.3 之外的能力。
+Release 链：[v0.4.41](https://github.com/multica-ai/multica/releases/tag/v0.4.41)、[v0.4.42](https://github.com/multica-ai/multica/releases/tag/v0.4.42)、[v0.4.43](https://github.com/multica-ai/multica/releases/tag/v0.4.43)、[v0.4.44](https://github.com/multica-ai/multica/releases/tag/v0.4.44)、[v0.5.0](https://github.com/multica-ai/multica/releases/tag/v0.5.0)、[v0.5.1](https://github.com/multica-ai/multica/releases/tag/v0.5.1)、[v0.5.2](https://github.com/multica-ai/multica/releases/tag/v0.5.2)、[v0.5.3](https://github.com/multica-ai/multica/releases/tag/v0.5.3)、[v0.6.2](https://github.com/multica-ai/multica/releases/tag/v0.6.2)。当前 `main@7ab92d7622ecd81d179a8d83ae2dea74835a5069` 与 `v0.6.2` peeled commit 重合，不用于承诺未来 release 的能力。
 
 ### E.1 产品定位与对象模型
 
@@ -1444,4 +1457,4 @@ Release 链：[v0.4.41](https://github.com/multica-ai/multica/releases/tag/v0.4.
 - [Multica License](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/LICENSE)
 - [NOTICE](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/NOTICE)
 
-本文固定的是 2026-09-26 的 `v0.5.3`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
+本文固定的是 2026-10-13 的 `v0.6.2`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
