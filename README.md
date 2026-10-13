@@ -38,6 +38,7 @@ KServe v0.21.0 把上一轮全部主线观察项纳入稳定版：LLMISVC rollou
 | [Teleport-Deep-Dive.md](Teleport-Deep-Dive.md) | Teleport `v18.10.0@ddaa46b`；The Bastion `v3.24.01`；Warpgate `v0.29.1`；Boundary `v0.21.3`；Pomerium `v0.33.3`；Guacamole `1.6.0` tag-only | Self-hosted 基础设施访问平台对比 | 需要在 OpenSSH/VPN/堡垒机、Teleport、The Bastion、Warpgate、Boundary、Pomerium 与 Guacamole 间做选型的平台、安全和运维工程师 | 统一能力矩阵、信任边界、身份/凭据生命周期、SSH/Kubernetes/DB/HTTP/RDP/VNC 协议深度、录制/SIEM、HA/故障、迁移验收与许可证边界 |
 | [Multica-Deep-Dive.md](Multica-Deep-Dive.md) | `v0.5.3`；main `12f8f3f3` | AI-native 团队任务管理与 coding agent 编排平台 | 关注 coding agent 团队协作、本地 CLI 执行、自托管和权限治理的工程师 | Issue lifecycle/Triage、Task/runs、Codex usage/thread、Channel/Desktop、25 种 protocol family、Squad、Autopilot、MCP 与无 Sandbox 边界 |
 | [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md) | AIPerf `v0.13.0`；GuideLLM `v0.7.4`；inference-perf `v0.7.0`；SGLang `v0.5.20`；vLLM `v0.30.0`；EvalScope `v1.12.0` | LLM 压测工具深度对比 | 需要选择或设计推理压测方案的工程师 | AgentX/agentic trace、token source/window、SGLang 缓存、vLLM MRV2/weight sync、EvalScope PD/流式指标与工具对比 |
+| [model_release_timeline.md](model_release_timeline.md) | 2022—2026-10-13；审校 2026-10-13 | 模型发布时间时间线 | 需要按厂商、年份或开放形态检索主线模型的读者 | 九大阵营、首次公开日期、发布形态、官方来源；页面支持供应商/年份/多模态/开放权重筛选和 CSV/JSON/Markdown 导出 |
 | [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md) | Lustre 官方资料；3FS `main@22fca04` | Lustre 与 3FS 深度技术文档 | 关注 AI 存储、HPC 并行文件系统、RDMA/NVMe 共享存储和 KVCache 落盘的工程师 | Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、dataloader、checkpoint、KV cache、生产选型 |
 | [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md) | `v26.7.1` | NVIDIA GPU Operator 节点软件栈与生命周期管理 | 负责 Kubernetes GPU 驱动、设备接入、共享隔离和生产运维的平台工程师 | Controller 调谐、ClusterPolicy、GPUCluster/DRA、Driver/Toolkit/Device Plugin、CDI/NRI、MIG、Time-Slicing/MPS、DCGM、升级排障 |
 | [HAMi-Deep-Dive.md](HAMi-Deep-Dive.md) | `v2.10.0` | Kubernetes 异构 AI 设备虚拟化与调度 | 关注 GPU 共享、设备隔离、多厂商设备管理的 Kubernetes 平台工程师 | MutatingWebhook、Scheduler Extender、Device Plugin、HAMi-Core、独立 DRA driver、init-container 记账、PodGroup/MIG/mutex/NUMA、多厂商设备 |
@@ -52,6 +53,7 @@ KServe v0.21.0 把上一轮全部主线观察项纳入稳定版：LLMISVC rollou
 
 - LLM 推理架构：先读 [Mooncake-Deep-Dive.md](Mooncake-Deep-Dive.md)，再读 [Dynamo-Deep-Dive.md](Dynamo-Deep-Dive.md)。前者聚焦 KVCache 与分离式推理机制，后者聚焦数据中心级编排和路由。
 - 压测与容量评估：读 [LLM-Benchmark-Deep-Dive.md](LLM-Benchmark-Deep-Dive.md)。它以 SGLang `v0.5.20`、vLLM `v0.30.0` 和 EvalScope `v1.12.0` 为关键基线，适合在选型推理引擎、比较吞吐/延迟指标、设计 SLO/goodput 压测方案前阅读。
+- 模型版本检索：读 [model_release_timeline.md](model_release_timeline.md)；它按首次公开日期整理九大阵营的主线模型，生成页面可按供应商、年份、多模态和开放权重筛选，并把当前结果导出为 CSV、JSON 或 Markdown。筛选状态会写入 URL，便于分享和复用。
 - AI 存储与文件系统：读 [Lustre-3FS-Deep-Dive.md](Lustre-3FS-Deep-Dive.md)。它适合理解 Lustre、3FS、RDMA/NVMe 共享存储、checkpoint、dataloader 和 KV cache on disk 的架构取舍。
 - 基础设施身份与访问治理：读 [Teleport、The Bastion、Warpgate 对比文档](Teleport-Deep-Dive.md)。它先解释 Teleport 的 Auth/Proxy/Agent、短期证书、Role/标签、MFA、反向隧道和多协议审计，再用统一矩阵比较 The Bastion 的 Unix DAC/syslog/ttyrec、Warpgate 的单二进制与 SQLite、Boundary 的 Vault session broker、Pomerium 的 HTTP/TCP 零信任入口和 Guacamole 的浏览器 RDP/VNC 网关；Teleport 及这些平台都不替 Kubernetes/KServe/Kubeflow 的原生 RBAC、E2B 的 microVM 隔离、Multica 的 agent 协作编排或目标数据库/云 IAM 授权。
 - Kubernetes AI 平台：按 [Kubernetes-Blog-Feature-Deep-Dive.md](Kubernetes-Blog-Feature-Deep-Dive.md) → [Kubernetes-Native-Scheduler-Deep-Dive.md](Kubernetes-Native-Scheduler-Deep-Dive.md) → [Kubernetes-AI-Schedulers-Deep-Dive.md](Kubernetes-AI-Schedulers-Deep-Dive.md) → [Volcano-Upgrade-Compatibility-Deep-Dive.md](Volcano-Upgrade-Compatibility-Deep-Dive.md) → [KServe-Deep-Dive.md](KServe-Deep-Dive.md) / [Kubeflow-Deep-Dive.md](Kubeflow-Deep-Dive.md) 阅读；需要节点设备和共享隔离细节时，再补读 [NVIDIA-GPU-Operator-Deep-Dive.md](NVIDIA-GPU-Operator-Deep-Dive.md) 与 [HAMi-Deep-Dive.md](HAMi-Deep-Dive.md)。这条路径依次覆盖 v1.24—v1.37 Blog/RSS 特性演进、原生调度基线、Kueue `v0.19.6`/Grove `alpha.13`/KAI `v0.18.0` AI 队列与调度扩展、Volcano 升级兼容、模型推理服务以及上层 MLOps 平台。
@@ -60,7 +62,7 @@ KServe v0.21.0 把上一轮全部主线观察项纳入稳定版：LLMISVC rollou
 
 ## 本地预览
 
-`serve_docs.py` 会把所有 `*-Deep-Dive.md` 渲染为 HTML，并生成首页 `index.html`。脚本默认监听 `80` 端口，根路径 `/` 会返回首页。
+`serve_docs.py` 会把已注册的 Markdown 文档（包括 `*-Deep-Dive.md` 和模型发布时间时间线）渲染为 HTML，并生成首页 `index.html`。脚本默认监听 `80` 端口，根路径 `/` 会返回首页。
 
 首次运行使用 uv 创建虚拟环境并安装锁定的依赖：
 
@@ -99,5 +101,6 @@ screen -S serve_docs -X quit
 
 - `index.html` 是文档首页。
 - `*-Deep-Dive.html` 是每篇 Markdown 对应的渲染结果。
+- `model_release_timeline.html` 是模型发布时间时间线的独立页面。
 - `*.html` 已在 `.gitignore` 中忽略，不需要提交。
 - Python 缓存文件 `__pycache__/` 和 `*.py[cod]` 也已忽略。

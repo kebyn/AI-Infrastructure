@@ -263,6 +263,21 @@ DOCS = [
             '<a href="https://www.kubeflow.org/">Kubeflow 官方文档</a> 整理'
         ),
     },
+    {
+        "src": "/data/model_release_timeline.md",
+        "dst": "/data/model_release_timeline.html",
+        "href": "/model_release_timeline.html",
+        "title": "模型发布时间时间线",
+        "hero": "模型发布时间时间线",
+        "subtitle": "2022—2026 九大阵营主线公开模型的首次发布与开放形态",
+        "meta": "2022-01—2026-10-13 · 117 条记录 · 审校日期 2026-10-13",
+        "summary": "按首次公开日期整理九个模型阵营的主线版本，并支持按供应商、年份、多模态和开放权重筛选及 CSV/JSON/Markdown 导出。",
+        "footer": (
+            '事实来源为 <a href="/model_release_timeline.md">model_release_timeline.md</a>；'
+            '每条记录保留对应的官方公告、模型页、技术报告或官方仓库链接。'
+        ),
+        "type": "timeline",
+    },
 ]
 
 def slugify_heading(value, separator):
