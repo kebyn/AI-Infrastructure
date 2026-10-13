@@ -366,7 +366,7 @@ def render_mermaid_blocks(body):
     """Convert fenced mermaid code blocks into Mermaid render targets."""
     def repl(match):
         diagram = unescape(match.group(1)).strip()
-        return f'<div class="mermaid">\n{diagram}\n</div>'
+        return f'<div class="mermaid">\n{escape(diagram, quote=False)}\n</div>'
 
     return re.sub(
         r'<pre><code class="language-mermaid">(.*?)</code></pre>',
@@ -811,29 +811,229 @@ TIMELINE_SCRIPT = r"""
 </script>
 """
 
-CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+THEME_BOOTSTRAP = r"""
+<script>
+(() => {
+  const key = 'ai-docs-theme';
+  const system = window.matchMedia('(prefers-color-scheme: dark)');
+  const normalize = (value) => ['light', 'dark', 'system'].includes(value) ? value : 'system';
+  let preference = 'system';
+  try { preference = normalize(localStorage.getItem(key)); } catch (_) {}
+  function apply() {
+    const theme = preference === 'system' ? (system.matches ? 'dark' : 'light') : preference;
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.themePreference = preference;
+    document.querySelectorAll('[data-theme-select]').forEach((select) => { select.value = preference; });
+    window.dispatchEvent(new CustomEvent('docs-theme-change', { detail: { theme, preference } }));
+  }
+  window.docsTheme = {
+    setPreference(value) {
+      preference = normalize(value);
+      try { localStorage.setItem(key, preference); } catch (_) {}
+      apply();
+    },
+    getPreference: () => preference,
+    getResolved: () => document.documentElement.dataset.theme
+  };
+  system.addEventListener('change', () => { if (preference === 'system') apply(); });
+  window.addEventListener('storage', (event) => {
+    if (event.key === key || event.key === null) {
+      preference = normalize(event.newValue);
+      apply();
+    }
+  });
+  apply();
+})();
+</script>
+"""
 
-:root {
+SITE_NAV = """
+<a class="skip-link" href="#main-content">跳到正文</a>
+<header class="site-header">
+  <nav class="site-nav" aria-label="站点导航">
+    <a class="site-name" href="/">AI 基础设施深度文档</a>
+    <a class="site-home" href="/">首页</a>
+    <div class="theme-control">
+      <label for="theme-select">主题</label>
+      <select id="theme-select" data-theme-select disabled>
+        <option value="light">明亮</option>
+        <option value="dark">暗色</option>
+        <option value="system" selected>跟随系统</option>
+      </select>
+    </div>
+  </nav>
+</header>
+"""
+
+THEME_CONTROLS_SCRIPT = """
+<script>
+document.querySelectorAll('[data-theme-select]').forEach((select) => {
+  select.value = window.docsTheme.getPreference();
+  select.disabled = false;
+  select.addEventListener('change', () => window.docsTheme.setPreference(select.value));
+});
+</script>
+"""
+
+MERMAID_SCRIPT = r"""
+<script type="module">
+const diagrams = [...document.querySelectorAll('.mermaid')];
+if (diagrams.length) {
+  // Keep text separately: Mermaid replaces the DOM with SVG after each render.
+  const sources = new Map(diagrams.map((node) => [node, node.textContent.trim()]));
+  let desiredTheme = window.docsTheme.getResolved();
+  let renderedTheme = null;
+  let running = false;
+  let serial = 0;
+  let mermaid;
+  const fallback = (node) => {
+    node.textContent = sources.get(node);
+    delete node.dataset.rendered;
+    node.dataset.mermaidError = 'true';
+    node.title = '图表加载或渲染失败，显示原始定义';
+  };
+  async function renderDiagrams() {
+    if (running || !mermaid) return;
+    running = true;
+    try {
+      // Merge rapid switches and never run Mermaid's renderer concurrently.
+      while (renderedTheme !== desiredTheme) {
+        const theme = desiredTheme;
+        const style = getComputedStyle(document.documentElement);
+        const color = (name) => style.getPropertyValue(name).trim();
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'strict',
+          suppressErrorRendering: true,
+          theme: 'base',
+          themeVariables: {
+            darkMode: theme === 'dark',
+            background: color('--bg'),
+            primaryColor: color('--bg-card'),
+            primaryTextColor: color('--text'),
+            primaryBorderColor: color('--border'),
+            lineColor: color('--accent'),
+            secondaryColor: color('--bg-code'),
+            secondaryTextColor: color('--text'),
+            tertiaryColor: color('--bg'),
+            tertiaryTextColor: color('--text'),
+            textColor: color('--text'),
+            fontFamily: 'Inter, Noto Sans SC, sans-serif'
+          }
+        });
+        for (const node of diagrams) {
+          if (theme !== desiredTheme) break;
+          try {
+            const { svg, bindFunctions } = await mermaid.render(`docs-diagram-${++serial}`, sources.get(node));
+            if (theme !== desiredTheme) break;
+            node.innerHTML = svg;
+            node.dataset.rendered = theme;
+            delete node.dataset.mermaidError;
+            node.removeAttribute('title');
+            bindFunctions?.(node);
+          } catch (_) {
+            if (theme === desiredTheme) fallback(node);
+          }
+        }
+        renderedTheme = theme;
+      }
+    } finally { running = false; }
+  }
+  window.addEventListener('docs-theme-change', (event) => {
+    desiredTheme = event.detail.theme;
+    void renderDiagrams();
+  });
+  try {
+    ({ default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs'));
+    await renderDiagrams();
+  } catch (_) { diagrams.forEach(fallback); }
+}
+</script>
+"""
+
+LIGHT_PALETTE = """
+  color-scheme: light;
+  --bg: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-code: #eef2f6;
+  --text: #172033;
+  --text-secondary: #526075;
+  --accent: #1759a6;
+  --accent-dim: #2563b6;
+  --border: #cbd5e1;
+  --green: #176538;
+  --orange: #805600;
+  --red: #b42318;
+  --purple: #7043a1;
+  --surface-hover: #e8f0fb;
+  --backdrop: rgba(15, 23, 42, 0.48);
+  --shadow: rgba(15, 23, 42, 0.12);
+"""
+DARK_PALETTE = """
+  color-scheme: dark;
   --bg: #0d1117;
   --bg-card: #161b22;
   --bg-code: #1a1e26;
   --text: #e6edf3;
-  --text-secondary: #8b949e;
+  --text-secondary: #a2adba;
   --accent: #58a6ff;
   --accent-dim: #1f6feb;
   --border: #30363d;
   --green: #3fb950;
   --orange: #d29922;
-  --red: #f85149;
+  --red: #ff7b72;
   --purple: #bc8cff;
-}
+  --surface-hover: #1c2c42;
+  --backdrop: rgba(1, 4, 9, 0.68);
+  --shadow: rgba(0, 0, 0, 0.35);
+"""
+CSS = (
+    ":root {" + LIGHT_PALETTE + "}\n"
+    ':root[data-theme="dark"] {' + DARK_PALETTE + "}\n"
+    "@media (prefers-color-scheme: dark) { :root:not([data-theme]) {" + DARK_PALETTE + "} }\n"
+) + """
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
+}
+
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+input, select, button { font: inherit; }
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+.site-nav {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 12px 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+.site-name { color: var(--text); font-weight: 700; overflow-wrap: anywhere; }
+.site-home { font-size: 0.9rem; }
+.theme-control { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+.theme-control select {
+  min-height: 36px;
+  padding: 4px 10px;
+  background: var(--bg-code);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 50; padding: 8px 16px; background: var(--bg-card); }
+.skip-link:focus { top: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
 
 body {
@@ -874,8 +1074,8 @@ body {
 }
 .doc-sidebar {
   position: sticky;
-  top: 24px;
-  max-height: calc(100vh - 48px);
+  top: 88px;
+  max-height: calc(100dvh - 112px);
   overflow: auto;
   padding-bottom: 24px;
 }
@@ -890,10 +1090,7 @@ body {
 .doc-hero h1 {
   font-size: 2.5em;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
   margin-bottom: 12px;
 }
 .doc-hero .subtitle {
@@ -961,7 +1158,7 @@ a:focus-visible {
 /* ─── Blockquotes ─── */
 blockquote {
   border-left: 4px solid var(--accent-dim);
-  background: rgba(31, 111, 235, 0.08);
+  background: var(--surface-hover);
   padding: 14px 20px;
   margin: 16px 0;
   border-radius: 0 8px 8px 0;
@@ -1004,7 +1201,10 @@ pre code {
   margin: 18px 0 24px;
   overflow-x: auto;
   text-align: center;
+  white-space: pre-wrap;
+  font-family: monospace;
 }
+.mermaid[data-rendered] { white-space: normal; font-family: inherit; }
 .mermaid svg {
   max-width: 100%;
   height: auto;
@@ -1037,7 +1237,7 @@ td {
   vertical-align: top;
 }
 tr:last-child td { border-bottom: none; }
-tr:hover { background: rgba(88, 166, 255, 0.04); }
+tr:hover { background: var(--surface-hover); }
 
 /* ─── Model release timeline ─── */
 .timeline-controls {
@@ -1133,7 +1333,7 @@ tr:hover { background: rgba(88, 166, 255, 0.04); }
   padding: 7px 14px;
   border: 1px solid var(--accent-dim);
   border-radius: 7px;
-  background: rgba(31, 111, 235, 0.18);
+  background: var(--surface-hover);
   color: var(--text);
   font: inherit;
   font-size: 0.9em;
@@ -1141,7 +1341,7 @@ tr:hover { background: rgba(88, 166, 255, 0.04); }
 }
 .timeline-button:hover:not(:disabled) {
   border-color: var(--accent);
-  background: rgba(88, 166, 255, 0.2);
+  background: var(--bg-code);
 }
 .timeline-button:disabled {
   cursor: not-allowed;
@@ -1158,7 +1358,7 @@ tr:hover { background: rgba(88, 166, 255, 0.04); }
 .timeline-empty-state {
   margin: 0;
   padding: 14px 16px;
-  border: 1px solid rgba(210, 153, 34, 0.55);
+  border: 1px solid var(--orange);
   border-radius: 8px;
   color: var(--orange);
 }
@@ -1224,7 +1424,7 @@ hr {
   padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(88, 166, 255, 0.08);
+  background: var(--surface-hover);
   color: var(--text);
   font-weight: 600;
 }
@@ -1244,11 +1444,11 @@ hr {
   margin: -20px -18px 12px;
   padding: 16px 18px 10px;
   background: var(--bg-card);
-  border-bottom: 1px solid rgba(48, 54, 61, 0.7);
+  border-bottom: 1px solid var(--border);
 }
 .toc.toc-nested > ul > li {
   padding: 10px 0;
-  border-bottom: 1px solid rgba(48, 54, 61, 0.7);
+  border-bottom: 1px solid var(--border);
 }
 .toc.toc-nested > ul > li:last-child {
   border-bottom: none;
@@ -1331,7 +1531,7 @@ details > *:not(summary) {
 .doc-card:hover {
   border-bottom-color: var(--accent);
   border-color: var(--accent-dim);
-  background: rgba(88, 166, 255, 0.06);
+  background: var(--surface-hover);
   transform: translateY(-2px);
 }
 .doc-card h2 {
@@ -1358,6 +1558,7 @@ details > *:not(summary) {
 
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
+  .site-nav { padding: 10px 16px; gap: 8px 16px; }
   .doc-container { padding: 20px 16px 104px; }
   .doc-hero-container { padding-bottom: 0; }
   .doc-shell {
@@ -1382,7 +1583,7 @@ details > *:not(summary) {
     padding: 16px;
     background: var(--bg);
     border-right: 1px solid var(--border);
-    box-shadow: 20px 0 44px rgba(0, 0, 0, 0.45);
+    box-shadow: 20px 0 44px var(--shadow);
     transform: translateX(-100%);
     transition: transform 0.22s ease;
     overscroll-behavior: contain;
@@ -1398,7 +1599,7 @@ details > *:not(summary) {
     position: fixed;
     inset: 0;
     z-index: 41;
-    background: rgba(1, 4, 9, 0.68);
+    background: var(--backdrop);
     backdrop-filter: blur(2px);
   }
   body.toc-open .toc-backdrop {
@@ -1417,13 +1618,13 @@ details > *:not(summary) {
     padding: 0 14px;
     border: 1px solid var(--border);
     border-radius: 999px;
-    background: rgba(22, 27, 34, 0.92);
+    background: var(--bg-card);
     color: var(--text);
     font: inherit;
     font-size: 0.9em;
     font-weight: 600;
     line-height: 1;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 12px 32px var(--shadow);
     backdrop-filter: blur(10px);
   }
   .toc-fab:focus-visible {
@@ -1501,9 +1702,11 @@ def render_doc(doc):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{doc["title"]}</title>
+{THEME_BOOTSTRAP}
 <style>{CSS}</style>
 </head>
 <body>
+{SITE_NAV}
 {mobile_toc_controls}
 <div class="doc-page">
 <div class="doc-container doc-hero-container">
@@ -1516,6 +1719,7 @@ def render_doc(doc):
 <div class="doc-shell">
   {sidebar_html}
   <main class="doc-container">
+  <div id="main-content" tabindex="-1"></div>
   {body}
   <div class="doc-footer">
     <p>{doc["footer"]}</p>
@@ -1523,24 +1727,8 @@ def render_doc(doc):
   </main>
 </div>
 </div>
-<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-  mermaid.initialize({{
-    startOnLoad: true,
-    securityLevel: 'loose',
-    theme: 'dark',
-    themeVariables: {{
-      background: '#0d1117',
-      primaryColor: '#161b22',
-      primaryTextColor: '#e6edf3',
-      primaryBorderColor: '#30363d',
-      lineColor: '#58a6ff',
-      secondaryColor: '#1a1e26',
-      tertiaryColor: '#0d1117',
-      fontFamily: 'Inter, Noto Sans SC, sans-serif'
-    }}
-  }});
-</script>
+{THEME_CONTROLS_SCRIPT}
+{MERMAID_SCRIPT}
 <script>
   const tocButton = document.querySelector('.toc-fab');
   const tocBackdrop = document.querySelector('.toc-backdrop');
@@ -1595,10 +1783,13 @@ def render_index():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 基础设施深度文档</title>
+{THEME_BOOTSTRAP}
 <style>{CSS}</style>
 </head>
 <body>
+{SITE_NAV}
 <div class="doc-container">
+  <div id="main-content" tabindex="-1"></div>
   <div class="doc-hero">
     <h1>AI 基础设施深度文档</h1>
     <p class="subtitle">LLM 推理、压测、存储、Sandbox、基础设施访问治理、异构设备、AI 调度、模型服务与 MLOps 技术分析入口</p>
@@ -1611,6 +1802,7 @@ def render_index():
     <p>本页由 <code>/data/serve_docs.py</code> 生成，文档源文件位于 <code>/data</code>。</p>
   </div>
 </div>
+{THEME_CONTROLS_SCRIPT}
 </body>
 </html>"""
 

@@ -1,9 +1,212 @@
 import re
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from io import StringIO
 from pathlib import Path
+from threading import Thread
+from unittest.mock import patch
+
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sync_playwright = None
 
 import serve_docs
+
+
+def render_visual_fixture(directory):
+    """Small real pages for visual and interaction checks, without the full corpus."""
+    root = Path(directory)
+    source = root / "sample.md"
+    source.write_text(
+        '# 示例\n\n## 第一章\n\n正文与 [链接](https://example.com)。\n\n'
+        '```mermaid\nflowchart LR\nA --> B\n```\n\n'
+        '| 表头 | 另一个表头 |\n| --- | --- |\n| 内容 | 长内容 |\n\n'
+        '## 第二章\n\n更多内容\n', encoding="utf-8"
+    )
+    doc = {
+        "src": str(source), "dst": str(root / "sample.html"), "href": "/sample.html",
+        "title": "推理架构 Example", "hero": "推理架构 Example", "subtitle": "阅读示例",
+        "summary": "缓存与 KVCache", "meta": "v1.0 · source@abc", "footer": "官方资料",
+        "category": "推理与压测",
+    }
+    with redirect_stdout(StringIO()), patch.object(serve_docs, "INDEX", str(root / "index.html")), patch.object(serve_docs, "DOCS", [doc]):
+        serve_docs.render_doc(doc)
+        serve_docs.render_index()
+    return doc
+
+
+class SharedThemeRenderingTest(unittest.TestCase):
+    def test_navigation_and_early_theme_exist_on_all_page_types(self):
+        with tempfile.TemporaryDirectory() as directory:
+            doc = render_visual_fixture(directory)
+            timeline = next(item for item in serve_docs.DOCS if item.get("type") == "timeline")
+            with redirect_stdout(StringIO()):
+                serve_docs.render_doc(dict(timeline, dst=str(Path(directory) / "timeline.html")))
+            for name in ("index.html", "sample.html", "timeline.html"):
+                with self.subTest(page=name):
+                    html = (Path(directory) / name).read_text(encoding="utf-8")
+                    self.assertEqual(html.count('id="theme-select"'), 1)
+                    self.assertIn('aria-label="站点导航"', html)
+                    for value, label in (("light", "明亮"), ("dark", "暗色"), ("system", "跟随系统")):
+                        self.assertRegex(html, rf'<option value="{value}"[^>]*>{label}</option>')
+                    self.assertLess(html.index("localStorage.getItem"), html.index("<style>"))
+                    self.assertIn('id="main-content"', html)
+            self.assertIn("mermaid.render", Path(doc["dst"]).read_text(encoding="utf-8"))
+
+    def test_mermaid_fallback_preserves_definition_as_text(self):
+        definition = 'flowchart LR\nA[&lt;example&gt;] --&gt; B &amp; C'
+        body = f'<pre><code class="language-mermaid">{definition}</code></pre>'
+        rendered = serve_docs.render_mermaid_blocks(body)
+        self.assertIn(definition, rendered)
+        self.assertNotIn("<example>", rendered)
+
+    def test_text_colors_meet_wcag_aa_on_theme_surfaces(self):
+        def luminance(color):
+            channels = [int(color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+            linear = [value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4 for value in channels]
+            return sum(value * weight for value, weight in zip(linear, (0.2126, 0.7152, 0.0722)))
+
+        for name, palette in (("light", serve_docs.LIGHT_PALETTE), ("dark", serve_docs.DARK_PALETTE)):
+            colors = dict(re.findall(r"--([\w-]+): (#[\da-f]{6});", palette))
+            for foreground in ("text", "text-secondary", "accent", "green", "orange", "purple", "red"):
+                for background in ("bg", "bg-card", "bg-code", "surface-hover"):
+                    with self.subTest(theme=name, text=foreground, surface=background):
+                        low, high = sorted((luminance(colors[foreground]), luminance(colors[background])))
+                        self.assertGreaterEqual((high + 0.05) / (low + 0.05), 4.5)
+
+
+@unittest.skipUnless(sync_playwright, "可选浏览器测试需要 uv run --with playwright，并安装 Chromium")
+class ThemeBrowserTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.directory = tempfile.TemporaryDirectory()
+        render_visual_fixture(cls.directory.name)
+
+        class QuietHandler(SimpleHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=cls.directory.name))
+        cls.thread = Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+        cls.url = f"http://127.0.0.1:{cls.server.server_port}"
+        cls.playwright = sync_playwright().start()
+        cls.browser = cls.playwright.chromium.launch()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.browser.close()
+        cls.playwright.stop()
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join()
+        cls.directory.cleanup()
+
+    def setUp(self):
+        self.context = self.browser.new_context(color_scheme="light")
+        self.page = self.context.new_page()
+        self.errors = []
+        self.page.on("pageerror", lambda error: self.errors.append(str(error)))
+        self.context.route("https://cdn.jsdelivr.net/**", lambda route: route.abort())
+
+    def tearDown(self):
+        self.context.close()
+        self.assertEqual(self.errors, [])
+
+    def assert_theme(self, page, theme, preference):
+        page.wait_for_function("([theme, preference]) => document.documentElement.dataset.theme === theme && document.querySelector('#theme-select').value === preference", arg=[theme, preference])
+        self.assertEqual(page.evaluate("getComputedStyle(document.documentElement).colorScheme"), theme)
+
+    def test_theme_persistence_system_changes_and_tabs(self):
+        self.page.goto(self.url)
+        self.assert_theme(self.page, "light", "system")
+        self.page.emulate_media(color_scheme="dark")
+        self.assert_theme(self.page, "dark", "system")
+        self.page.select_option("#theme-select", "light")
+        self.page.emulate_media(color_scheme="light")
+        self.page.emulate_media(color_scheme="dark")
+        self.assert_theme(self.page, "light", "light")
+        self.page.reload()
+        self.assert_theme(self.page, "light", "light")
+        self.page.goto(self.url + "/sample.html")
+        self.assert_theme(self.page, "light", "light")
+        second = self.context.new_page()
+        second.goto(self.url)
+        second.select_option("#theme-select", "dark")
+        self.assert_theme(self.page, "dark", "dark")
+        second.evaluate("localStorage.clear()")
+        self.assert_theme(self.page, "dark", "system")
+
+    def test_invalid_and_unavailable_storage(self):
+        self.page.goto(self.url)
+        self.page.evaluate("localStorage.setItem('ai-docs-theme', 'invalid')")
+        self.page.reload()
+        self.assert_theme(self.page, "light", "system")
+        self.context.add_init_script("Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked'); } });")
+        self.page.reload()
+        self.assert_theme(self.page, "light", "system")
+        self.page.select_option("#theme-select", "dark")
+        self.assert_theme(self.page, "dark", "dark")
+
+    def test_no_javascript_follows_system(self):
+        context = self.browser.new_context(java_script_enabled=False, color_scheme="dark")
+        try:
+            page = context.new_page()
+            page.goto(self.url)
+            self.assertEqual(page.evaluate("getComputedStyle(document.documentElement).colorScheme"), "dark")
+            self.assertTrue(page.locator("#theme-select").is_disabled())
+            page.emulate_media(color_scheme="light")
+            self.assertEqual(page.evaluate("getComputedStyle(document.documentElement).colorScheme"), "light")
+        finally:
+            context.close()
+
+    def test_mermaid_loading_failure_keeps_source(self):
+        self.page.goto(self.url + "/sample.html")
+        self.page.wait_for_selector('.mermaid[data-mermaid-error="true"]')
+        self.assertIn("A --> B", self.page.locator(".mermaid").inner_text())
+        self.page.select_option("#theme-select", "dark")
+        self.assertIn("A --> B", self.page.locator(".mermaid").inner_text())
+
+    def test_mermaid_serializes_and_merges_rapid_theme_changes(self):
+        self.context.unroute("https://cdn.jsdelivr.net/**")
+        module = """
+        let config;
+        window.diagramRuns = [];
+        window.activeRenders = 0;
+        window.maxActiveRenders = 0;
+        export default {
+          initialize(value) { config = value; },
+          async render(id, source) {
+            window.activeRenders++;
+            window.maxActiveRenders = Math.max(window.maxActiveRenders, window.activeRenders);
+            const theme = config.themeVariables.darkMode ? 'dark' : 'light';
+            window.diagramRuns.push({theme, source});
+            await new Promise(resolve => setTimeout(resolve, 80));
+            window.activeRenders--;
+            if (source === 'invalid diagram') throw new Error('parse error');
+            return {svg: `<svg data-test-theme="${theme}"><text>A → B</text></svg>`};
+          }
+        };
+        """
+        self.context.route("https://cdn.jsdelivr.net/**", lambda route: route.fulfill(body=module, content_type="text/javascript"))
+        self.page.goto(self.url + "/sample.html")
+        self.page.wait_for_function("window.activeRenders === 1")
+        self.page.evaluate("['dark', 'light', 'dark'].forEach(window.docsTheme.setPreference)")
+        self.page.wait_for_selector('.mermaid[data-rendered="dark"] svg[data-test-theme="dark"]')
+        self.assertEqual(self.page.evaluate("window.maxActiveRenders"), 1)
+        sources = self.page.evaluate("window.diagramRuns.map(run => run.source)")
+        self.assertTrue(all(source == "flowchart LR\nA --> B" for source in sources))
+        self.page.select_option("#theme-select", "light")
+        self.page.wait_for_selector('.mermaid[data-rendered="light"]')
+        invalid_html = (Path(self.directory.name) / "sample.html").read_text(encoding="utf-8").replace("flowchart LR\nA --&gt; B", "invalid diagram")
+        self.context.route(self.url + "/invalid.html", lambda route: route.fulfill(body=invalid_html, content_type="text/html"))
+        self.page.goto(self.url + "/invalid.html")
+        self.page.wait_for_selector('.mermaid[data-mermaid-error="true"]')
+        self.assertEqual(self.page.locator(".mermaid").inner_text(), "invalid diagram")
 
 
 class RenderDocLayoutTest(unittest.TestCase):
@@ -2039,7 +2242,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         rendered = serve_docs.render_mermaid_blocks(body)
 
-        self.assertEqual(rendered, '<div class="mermaid">\nflowchart LR\nA --> B\n</div>')
+        self.assertEqual(rendered, '<div class="mermaid">\nflowchart LR\nA --&gt; B\n</div>')
 
     def test_mermaid_blocks_do_not_use_unsupported_reverse_arrows(self):
         docs_dir = Path(__file__).resolve().parent
