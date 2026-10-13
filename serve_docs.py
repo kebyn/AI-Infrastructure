@@ -7,12 +7,16 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 import re
 
 INDEX = "/data/index.html"
+CATEGORIES = (
+    "推理与压测", "模型时间线", "存储", "访问治理", "Kubernetes 平台", "Agent 协作", "Sandbox",
+)
 DOCS = [
     {
         "src": "/data/Mooncake-Deep-Dive.md",
         "dst": "/data/Mooncake-Deep-Dive.html",
         "href": "/Mooncake-Deep-Dive.html",
         "title": "Mooncake 深度技术文档",
+        "category": "推理与压测",
         "hero": "🌙 Mooncake 深度技术文档",
         "subtitle": "以 KVCache 为中心的分离式 LLM 推理架构全面解析",
         "meta": "Mooncake v0.3.13.post1 · source@7197358 · 2026-09-26",
@@ -28,6 +32,7 @@ DOCS = [
         "dst": "/data/Dynamo-Deep-Dive.html",
         "href": "/Dynamo-Deep-Dive.html",
         "title": "Dynamo 深度技术文档",
+        "category": "推理与压测",
         "hero": "Dynamo 深度技术文档",
         "subtitle": "数据中心级 LLM 推理编排、KV 路由、KVBM 与 Planner 架构解析",
         "meta": "Dynamo v1.5.0 · source@b83b1d9 · ModelExpress v0.6.0@e91f650 · 2026-09-26",
@@ -43,6 +48,7 @@ DOCS = [
         "dst": "/data/E2B-Deep-Dive.html",
         "href": "/E2B-Deep-Dive.html",
         "title": "E2B 深度技术文档",
+        "category": "Sandbox",
         "hero": "E2B 深度技术文档",
         "subtitle": "AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析",
         "meta": "E2B Infra 2026.30 · source@f32ee8a · SDK main@ccaf9fc0 · Agent Sandbox v1.0.4@810726d · 2026-09-26",
@@ -61,6 +67,7 @@ DOCS = [
         "dst": "/data/Teleport-Deep-Dive.html",
         "href": "/Teleport-Deep-Dive.html",
         "title": "Self-hosted 基础设施访问平台对比",
+        "category": "访问治理",
         "hero": "Self-hosted 基础设施访问平台对比",
         "subtitle": "Teleport、The Bastion、Warpgate 与 Boundary/Pomerium/Guacamole 的身份、协议、审计和运维比较",
         "meta": "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.1 · Boundary v0.21.3 · Pomerium v0.33.3 · Guacamole 1.6.0 tag-only · 2026-09-26",
@@ -79,6 +86,7 @@ DOCS = [
         "dst": "/data/Multica-Deep-Dive.html",
         "href": "/Multica-Deep-Dive.html",
         "title": "Multica 深度技术文档",
+        "category": "Agent 协作",
         "hero": "Multica 深度技术文档",
         "subtitle": "AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析",
         "meta": "Multica v0.5.3 · source@ff8b285 · main@12f8f3f · 2026-09-26",
@@ -94,6 +102,7 @@ DOCS = [
         "dst": "/data/LLM-Benchmark-Deep-Dive.html",
         "href": "/LLM-Benchmark-Deep-Dive.html",
         "title": "LLM 压测工具深度对比",
+        "category": "推理与压测",
         "hero": "LLM 压测工具深度对比",
         "subtitle": "AIPerf、GuideLLM、inference-perf、genai-bench、SGLang Bench、LLMPerf、vLLM Bench、EvalScope 与 Ollama Benchmark 选型解析",
         "meta": "AIPerf v0.13.0 · GuideLLM v0.7.4 · inference-perf v0.7.0 · SGLang v0.5.20 · vLLM v0.30.0 · EvalScope v1.12.0 · 2026-09-26",
@@ -115,6 +124,7 @@ DOCS = [
         "dst": "/data/Lustre-3FS-Deep-Dive.html",
         "href": "/Lustre-3FS-Deep-Dive.html",
         "title": "Lustre 与 3FS 深度技术文档",
+        "category": "存储",
         "hero": "Lustre 与 3FS 深度技术文档",
         "subtitle": "HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析",
         "meta": "Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-09-26",
@@ -130,6 +140,7 @@ DOCS = [
         "dst": "/data/NVIDIA-GPU-Operator-Deep-Dive.html",
         "href": "/NVIDIA-GPU-Operator-Deep-Dive.html",
         "title": "NVIDIA GPU Operator 深度技术文档",
+        "category": "Kubernetes 平台",
         "hero": "NVIDIA GPU Operator 深度技术文档",
         "subtitle": "Kubernetes GPU 节点软件栈、ClusterPolicy 调谐、设备暴露、共享隔离与生产运维解析",
         "meta": "GPU Operator v26.7.1 · source@dbacf43 · 2026-09-26",
@@ -146,6 +157,7 @@ DOCS = [
         "dst": "/data/HAMi-Deep-Dive.html",
         "href": "/HAMi-Deep-Dive.html",
         "title": "HAMi 深度技术文档",
+        "category": "Kubernetes 平台",
         "hero": "HAMi 深度技术文档",
         "subtitle": "Kubernetes 异构 AI 设备虚拟化、共享、隔离与调度架构解析",
         "meta": "HAMi v2.10.0 · source@4707fb0 · 2026-09-26",
@@ -160,6 +172,7 @@ DOCS = [
         "dst": "/data/Kubernetes-Blog-Feature-Deep-Dive.html",
         "href": "/Kubernetes-Blog-Feature-Deep-Dive.html",
         "title": "Kubernetes Blog 新特性深度综述",
+        "category": "Kubernetes 平台",
         "hero": "Kubernetes Blog 新特性深度综述",
         "subtitle": "Kubernetes v1.24—v1.37、Gateway API、AI/Agent、控制面、安全与运维特性历史演进",
         "meta": "Kubernetes v1.36/v1.37 · Kubernetes Blog RSS · 2026-09-26",
@@ -180,6 +193,7 @@ DOCS = [
         "dst": "/data/Kubernetes-Native-Scheduler-Deep-Dive.html",
         "href": "/Kubernetes-Native-Scheduler-Deep-Dive.html",
         "title": "Kubernetes 原生调度器深度技术文档",
+        "category": "Kubernetes 平台",
         "hero": "Kubernetes 原生调度器深度技术文档",
         "subtitle": "kube-scheduler 架构、Scheduling Framework、工作负载级调度与 AI 调度器对比",
         "meta": "Kubernetes v1.37.1 · source@f78e722 · 2026-09-26",
@@ -196,6 +210,7 @@ DOCS = [
         "dst": "/data/Kubernetes-AI-Schedulers-Deep-Dive.html",
         "href": "/Kubernetes-AI-Schedulers-Deep-Dive.html",
         "title": "Kubernetes AI 调度器深度对比",
+        "category": "Kubernetes 平台",
         "hero": "Kubernetes AI 调度器深度对比",
         "subtitle": "Koordinator、Kueue、Grove、KAI-Scheduler 与 Volcano 架构、能力边界和生产选型解析",
         "meta": "Kueue v0.19.6 · Grove alpha.13 · KAI-Scheduler v0.18.0 · Volcano v1.15.2 · 2026-09-26",
@@ -217,6 +232,7 @@ DOCS = [
         "dst": "/data/Volcano-Upgrade-Compatibility-Deep-Dive.html",
         "href": "/Volcano-Upgrade-Compatibility-Deep-Dive.html",
         "title": "Volcano 升级与 Feature 兼容性",
+        "category": "Kubernetes 平台",
         "hero": "Volcano 升级与 Feature 兼容性",
         "subtitle": "v1.8.2 到 v1.15.2 的 Helm、Webhook、Queue 语义与 Cloud Native Colocation 兼容边界",
         "meta": "Volcano v1.8.2 → v1.15.2 · source@1462fb7 · chart@c2050e3 · 2026-09-26",
@@ -235,6 +251,7 @@ DOCS = [
         "dst": "/data/KServe-Deep-Dive.html",
         "href": "/KServe-Deep-Dive.html",
         "title": "KServe 深度技术文档",
+        "category": "Kubernetes 平台",
         "hero": "KServe 深度技术文档",
         "subtitle": "Kubernetes 生成式 AI 与预测式 AI 推理服务平台架构解析",
         "meta": "KServe v0.21.0 · source@d148255 · master@bb22cc4 · website@71c8b22 · 2026-09-26",
@@ -253,6 +270,7 @@ DOCS = [
         "dst": "/data/Kubeflow-Deep-Dive.html",
         "href": "/Kubeflow-Deep-Dive.html",
         "title": "Kubeflow 深度技术文档",
+        "category": "Kubernetes 平台",
         "hero": "Kubeflow 深度技术文档",
         "subtitle": "Kubeflow Community Distribution、端到端 MLOps 平台与 KServe 节点集成解析",
         "meta": "Kubeflow Community Distribution 26.03.1 · source@f09f3ee · 2026-09-26",
@@ -268,6 +286,7 @@ DOCS = [
         "dst": "/data/model_release_timeline.html",
         "href": "/model_release_timeline.html",
         "title": "模型发布时间时间线",
+        "category": "模型时间线",
         "hero": "模型发布时间时间线",
         "subtitle": "2022—2026 九大阵营主线公开模型的首次发布与开放形态",
         "meta": "2022-01—2026-10-13 · 117 条记录 · 审校日期 2026-10-13",
@@ -374,6 +393,20 @@ def render_mermaid_blocks(body):
         body,
         flags=re.S,
     )
+
+
+def wrap_tables(body):
+    """Give ordinary Markdown tables their own keyboard-accessible scroll area."""
+    def repl(match):
+        table = match.group(0)
+        if re.match(r'<table\b[^>]*class="[^"]*\btimeline-table\b', table):
+            return table
+        return (
+            '<div class="table-wrap" role="region" aria-label="可横向滚动的表格" tabindex="0">'
+            f'{table}</div>'
+        )
+
+    return re.sub(r"<table\b[^>]*>.*?</table>", repl, body, flags=re.S)
 
 
 TIMELINE_COLUMNS = (
@@ -491,7 +524,10 @@ def enhance_timeline_body(body):
         'aria-describedby="timeline-result-count">',
         1,
     )
-    table_html = f'<div class="timeline-table-wrap">{table_html}</div>'
+    table_html = (
+        '<div class="timeline-table-wrap" role="region" aria-label="模型时间线表格" tabindex="0">'
+        f'{table_html}</div>'
+    )
 
     suppliers = list(dict.fromkeys(row["supplier"] for row in metadata_rows))
     years = sorted(
@@ -872,6 +908,118 @@ document.querySelectorAll('[data-theme-select]').forEach((select) => {
   select.disabled = false;
   select.addEventListener('change', () => window.docsTheme.setPreference(select.value));
 });
+const siteHeader = document.querySelector('.site-header');
+const updateHeaderHeight = () => document.documentElement.style.setProperty('--header-height', `${siteHeader.offsetHeight}px`);
+updateHeaderHeight();
+new ResizeObserver(updateHeaderHeight).observe(siteHeader);
+</script>
+"""
+
+INDEX_SCRIPT = r"""
+<script>
+(() => {
+  const search = document.querySelector('#doc-search');
+  const category = document.querySelector('#doc-category');
+  const clear = document.querySelector('#doc-clear');
+  const count = document.querySelector('#doc-result-count');
+  const empty = document.querySelector('#doc-empty-state');
+  const cards = [...document.querySelectorAll('.doc-card')].map((node) => ({
+    node,
+    category: node.dataset.category,
+    text: `${node.querySelector('h2').textContent} ${node.querySelector('.doc-card-summary').textContent}`.toLocaleLowerCase()
+  }));
+  function filter() {
+    const query = search.value.trim().toLocaleLowerCase();
+    let visible = 0;
+    cards.forEach((card) => {
+      const matches = card.text.includes(query) && (!category.value || card.category === category.value);
+      card.node.hidden = !matches;
+      if (matches) visible++;
+    });
+    count.textContent = `显示 ${visible} / ${cards.length} 篇`;
+    empty.hidden = visible !== 0;
+    clear.disabled = !search.value && !category.value;
+  }
+  search.disabled = false;
+  category.disabled = false;
+  search.addEventListener('input', filter);
+  category.addEventListener('change', filter);
+  clear.addEventListener('click', () => {
+    search.value = '';
+    category.value = '';
+    filter();
+    search.focus();
+  });
+  filter();
+})();
+</script>
+"""
+
+TOC_SCRIPT = r"""
+<script>
+(() => {
+  const tocButton = document.querySelector('.toc-fab');
+  const tocBackdrop = document.querySelector('.toc-backdrop');
+  const tocSidebar = document.querySelector('#doc-sidebar');
+  if (!tocButton || !tocBackdrop || !tocSidebar) return;
+  const close = tocSidebar.querySelector('.toc-close');
+  const mobile = window.matchMedia('(max-width: 768px)');
+  const background = [...document.querySelectorAll('.site-header, .doc-hero-container, .doc-shell > main, .toc-fab')];
+  let returnFocus = tocButton;
+  function setTocOpen(open) {
+    open = open && mobile.matches;
+    const wasOpen = document.body.classList.contains('toc-open');
+    if (open && !wasOpen) returnFocus = document.activeElement;
+    document.body.classList.toggle('toc-open', open);
+    tocButton.setAttribute('aria-expanded', String(open));
+    tocBackdrop.hidden = !open;
+    tocSidebar.inert = mobile.matches && !open;
+    background.forEach((node) => { node.inert = open; });
+    if (mobile.matches) tocSidebar.setAttribute('aria-hidden', String(!open));
+    else tocSidebar.removeAttribute('aria-hidden');
+    if (open) {
+      tocSidebar.setAttribute('role', 'dialog');
+      tocSidebar.setAttribute('aria-modal', 'true');
+      close.focus();
+    } else {
+      tocSidebar.removeAttribute('role');
+      tocSidebar.removeAttribute('aria-modal');
+      if (mobile.matches && (wasOpen || tocSidebar.contains(document.activeElement))) {
+        (returnFocus?.isConnected ? returnFocus : tocButton).focus();
+      } else if (wasOpen) {
+        tocSidebar.querySelector('a')?.focus();
+      }
+    }
+  }
+  tocButton.disabled = false;
+  tocButton.addEventListener('click', () => setTocOpen(true));
+  close.addEventListener('click', () => setTocOpen(false));
+  tocBackdrop.addEventListener('click', () => setTocOpen(false));
+  tocSidebar.addEventListener('click', (event) => {
+    if (event.target.closest('a')) setTocOpen(false);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (!document.body.classList.contains('toc-open')) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setTocOpen(false);
+    } else if (event.key === 'Tab') {
+      const controls = [...tocSidebar.querySelectorAll('a[href], button:not(:disabled), [tabindex="0"]')]
+        .filter((node) => node.getClientRects().length);
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!tocSidebar.contains(document.activeElement) || (event.shiftKey && document.activeElement === first)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  });
+  mobile.addEventListener('change', () => setTocOpen(false));
+  setTocOpen(false);
+})();
 </script>
 """
 
@@ -994,10 +1142,11 @@ CSS = (
 ) + """
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+:root { --header-height: 64px; }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 80px;
+  scroll-padding-top: calc(var(--header-height) + 24px);
 }
 
 [hidden] { display: none !important; }
@@ -1047,23 +1196,24 @@ body {
 
 /* ─── Layout ─── */
 .doc-page {
-  max-width: 1360px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 .doc-shell {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 960px);
+  grid-template-columns: minmax(220px, 260px) minmax(0, 860px);
   gap: 40px;
   align-items: start;
   justify-content: center;
   padding: 0 32px 120px;
 }
 .doc-container {
-  max-width: 960px;
+  max-width: 1160px;
   margin: 0 auto;
   padding: 40px 32px 120px;
 }
 .doc-hero-container {
+  padding-top: 48px;
   padding-bottom: 0;
 }
 .doc-shell .doc-container {
@@ -1071,24 +1221,28 @@ body {
   min-width: 0;
   margin: 0;
   padding: 0;
+  overflow-wrap: anywhere;
 }
+.doc-container img { max-width: 100%; height: auto; }
 .doc-sidebar {
   position: sticky;
-  top: 88px;
-  max-height: calc(100dvh - 112px);
+  top: calc(var(--header-height) + 24px);
+  max-height: calc(100dvh - var(--header-height) - 48px);
   overflow: auto;
   padding-bottom: 24px;
+  overflow-wrap: anywhere;
 }
 
 /* ─── Hero ─── */
 .doc-hero {
-  text-align: center;
-  padding: 80px 0 48px;
+  text-align: left;
+  padding: 0 0 32px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 48px;
+  margin-bottom: 32px;
+  overflow-wrap: anywhere;
 }
 .doc-hero h1 {
-  font-size: 2.5em;
+  font-size: clamp(1.8rem, 3vw, 2.25rem);
   font-weight: 700;
   color: var(--text);
   margin-bottom: 12px;
@@ -1100,7 +1254,7 @@ body {
 }
 .doc-hero .meta {
   font-size: 0.9em;
-  color: var(--orange);
+  color: var(--text-secondary);
 }
 
 /* ─── Headings ─── */
@@ -1154,6 +1308,7 @@ a:focus-visible {
 .toc-backdrop {
   display: none;
 }
+.toc-close { display: none; }
 
 /* ─── Blockquotes ─── */
 blockquote {
@@ -1211,6 +1366,14 @@ pre code {
 }
 
 /* ─── Tables ─── */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 16px 0 24px;
+  border-radius: 8px;
+}
+.table-wrap table { margin: 0; overflow-wrap: normal; }
+.table-wrap table:has(tr > :nth-child(3)) { min-width: 640px; }
 table {
   width: 100%;
   border-collapse: collapse;
@@ -1260,7 +1423,7 @@ tr:hover { background: var(--surface-hover); }
 }
 .timeline-filter-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.25fr) minmax(180px, 0.85fr) minmax(140px, 0.6fr) minmax(170px, 0.75fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 16px;
   align-items: start;
 }
@@ -1512,27 +1675,65 @@ details > *:not(summary) {
 }
 
 /* ─── Index ─── */
+.index-container { max-width: 1240px; padding-top: 48px; }
+.index-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+.index-field { display: grid; gap: 8px; min-width: 0; }
+.index-field label { font-size: 0.9rem; font-weight: 600; }
+.index-field input, .index-field select {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+}
+.index-field input::placeholder { color: var(--text-secondary); opacity: 1; }
+.index-results { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-top: 16px; }
+.index-result-count { color: var(--text-secondary); font-size: 0.9rem; }
+.index-clear {
+  padding: 6px 12px;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--accent);
+  background: var(--bg-card);
+  cursor: pointer;
+}
+.index-clear:disabled { color: var(--text-secondary); cursor: default; }
+.index-empty { padding: 32px 20px; margin-top: 24px; text-align: center; border: 1px dashed var(--border); border-radius: 10px; color: var(--text-secondary); }
 .doc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   margin: 28px 0 48px;
 }
 .doc-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 22px 24px;
   min-height: 180px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--text);
-  transition: border-color 0.2s, transform 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 }
 .doc-card:hover {
   border-bottom-color: var(--accent);
   border-color: var(--accent-dim);
   background: var(--surface-hover);
-  transform: translateY(-2px);
 }
 .doc-card h2 {
   margin: 0 0 10px;
@@ -1546,8 +1747,22 @@ details > *:not(summary) {
   margin: 0 0 16px;
 }
 .doc-card .doc-card-meta {
-  color: var(--orange);
+  display: block;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
   font-size: 0.86em;
+}
+.doc-card-category {
+  align-self: flex-start;
+  padding: 2px 8px;
+  margin-bottom: 14px;
+  border-radius: 4px;
+  background: var(--surface-hover);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 500;
 }
 
 /* ─── Scrollbar ─── */
@@ -1557,7 +1772,11 @@ details > *:not(summary) {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
 /* ─── Responsive ─── */
+@media (max-width: 1100px) {
+  .doc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 768px) {
+  :root { --header-height: 112px; }
   .site-nav { padding: 10px 16px; gap: 8px 16px; }
   .doc-container { padding: 20px 16px 104px; }
   .doc-hero-container { padding-bottom: 0; }
@@ -1585,14 +1804,26 @@ details > *:not(summary) {
     border-right: 1px solid var(--border);
     box-shadow: 20px 0 44px var(--shadow);
     transform: translateX(-100%);
+    visibility: hidden;
     transition: transform 0.22s ease;
     overscroll-behavior: contain;
   }
   body.toc-open .doc-sidebar {
     transform: translateX(0);
+    visibility: visible;
+  }
+  .toc-close {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card);
+    color: var(--text);
+    cursor: pointer;
   }
   .doc-sidebar .toc {
-    min-height: calc(100dvh - 32px);
     max-height: none;
   }
   .toc-backdrop {
@@ -1631,9 +1862,9 @@ details > *:not(summary) {
     outline: 2px solid var(--accent);
     outline-offset: 4px;
   }
+  body.toc-open .toc-fab { visibility: hidden; }
   .doc-hero h1 { font-size: 1.8em; }
   h2 { font-size: 1.4em; }
-  .doc-grid { grid-template-columns: 1fr; }
   table { font-size: 0.82em; }
   th, td { padding: 8px 10px; }
   .timeline-filter-grid { grid-template-columns: 1fr; }
@@ -1643,6 +1874,11 @@ details > *:not(summary) {
   .timeline-export-panel { flex-direction: column; align-items: stretch; }
   .timeline-export-actions { display: grid; grid-template-columns: 1fr; }
   .timeline-button { width: 100%; }
+}
+@media (max-width: 640px) {
+  .doc-grid, .index-tools { grid-template-columns: 1fr; }
+  .doc-card { padding: 20px; }
+  .index-container { padding-top: 32px; }
 }
 
 /* ─── Strong emphasis with accent ─── */
@@ -1680,9 +1916,11 @@ def render_doc(doc):
     if doc.get("type") == "timeline":
         body = enhance_timeline_body(body)
         timeline_script = TIMELINE_SCRIPT
+    body = wrap_tables(body)
     body, toc_html = split_body_and_toc(body)
     sidebar_html = (
         '<aside id="doc-sidebar" class="doc-sidebar" aria-label="文档目录">\n'
+        '<button class="toc-close" type="button">关闭目录</button>\n'
         '<a class="toc-home-link" href="/">首页</a>\n'
         f'{toc_html}\n</aside>'
         if toc_html
@@ -1690,7 +1928,7 @@ def render_doc(doc):
     )
     mobile_toc_controls = (
         '<button class="toc-fab" type="button" aria-controls="doc-sidebar" '
-        'aria-expanded="false">目录</button>\n'
+        'aria-expanded="false" disabled>目录</button>\n'
         '<div class="toc-backdrop" hidden></div>'
         if toc_html
         else ""
@@ -1718,8 +1956,7 @@ def render_doc(doc):
 </div>
 <div class="doc-shell">
   {sidebar_html}
-  <main class="doc-container">
-  <div id="main-content" tabindex="-1"></div>
+  <main id="main-content" class="doc-container" tabindex="-1">
   {body}
   <div class="doc-footer">
     <p>{doc["footer"]}</p>
@@ -1729,34 +1966,7 @@ def render_doc(doc):
 </div>
 {THEME_CONTROLS_SCRIPT}
 {MERMAID_SCRIPT}
-<script>
-  const tocButton = document.querySelector('.toc-fab');
-  const tocBackdrop = document.querySelector('.toc-backdrop');
-  const tocSidebar = document.querySelector('#doc-sidebar');
-
-  if (tocButton && tocBackdrop && tocSidebar) {{
-    function setTocOpen(open) {{
-      document.body.classList.toggle('toc-open', open);
-      tocButton.setAttribute('aria-expanded', String(open));
-      tocBackdrop.hidden = !open;
-    }}
-
-    tocButton.addEventListener('click', () => {{
-      setTocOpen(!document.body.classList.contains('toc-open'));
-    }});
-    tocBackdrop.addEventListener('click', () => setTocOpen(false));
-    tocSidebar.addEventListener('click', (event) => {{
-      if (event.target.closest('a')) {{
-        setTocOpen(false);
-      }}
-    }});
-    document.addEventListener('keydown', (event) => {{
-      if (event.key === 'Escape') {{
-        setTocOpen(false);
-      }}
-    }});
-  }}
-</script>
+{TOC_SCRIPT}
 {timeline_script}
 </body>
 </html>"""
@@ -1769,14 +1979,25 @@ def render_doc(doc):
 def render_index():
     cards = []
     for doc in DOCS:
+        category = doc.get("category") or "其他"
+        if category not in CATEGORIES:
+            category = "其他"
         cards.append(
-            f"""<a class="doc-card" href="{escape(doc["href"], quote=True)}">
+            f"""<a class="doc-card" href="{escape(doc["href"], quote=True)}" data-category="{escape(category, quote=True)}">
+  <span class="doc-card-category">{escape(category)}</span>
   <h2>{escape(doc["title"])}</h2>
-  <p>{escape(doc["summary"])}</p>
+  <p class="doc-card-summary">{escape(doc["summary"])}</p>
   <span class="doc-card-meta">{escape(doc["meta"])}</span>
 </a>"""
         )
 
+    categories = list(CATEGORIES)
+    if any(doc.get("category") not in CATEGORIES for doc in DOCS):
+        categories.append("其他")
+    category_options = "".join(
+        f'<option value="{escape(category, quote=True)}">{escape(category)}</option>'
+        for category in categories
+    )
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1788,21 +2009,40 @@ def render_index():
 </head>
 <body>
 {SITE_NAV}
-<div class="doc-container">
-  <div id="main-content" tabindex="-1"></div>
+<main id="main-content" class="doc-container index-container" tabindex="-1">
   <div class="doc-hero">
     <h1>AI 基础设施深度文档</h1>
     <p class="subtitle">LLM 推理、压测、存储、Sandbox、基础设施访问治理、异构设备、AI 调度、模型服务与 MLOps 技术分析入口</p>
-    <p class="meta">统一运行在 80 端口</p>
+    <p class="meta">{len(DOCS)} 篇文档 · 架构、实现与生产实践</p>
   </div>
+  <section class="index-tools" aria-label="文档搜索与分类">
+    <div class="index-field">
+      <label for="doc-search">搜索文档</label>
+      <input id="doc-search" type="search" placeholder="搜索标题或摘要" autocomplete="off" disabled>
+    </div>
+    <div class="index-field">
+      <label for="doc-category">主题分类</label>
+      <select id="doc-category" disabled>
+        <option value="">全部分类</option>
+        {category_options}
+      </select>
+    </div>
+  </section>
+  <div class="index-results">
+    <span id="doc-result-count" class="index-result-count" role="status" aria-live="polite">显示 {len(DOCS)} / {len(DOCS)} 篇</span>
+    <button id="doc-clear" class="index-clear" type="button" disabled>清除搜索与分类</button>
+  </div>
+  <noscript><p>启用 JavaScript 后可使用搜索与分类。</p></noscript>
+  <p id="doc-empty-state" class="index-empty" hidden>没有找到匹配文档。请尝试其他关键词或清除搜索与分类。</p>
   <div class="doc-grid">
     {"".join(cards)}
   </div>
   <div class="doc-footer">
-    <p>本页由 <code>/data/serve_docs.py</code> 生成，文档源文件位于 <code>/data</code>。</p>
+    <p>AI 基础设施深度文档 · 从原理到生产实践</p>
   </div>
-</div>
+</main>
 {THEME_CONTROLS_SCRIPT}
+{INDEX_SCRIPT}
 </body>
 </html>"""
 

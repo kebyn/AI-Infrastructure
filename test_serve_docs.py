@@ -1,3 +1,5 @@
+import csv
+import json
 import re
 import tempfile
 import unittest
@@ -24,22 +26,57 @@ def render_visual_fixture(directory):
     source.write_text(
         '# 示例\n\n## 第一章\n\n正文与 [链接](https://example.com)。\n\n'
         '```mermaid\nflowchart LR\nA --> B\n```\n\n'
-        '| 表头 | 另一个表头 |\n| --- | --- |\n| 内容 | 长内容 |\n\n'
+        '| 非常长且不可换行的表头一 | 非常长且不可换行的表头二 | 非常长且不可换行的表头三 |\n'
+        '| --- | --- | --- |\n| 内容 | 长内容 | 第三列内容 |\n\n'
+        '| 表头 | 值 |\n| --- | --- |\n| 名称 | 内容 |\n\n'
+        '```text\n' + 'long-code-' * 80 + '\n```\n\n'
         '## 第二章\n\n更多内容\n', encoding="utf-8"
     )
     doc = {
         "src": str(source), "dst": str(root / "sample.html"), "href": "/sample.html",
         "title": "推理架构 Example", "hero": "推理架构 Example", "subtitle": "阅读示例",
-        "summary": "缓存与 KVCache", "meta": "v1.0 · source@abc", "footer": "官方资料",
+        "summary": "缓存与 KVCache", "meta": "v1.0 · source@" + "a" * 160, "footer": "官方资料",
         "category": "推理与压测",
     }
-    with redirect_stdout(StringIO()), patch.object(serve_docs, "INDEX", str(root / "index.html")), patch.object(serve_docs, "DOCS", [doc]):
+    storage = dict(doc, title="存储设计", summary="持久化与共享文件系统", category="存储")
+    custom = dict(doc, title="未分类 Example", summary="自定义页面", meta="v2.0")
+    del custom["category"]
+    with redirect_stdout(StringIO()), patch.object(serve_docs, "INDEX", str(root / "index.html")), patch.object(serve_docs, "DOCS", [doc, storage, custom]):
         serve_docs.render_doc(doc)
         serve_docs.render_index()
     return doc
 
 
 class SharedThemeRenderingTest(unittest.TestCase):
+    def test_index_categories_controls_and_custom_document_fallback(self):
+        self.assertEqual({doc["category"] for doc in serve_docs.DOCS}, set(serve_docs.CATEGORIES))
+        with tempfile.TemporaryDirectory() as directory:
+            render_visual_fixture(directory)
+            html = (Path(directory) / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(re.findall(r'<a class="doc-card"[^>]*data-category="([^"]+)"', html), ["推理与压测", "存储", "其他"])
+        self.assertIn('<option value="其他">其他</option>', html)
+        self.assertIn('<label for="doc-search">搜索文档</label>', html)
+        self.assertIn('<label for="doc-category">主题分类</label>', html)
+        self.assertIn('id="doc-result-count"', html)
+        self.assertIn('id="doc-clear"', html)
+        self.assertIn('id="doc-empty-state"', html)
+        self.assertIn("显示 3 / 3 篇", html)
+
+    def test_wide_table_wrapping_keeps_timeline_and_code_intact(self):
+        ordinary = '<table><thead><tr><th>很宽的表头</th></tr></thead></table>'
+        timeline = '<div class="timeline-table-wrap"><table class="timeline-table" id="timeline-table"><tr><td>日期</td></tr></table></div>'
+        code = '<pre><code>&lt;table&gt;literal&lt;/table&gt;</code></pre>'
+        wrapped = serve_docs.wrap_tables(ordinary + timeline + code)
+        self.assertEqual(wrapped.count('class="table-wrap"'), 1)
+        self.assertIn('role="region" aria-label="可横向滚动的表格" tabindex="0"', wrapped)
+        self.assertIn(timeline, wrapped)
+        self.assertIn(code, wrapped)
+        with tempfile.TemporaryDirectory() as directory:
+            doc = render_visual_fixture(directory)
+            html = Path(doc["dst"]).read_text(encoding="utf-8")
+        self.assertIn('class="table-wrap"', html)
+        self.assertIn('class="toc-close"', html)
+
     def test_navigation_and_early_theme_exist_on_all_page_types(self):
         with tempfile.TemporaryDirectory() as directory:
             doc = render_visual_fixture(directory)
@@ -80,11 +117,15 @@ class SharedThemeRenderingTest(unittest.TestCase):
 
 
 @unittest.skipUnless(sync_playwright, "可选浏览器测试需要 uv run --with playwright，并安装 Chromium")
-class ThemeBrowserTest(unittest.TestCase):
+class PageBrowserTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.directory = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.directory.cleanup)
         render_visual_fixture(cls.directory.name)
+        timeline = next(doc for doc in serve_docs.DOCS if doc.get("type") == "timeline")
+        with redirect_stdout(StringIO()):
+            serve_docs.render_doc(dict(timeline, dst=str(Path(cls.directory.name) / "timeline.html")))
 
         class QuietHandler(SimpleHTTPRequestHandler):
             def log_message(self, *args):
@@ -93,18 +134,13 @@ class ThemeBrowserTest(unittest.TestCase):
         cls.server = ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=cls.directory.name))
         cls.thread = Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
+        cls.addClassCleanup(cls.server.server_close)
+        cls.addClassCleanup(cls.server.shutdown)
         cls.url = f"http://127.0.0.1:{cls.server.server_port}"
         cls.playwright = sync_playwright().start()
+        cls.addClassCleanup(cls.playwright.stop)
         cls.browser = cls.playwright.chromium.launch()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.browser.close()
-        cls.playwright.stop()
-        cls.server.shutdown()
-        cls.server.server_close()
-        cls.thread.join()
-        cls.directory.cleanup()
+        cls.addClassCleanup(cls.browser.close)
 
     def setUp(self):
         self.context = self.browser.new_context(color_scheme="light")
@@ -120,6 +156,133 @@ class ThemeBrowserTest(unittest.TestCase):
     def assert_theme(self, page, theme, preference):
         page.wait_for_function("([theme, preference]) => document.documentElement.dataset.theme === theme && document.querySelector('#theme-select').value === preference", arg=[theme, preference])
         self.assertEqual(page.evaluate("getComputedStyle(document.documentElement).colorScheme"), theme)
+
+    def test_index_search_and_category_intersection(self):
+        self.page.goto(self.url)
+        search = self.page.locator("#doc-search")
+        search.fill("kVcAcHe")
+        self.assertEqual(self.page.locator(".doc-card:not([hidden])").count(), 1)
+        self.page.select_option("#doc-category", "存储")
+        self.assertEqual(self.page.locator(".doc-card:not([hidden])").count(), 0)
+        self.assertTrue(self.page.locator("#doc-empty-state").is_visible())
+        self.assertEqual(self.page.locator("#doc-result-count").inner_text(), "显示 0 / 3 篇")
+        self.page.click("#doc-clear")
+        self.assertEqual(search.input_value(), "")
+        self.assertEqual(self.page.locator("#doc-category").input_value(), "")
+        self.assertTrue(search.evaluate("node => node === document.activeElement"))
+        self.assertEqual(self.page.locator(".doc-card:not([hidden])").count(), 3)
+        self.assertFalse(self.page.locator("#doc-empty-state").is_visible())
+        search.fill("共享")
+        self.assertEqual(self.page.locator(".doc-card:not([hidden]) h2").inner_text(), "存储设计")
+        search.fill("存储")
+        self.assertEqual(self.page.locator(".doc-card:not([hidden])").count(), 1)
+        search.fill("source@")
+        self.assertEqual(self.page.locator(".doc-card:not([hidden])").count(), 0)
+        self.page.click("#doc-clear")
+        self.page.select_option("#doc-category", "其他")
+        self.assertEqual(self.page.locator(".doc-card:not([hidden]) h2").inner_text(), "未分类 Example")
+
+    def test_mobile_toc_keyboard_close_focus_and_resize(self):
+        self.page.set_viewport_size({"width": 390, "height": 844})
+        self.page.goto(self.url + "/sample.html")
+        sidebar = self.page.locator("#doc-sidebar")
+        opener = self.page.locator(".toc-fab")
+        close = self.page.locator(".toc-close")
+        self.assertTrue(sidebar.evaluate("node => node.inert"))
+        self.assertFalse(sidebar.is_visible())
+        for _ in range(8):
+            self.page.keyboard.press("Tab")
+            self.assertFalse(sidebar.evaluate("node => node.contains(document.activeElement)"))
+        opener.click()
+        self.assertTrue(close.evaluate("node => node === document.activeElement"))
+        self.assertEqual(sidebar.get_attribute("aria-modal"), "true")
+        self.assertTrue(self.page.locator("main").evaluate("node => node.inert"))
+        self.page.keyboard.press("Shift+Tab")
+        self.assertTrue(sidebar.locator("a").last.evaluate("node => node === document.activeElement"))
+        self.page.keyboard.press("Tab")
+        self.assertTrue(close.evaluate("node => node === document.activeElement"))
+        self.page.keyboard.press("Escape")
+        self.assertTrue(opener.evaluate("node => node === document.activeElement"))
+        self.assertTrue(sidebar.evaluate("node => node.inert"))
+        self.assertFalse(self.page.locator("main").evaluate("node => node.inert"))
+        opener.click()
+        close.click()
+        self.assertTrue(opener.evaluate("node => node === document.activeElement"))
+        opener.click()
+        self.page.locator(".toc-backdrop").click(position={"x": 380, "y": 200})
+        self.assertTrue(opener.evaluate("node => node === document.activeElement"))
+        opener.click()
+        sidebar.locator('a[href="#第一章"]').click()
+        self.page.wait_for_function("location.hash === '#%E7%AC%AC%E4%B8%80%E7%AB%A0'")
+        self.assertFalse(sidebar.is_visible())
+        opener.click()
+        self.page.set_viewport_size({"width": 1280, "height": 900})
+        self.page.wait_for_function("!document.querySelector('#doc-sidebar').inert && !document.body.classList.contains('toc-open')")
+        self.assertTrue(sidebar.is_visible())
+        self.assertIsNone(sidebar.get_attribute("aria-modal"))
+        self.assertTrue(sidebar.locator('a').first.evaluate("node => node === document.activeElement"))
+
+    def test_responsive_grid_and_independent_scrolling_in_both_themes(self):
+        for theme in ("light", "dark"):
+            self.page.goto(self.url)
+            self.page.select_option("#theme-select", theme)
+            for width, columns in ((1280, 3), (900, 2), (390, 1), (320, 1)):
+                with self.subTest(theme=theme, width=width):
+                    self.page.set_viewport_size({"width": width, "height": 900})
+                    self.assertEqual(self.page.locator(".doc-grid").evaluate("node => getComputedStyle(node).gridTemplateColumns.split(' ').length"), columns)
+                    self.assertTrue(self.page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
+            self.page.goto(self.url + "/sample.html")
+            self.assertTrue(self.page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
+            for selector in (".table-wrap", "pre"):
+                with self.subTest(scroll_area=selector):
+                    area = self.page.locator(selector).first
+                    self.assertTrue(area.evaluate("node => node.scrollWidth > node.clientWidth"))
+                    self.assertEqual(area.evaluate("node => getComputedStyle(node).overflowX"), "auto")
+            self.assertGreaterEqual(self.page.locator('.table-wrap table').first.evaluate("node => node.clientWidth"), 640)
+            self.assertTrue(self.page.locator('.table-wrap').last.evaluate("node => node.scrollWidth <= node.clientWidth"))
+            self.page.emulate_media(reduced_motion="reduce")
+            self.assertEqual(self.page.evaluate("getComputedStyle(document.documentElement).scrollBehavior"), "auto")
+
+    def test_timeline_filters_urls_exports_and_empty_results(self):
+        self.page.goto(self.url + "/timeline.html?supplier=OpenAI&year=2024")
+        rows = self.page.locator("#timeline-table tbody tr:not([hidden])")
+        count = rows.count()
+        self.assertGreater(count, 0)
+        self.assertTrue(rows.evaluate_all("nodes => nodes.every(node => node.dataset.supplier === 'OpenAI' && node.dataset.year === '2024')"))
+        for kind in ("csv", "json", "markdown"):
+            with self.subTest(export=kind), self.page.expect_download() as pending:
+                self.page.click(f"#timeline-export-{kind}")
+            download = pending.value
+            content = Path(download.path()).read_text(encoding="utf-8-sig")
+            if kind == "json":
+                records = json.loads(content)
+                self.assertEqual(len(records), count)
+                self.assertEqual(set(records[0]), {key for key, _ in serve_docs.TIMELINE_COLUMNS} | {"year", "multimodal", "open_source"})
+                self.assertTrue(all(record["supplier"] == "OpenAI" for record in records))
+                self.assertIn("https://", records[0]["official_source"])
+            elif kind == "csv":
+                exported_rows = list(csv.reader(StringIO(content)))
+                self.assertEqual(len(exported_rows), count + 1)
+                self.assertEqual(exported_rows[0], [label for _, label in serve_docs.TIMELINE_COLUMNS])
+            else:
+                self.assertIn("| 发布时间 |", content)
+                self.assertEqual(len([line for line in content.splitlines() if line.startswith("|")]), count + 2)
+        self.page.select_option("#timeline-multimodal-filter", "yes")
+        self.assertIn("multimodal=yes", self.page.url)
+        self.assertTrue(rows.evaluate_all("nodes => nodes.every(node => node.dataset.multimodal === 'yes')"))
+        self.page.click("#timeline-clear-filters")
+        self.assertEqual(rows.count(), 117)
+        self.assertNotIn("supplier=", self.page.url)
+        self.page.locator('input[data-filter="supplier"][value="Xiaomi / MiMo"]').check()
+        self.page.locator('input[data-filter="year"][value="2022"]').check()
+        self.assertEqual(rows.count(), 0)
+        self.assertTrue(self.page.locator("#timeline-empty-state").is_visible())
+        self.assertTrue(self.page.locator("#timeline-export-csv").is_disabled())
+        self.page.reload()
+        self.assertEqual(rows.count(), 0)
+        self.page.select_option("#theme-select", "dark")
+        self.page.set_viewport_size({"width": 390, "height": 844})
+        self.assertTrue(self.page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
 
     def test_theme_persistence_system_changes_and_tabs(self):
         self.page.goto(self.url)
@@ -2314,7 +2477,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn('<aside id="doc-sidebar" class="doc-sidebar" aria-label="文档目录">', html)
         self.assertIn('<a class="toc-home-link" href="/">首页</a>', html)
         self.assertNotIn('class="home-fab"', html)
-        self.assertIn('<main class="doc-container">', html)
+        self.assertIn('<main id="main-content" class="doc-container" tabindex="-1">', html)
         self.assertIn("function setTocOpen(open)", html)
         self.assertIn("tocButton.setAttribute('aria-expanded', String(open));", html)
         self.assertIn("tocBackdrop.hidden = !open;", html)

@@ -64,6 +64,12 @@ KServe v0.21.0 把上一轮全部主线观察项纳入稳定版：LLMISVC rollou
 
 `serve_docs.py` 会把已注册的 Markdown 文档（包括 `*-Deep-Dive.md` 和模型发布时间时间线）渲染为 HTML，并生成首页 `index.html`。脚本默认监听 `80` 端口，根路径 `/` 会返回首页。
 
+首页、深度文档和模型时间线共用顶部导航与「明亮 / 暗色 / 跟随系统」主题。首次访问跟随系统，手动选择保存在浏览器本地，刷新、跨页和同源标签页之间保持一致；选择「跟随系统」时会实时响应系统配色。浏览器禁止本地存储时，仍可切换当前页面主题；未启用 JavaScript 时由 CSS 跟随系统配色。
+
+首页可以搜索标题和摘要，并按推理与压测、模型时间线、存储、访问治理、Kubernetes 平台、Agent 协作、Sandbox 分类筛选。搜索忽略大小写，与分类共同限制结果；页面显示匹配数量，无结果时可使用「清除搜索与分类」恢复全部文档。自定义 `DOCS` 条目可填写可选的 `category` 字段，未填写或不在上述分类中的条目归入「其他」。
+
+文档页在桌面显示左侧目录，手机使用左下角「目录」按钮打开抽屉。抽屉支持键盘焦点循环、关闭按钮、Escape 与遮罩关闭，关闭后焦点返回原控件。长表格和代码块可以在各自区域横向滚动。Mermaid 图随主题重新渲染，加载或渲染失败时保留可读的原始图定义。时间线继续支持筛选、URL 状态与 CSV / JSON / Markdown 导出。
+
 首次运行使用 uv 创建虚拟环境并安装锁定的依赖：
 
 ```bash
@@ -76,6 +82,13 @@ uv sync --locked
 
 ```bash
 uv run --locked python -m unittest test_serve_docs.py
+```
+
+浏览器交互测试为可选测试，不增加项目运行依赖。需要验证主题持久化、标签页同步、Mermaid 切换、搜索分类、移动目录和时间线导出时，可安装 Chromium 后运行完整测试：
+
+```bash
+uv run --locked --with playwright python -m playwright install --with-deps chromium
+uv run --locked --with playwright python -m unittest test_serve_docs.py
 ```
 
 启动服务：
