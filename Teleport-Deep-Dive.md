@@ -1044,10 +1044,10 @@ Teleport 仍是本文的主基线，因为它同时覆盖用户/机器身份、�
 ### 13.8 与本仓库其他主题的组合
 
 - Teleport 可以统一进入 Kubernetes 集群，但 [Kubernetes 原生调度](Kubernetes-AI-Platform-Deep-Dive.md#k8s-scheduler) 和各 AI scheduler 仍决定工作负载如何调度；
-- Teleport 可以保护 KServe/Kubeflow 管理 API 和内部 Web UI，但不替 KServe 的流量路由、模型 runtime 或 Kubeflow 多租户控制；
-- Teleport MCP Access 约束 tool 身份和审计，Multica 负责 coding agent 协作编排，二者都不自动提供 Sandbox；
-- Teleport 进入 E2B 管理面不等于 Teleport 提供 Firecracker 隔离，执行安全边界仍应由 E2B/Agent Sandbox 或其他 runtime 提供；
-- Teleport 访问 GPU 节点不替 GPU Operator、HAMi、Kueue 或 Volcano 做设备管理和调度。
+- Teleport 可以保护 [KServe](Kubernetes-AI-Platform-Deep-Dive.md#kserve) / [Kubeflow](Kubernetes-AI-Platform-Deep-Dive.md#kubeflow) 管理 API 和内部 Web UI，模型服务流量与 Profile/RBAC 仍由目标平台授权；
+- Teleport MCP Access 约束 tool 身份和审计，[Multica](Multica-Deep-Dive.md#第八章安全模型与无-sandbox-边界)负责 coding agent 编排与 Runtime 权限；
+- [E2B / Agent Sandbox](E2B-Deep-Dive.md#第七章网络-安全与隔离)负责执行环境隔离，管理入口身份不能推定为 Firecracker 或其他 runtime 的执行边界；
+- GPU 节点访问后的设备和调度合同见[平台统一选型](Kubernetes-AI-Platform-Deep-Dive.md#platform-selection)。
 
 ### 13.9 结论
 

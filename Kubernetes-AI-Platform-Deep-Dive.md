@@ -1717,6 +1717,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 - Gateway API `x-k8s` 实验 group、Inference Extension CRD、Headlamp plugin 和 Kueue/Volcano/Grove/KAI 的自身 tag 都有独立版本；升级 Kubernetes 时不能只看 minor 号。
 - 没有 GitHub Release 的生态 tag、分支 commit 或 proposal 若需要复现实验，应记录 exact commit、日期和“未发布/审计证据”标签；它们不得写入本文 v1.37 Stable 表。
 - 未来 Blog 不会自动纳入本版本文档；下一轮审校应重新抓取年份归档、RSS、sitemap，并更新截止日期、文章索引和差异表。
+
 ## 第2篇：原生调度 {#k8s-scheduler}
 
 
@@ -3173,6 +3174,7 @@ v1.37.0 是新的 minor baseline：除 Workload/PodGroup v1beta1 与工作负载
 - [HAMi 异构设备虚拟化与调度](Kubernetes-AI-Platform-Deep-Dive.md#hami)
 - [NVIDIA GPU Operator 深度技术文档](Kubernetes-AI-Platform-Deep-Dive.md#gpu-operator)
 - [Volcano 升级与 Feature 兼容性](Kubernetes-AI-Platform-Deep-Dive.md#volcano-upgrade)
+
 ## 第3篇：GPU Operator {#gpu-operator}
 
 
@@ -4181,6 +4183,7 @@ flowchart LR
 | 需要任意显存/算力粒度和调度语义 | HAMi | 软件限额和专用调度路径 |
 
 ---
+
 ### 3.9 GPUDirect、虚拟化、机密计算与 DRA {#gpu-operator-gpudirect-虚拟化-机密计算与-dra}
 
 #### 3.9.1 高级能力默认都不是“开箱即用” {#gpu-operator-9-1-高级能力默认都不是-开箱即用}
@@ -4754,6 +4757,7 @@ kubectl logs -n gpu-operator -l app=nvidia-mig-manager \
 - [NVIDIA Device Plugin `v0.20.1`](https://github.com/NVIDIA/k8s-device-plugin/tree/v0.20.1)
 
 版本和平台支持会变化。落地时应同时检查目标 GPU 型号、Driver 分支、Linux kernel、Kubernetes 发行版、容器运行时与云平台的当前兼容矩阵；不要把本文的固定快照当作未来版本的兼容承诺。
+
 ## 第4篇：HAMi {#hami}
 
 
@@ -5895,6 +5899,7 @@ curl http://<scheduler-ip>:31993/metrics
 | Scheduler Policy | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/docs/develop/scheduler-policy.md> |
 | Dynamic MIG | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/docs/develop/dynamic-mig.md> |
 | Helm Chart Values | <https://github.com/Project-HAMi/HAMi/blob/4707fb02c91c545bc7343ce26dba4c32919f9a3e/charts/hami/README.md> |
+
 ## 第5篇：AI 调度器 {#ai-schedulers}
 
 
@@ -7168,6 +7173,7 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | Kubernetes Scheduling, Eviction and Node Feasibility | <https://kubernetes.io/docs/concepts/scheduling-eviction/> |
 | Dynamic Resource Allocation | <https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/> |
 | Kubernetes 原生调度器深度技术文档 | [仓库内专篇](Kubernetes-AI-Platform-Deep-Dive.md#k8s-scheduler) |
+
 ## 第6篇：Volcano 升级 {#volcano-upgrade}
 
 
@@ -7909,6 +7915,7 @@ kubectl get events -A --sort-by=.lastTimestamp
 ```
 
 最终验收必须回到[6.2 升级成功的六个层次](#volcano-upgrade-升级成功的六个层次)的六层模型。只有 Helm、Pod Ready 或 CRD list 成功，都不足以单独证明 v1.8.2 到 v1.15.2 已实现行为兼容的平滑升级。
+
 ## 第7篇：KServe {#kserve}
 
 
@@ -9283,6 +9290,7 @@ kubectl get daemonset -n kserve kserve-localmodelnode-agent
 | LLMISVC Canary Rollout（官网源码快照） | <https://github.com/kserve/website/blob/71c8b22a05d6be72560b2cc326865930063cd0e8/docs/model-serving/generative-inference/llmisvc/canary-rollout.md> |
 | LLMISVC AgentGateway（官网源码快照） | <https://github.com/kserve/website/blob/71c8b22a05d6be72560b2cc326865930063cd0e8/docs/model-serving/generative-inference/llmisvc/llmisvc-agentgateway.md> |
 | API Reference | <https://kserve.github.io/website/docs/reference/crd-api> |
+
 ## 第8篇：Kubeflow {#kubeflow}
 
 
@@ -10455,6 +10463,7 @@ KServe 安装和测试：
 | Istio VirtualService 与 KServe path routing 排障 | <https://github.com/kubeflow/community-distribution/blob/26.03.1/common/istio/README.md#virtualservice-conflicts-with-kserve-path-based-routing> |
 | KServe Kubernetes Deployment Installation Guide | <https://kserve.github.io/website/docs/admin-guide/kubernetes-deployment> |
 | Istio Kubernetes Gateway API | <https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/> |
+
 ## 第9篇：统一比较、组合架构与选型 {#platform-selection}
 
 组合时分别确定应用编排、队列准入、最终 Bind、设备分配与运行时隔离的唯一所有者。

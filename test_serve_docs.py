@@ -8,7 +8,6 @@ from contextlib import redirect_stdout
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from io import StringIO
-from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from threading import Thread
@@ -27,12 +26,14 @@ class DocumentGraphParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.ids = []
+        self.id_tags = {}
         self.links = []
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if "id" in attrs:
             self.ids.append(attrs["id"])
+            self.id_tags[attrs["id"]] = tag
         if tag == "a" and "href" in attrs:
             self.links.append(attrs["href"])
 
@@ -67,9 +68,11 @@ class DocumentMigrationTest(unittest.TestCase):
                         self.assertTrue(unquote(url.fragment) in self.graph[target].ids, href)
 
     def test_all_original_sections_have_a_valid_disposition(self):
+        self.assertEqual(len(self.manifest["sources"]), 16)
         for old, source in self.manifest["sources"].items():
-            self.assertFalse((self.root / old).exists())
-            self.assertFalse((self.root / old.replace(".md", ".html")).exists())
+            if source["retired"]:
+                self.assertFalse((self.root / old).exists())
+                self.assertFalse((self.root / old.replace(".md", ".html")).exists())
             self.assertTrue(source["sections"])
             for row in source["sections"]:
                 with self.subTest(source=old, heading=row["heading"]):
@@ -78,6 +81,38 @@ class DocumentMigrationTest(unittest.TestCase):
                     target = urlsplit(row["target"])
                     self.assertIn(target.path, self.graph)
                     self.assertTrue(unquote(target.fragment) in self.graph[target.path].ids, row["target"])
+                    self.assertRegex(self.graph[target.path].id_tags[unquote(target.fragment)], r"^h[1-6]$")
+
+    def test_seven_domain_documents_have_unique_pages_and_no_retired_references(self):
+        self.assertEqual(len(serve_docs.DOCS), 7)
+        for field in ("src", "dst", "href"):
+            self.assertEqual(len({doc[field] for doc in serve_docs.DOCS}), 7)
+        retired = {name for name, source in self.manifest["sources"].items() if source["retired"]}
+        for path in [*self.root.glob("*.md"), self.root / "serve_docs.py", self.root / "test_serve_docs.py"]:
+            text = path.read_text()
+            for name in retired:
+                self.assertNotIn(name, text, str(path))
+                self.assertNotIn(name.replace(".md", ".html"), text, str(path))
+
+    def test_timeline_content_is_unchanged(self):
+        source = self.manifest["sources"]["model_release_timeline.md"]
+        actual = hashlib.sha256((self.root / "model_release_timeline.md").read_bytes()).hexdigest()
+        self.assertEqual(actual, source["content_sha256"])
+
+    def test_readme_local_links_and_fragments_resolve(self):
+        parser = DocumentGraphParser()
+        body = serve_docs.markdown.markdown(
+            (self.root / "README.md").read_text(), extensions=["tables", "fenced_code"]
+        )
+        parser.feed(body)
+        for href in parser.links:
+            url = urlsplit(href)
+            if url.scheme or url.netloc:
+                continue
+            name = Path(url.path).name
+            self.assertTrue((self.root / name).is_file(), href)
+            if url.fragment:
+                self.assertTrue(unquote(url.fragment) in self.graph[name].ids, href)
 
     def test_migration_preserves_original_code_and_official_evidence(self):
         for old, source in self.manifest["sources"].items():
@@ -212,6 +247,9 @@ class PageBrowserTest(unittest.TestCase):
         timeline = next(doc for doc in serve_docs.DOCS if doc.get("type") == "timeline")
         with redirect_stdout(StringIO()):
             serve_docs.render_doc(dict(timeline, dst=str(Path(cls.directory.name) / "timeline.html")))
+            for doc in serve_docs.DOCS:
+                if Path(doc["src"]).name in ("AI-Inference-Deep-Dive.md", "Kubernetes-AI-Platform-Deep-Dive.md"):
+                    serve_docs.render_doc(dict(doc, dst=str(Path(cls.directory.name) / Path(doc["dst"]).name)))
 
         class QuietHandler(SimpleHTTPRequestHandler):
             def log_message(self, *args):
@@ -242,6 +280,52 @@ class PageBrowserTest(unittest.TestCase):
     def assert_theme(self, page, theme, preference):
         page.wait_for_function("([theme, preference]) => document.documentElement.dataset.theme === theme && document.querySelector('#theme-select').value === preference", arg=[theme, preference])
         self.assertEqual(page.evaluate("getComputedStyle(document.documentElement).colorScheme"), theme)
+
+    def test_composite_document_toc_subsection_anchors_and_mobile_navigation(self):
+        for filename, parts in (("AI-Inference-Deep-Dive.html", 5), ("Kubernetes-AI-Platform-Deep-Dive.html", 9)):
+            with self.subTest(document=filename):
+                self.page.set_viewport_size({"width": 1280, "height": 900})
+                self.page.goto(self.url + "/" + filename)
+                self.assertEqual(self.page.locator("main h2").count(), parts)
+                self.assertEqual(self.page.locator(".toc .toc-chapter").count(), parts)
+                self.assertEqual(self.page.locator(".toc li li a").count(), self.page.locator("main h3").count())
+                subsection = self.page.locator("main h4").first.get_attribute("id")
+                self.assertEqual(self.page.locator(f'.toc a[href="#{subsection}"]').count(), 0)
+                self.page.evaluate("id => location.hash = id", subsection)
+                self.page.wait_for_function("id => document.getElementById(id).getBoundingClientRect().top < 150", arg=subsection)
+                self.page.set_viewport_size({"width": 390, "height": 844})
+                self.page.locator(".toc-fab").click()
+                self.assertEqual(self.page.locator("#doc-sidebar").get_attribute("role"), "dialog")
+                chapter = self.page.locator(".toc li li a").last
+                href = chapter.get_attribute("href")
+                chapter.click()
+                self.page.wait_for_function("!document.body.classList.contains('toc-open')")
+                self.assertEqual(unquote(urlsplit(self.page.url).fragment), href[1:])
+                self.assertTrue(self.page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
+
+    def test_composite_document_mermaid_theme_switching_and_cross_page_persistence(self):
+        self.context.unroute("https://cdn.jsdelivr.net/**")
+        module = """
+        let theme;
+        export default {
+          initialize(config) { theme = config.themeVariables.darkMode ? 'dark' : 'light'; },
+          async render(id, source) {
+            return {svg: `<svg data-test-theme="${theme}"><text>Diagram</text></svg>`};
+          }
+        };
+        """
+        self.context.route("https://cdn.jsdelivr.net/**", lambda route: route.fulfill(body=module, content_type="text/javascript"))
+        for filename in ("AI-Inference-Deep-Dive.html", "Kubernetes-AI-Platform-Deep-Dive.html"):
+            self.page.goto(self.url + "/" + filename)
+            self.page.wait_for_function("[...document.querySelectorAll('.mermaid')].every(node => node.querySelector('svg'))")
+            count = self.page.locator(".mermaid").count()
+            self.assertGreater(count, 10)
+            self.page.select_option("#theme-select", "dark")
+            self.assert_theme(self.page, "dark", "dark")
+            self.page.wait_for_function("[...document.querySelectorAll('.mermaid svg')].every(node => node.dataset.testTheme === 'dark')")
+            self.assertEqual(self.page.locator('.mermaid svg[data-test-theme="dark"]').count(), count)
+            self.page.reload()
+            self.assert_theme(self.page, "dark", "dark")
 
     def test_index_search_and_category_intersection(self):
         self.page.goto(self.url)
@@ -652,107 +736,22 @@ class RenderDocLayoutTest(unittest.TestCase):
             },
         )
 
-    def test_readme_tracks_current_audit_summary(self):
-        readme_text = (Path(__file__).resolve().parent / "README.md").read_text(
-            encoding="utf-8"
-        )
-
-        for required_text in (
-            "2026-09-26",
-            "新稳定基线",
-            "推理与压测",
-            "Sandbox、访问与协作",
-            "Kubernetes 调度补丁",
-            "稳定版未变化",
-            "稳定对照与未发布快照",
-            "v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615",
-            "v18.10.0@ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
-            "v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3",
-            "2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104",
-            "v1.0.4@810726d89c71da77cdc82668bca1b00f5cd21ed8",
-            "v0.29.1@54f93c807be2c161a94c0df764242849125161a8",
-            "v0.5.3@ff8b285497809e084915016c40c2bc5e5991ffbc",
-            "v0.19.6@f0e95cea51b5591e0177fbe0fa06a299f36db548",
-            "v0.18.0@2df9a1ffca535d602d57023074b824606e312797",
-            "v0.7.4@291a6e609c3eb52d6eadcedecc7a056e396cd5eb",
-            "v0.7.0@5804ea6b7ebd2bfceff29cf113311ed3af95146e",
-            "v0.5.4@9e441efe48756928e453ff26694d6e5af1a9c71d",
-            "v0.5.20@94602c9c2b7cbdb8efd5c52802dac6a1c180089e",
-            "v26.7.1@dbacf43d4938816fefe62690ab868a640a195282",
-            "v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e",
-            "v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308",
-            "v0.30.0@ced6857afa0ea7b2e3f0846a62e1394e90f15607",
-            "v1.12.0@f09e55de5d5f0a0953cd90aa7b0382b45859c4f5",
-            "v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a",
-            "v0.1.0-alpha.13@af2df1ffff0ae7a1135554564a6240a3f22f2c35",
-            "v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb",
-            "v0.33.3@76042ed40db3bab9506b689f436716b6df624f23",
-            "main@ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b",
-            "main@12f8f3f31111564e5e1b9aac3f7f916e8bba4039",
-            "master@bb22cc477a6bd317bb2c7e357a85efcab8c7462a",
-            "main@71c8b22a05d6be72560b2cc326865930063cd0e8",
-            "main@618b581b32668e317b0d18523d46cf9f55b549d8",
-            "master@f5258704d7ef5bda28f31ba51950cdea9adbe921",
-            "volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513",
-            "spec.kvCacheOffloading",
-            "rollout strategy",
-            "KEDA true scale-to-zero",
-            "`oci+fetch://`",
-            "main@22fca04564c7cc230fd8b9523b8b92864e1dad47",
-            "v1.8.2 → v1.15.2",
-            "v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc",
-            "IAM",
-            "`ms://`",
-            "Self-hosted 访问平台比较",
-            "Teleport Community Edition License",
-            "Session/Identity Lock",
-            "v0.21.0-rc0",
-            "v0.30.1rc0",
-            "v0.20.0-rc.1",
-            "v1.16.0-alpha.*",
-        ):
-            with self.subTest(required_text=required_text):
-                self.assertIn(required_text, readme_text)
-
-        for superseded_text in (
-            "审校截止日为 **2026-08-13**",
-            "审校截止日为 **2026-08-22**",
-            "审校截止日为 **2026-09-01**",
-            "审校截止日为 **2026-09-06**",
-            "审校截止日为 **2026-09-17**",
-            "v1.4.2@2ecbdfdf192c69c02c6d21e931d20d3b4a0bb64a",
-            "v1.0.2@9a85153590e54cb980f3241f9e7a9228449412c9",
-            "v0.4.44@c7f259c70a60bff30011c403fada79ab382f608a",
-            "v0.19.4@5d738f203bd0d301d4966282b144f01d5bb32437",
-            "v0.17.2@b46e4a1168441f97997ba7d1db772891ac6695c2",
-            "v0.5.3@a6a2e419abb83fdc2f8a4d766c26567a008dbc96",
-            "v0.5.19@0bcd822377da7b5718e674eaf9c870d349424dd1",
-            "v26.7.0@10ee5b3638b89e11e949412aafa5ba99279c3721",
-            "v1.37.0@f54c212e3a2f75d674b717a9b29052b20b60aefc",
-            "v0.29.0@98dff2a81d747d1dba01a47f939f48c3526d4206",
-            "main@3e5a48b00eb133ac1e98697d549574301c605e81",
-            "main@7e4758ac1a94e9ff843696333364610bb8d4bbf7",
-            "master@85991f1693d4713f498702f8e2b350a9ef520db2",
-            "main@96cef825562c27d4d8e8c177ad998d908f4d05a2",
-            "master@aee652b985d25e33f59f6112e857627784b741ca",
-            "v0.4.24@ad23d1da3e94093924e06e9adf2745e9c312c7ce",
-            "8 个正文主稳定基线发生变化",
-            "v0.4.21@0dfaac266eed3b7ac710de33d8207e4f71cfb20b",
-            "main@88f41f392722a2f56971ea6c1084f0fc574ef1f4",
-            "main@108be73b56d9bff55a0cc626c9e89100d797a9bc",
-            "master@b15ac29c6443340e2f4389a8e376f65fbcf8c6ec",
-            "main@b561e05b36abcae07508a83eaf0244f153531c97",
-            "master@0ef50ca74346b4ef89576f9d864089b5b6b341df",
-            "main@2fd412d55ecae90861a101a5424a75473de97c36",
-            "master@aaac4e294dae2c7b1aa1886447793f3aa1c30912",
-            "v0.5.1@eb5011575dcf56327578634f93a2ec2f7b5416fd",
-            "v0.4.40@2cf5674d2e951db7733b622069e752b150dd6ab8",
-            "v0.19.3@2ade4776eadb571ecfba02f3680c4ef617a07e71",
-            "v0.17.1@68dca3c4b8de3d9c433cf95c8f084372903ec84d",
-            "master@003f717c0bb8bb896df499cbe143172928f1665c",
-        ):
-            with self.subTest(superseded_text=superseded_text):
-                self.assertNotIn(superseded_text, readme_text)
+    def test_readme_tracks_domain_index_and_evidence_boundaries(self):
+        root = Path(__file__).resolve().parent
+        readme = (root / "README.md").read_text()
+        entries = re.findall(r"^\| \[.*?\]\(([^)#]+\.md)\)", readme, re.M)
+        self.assertEqual(set(entries), {Path(doc["src"]).name for doc in serve_docs.DOCS})
+        self.assertEqual(len(entries), 7)
+        for term in ("2026-09-26", "2026-10-13", "exact source commit", "tag-only", "未发布主线快照", "26.03.1", "v0.21.0", "docs_migration.json", "不提供旧地址重定向"):
+            self.assertIn(term, readme)
+        # All former README revision pins remain verifiable in their domain documents.
+        corpus = "\n".join(Path(doc["src"]).read_text() for doc in serve_docs.DOCS)
+        revisions = ['v1.5.0@b83b1d9304ebfc624709ac46db32b1b6f1ff1615', 'v18.10.0@ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d', 'v0.6.0@e91f650aa6a1847959e7f7da1b39c19e16b312e3', '2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104', 'v1.0.4@810726d89c71da77cdc82668bca1b00f5cd21ed8', 'v0.29.1@54f93c807be2c161a94c0df764242849125161a8', 'v0.5.3@ff8b285497809e084915016c40c2bc5e5991ffbc', 'v0.19.6@f0e95cea51b5591e0177fbe0fa06a299f36db548', 'v0.18.0@2df9a1ffca535d602d57023074b824606e312797', 'v0.7.4@291a6e609c3eb52d6eadcedecc7a056e396cd5eb', 'v0.7.0@5804ea6b7ebd2bfceff29cf113311ed3af95146e', 'v0.5.4@9e441efe48756928e453ff26694d6e5af1a9c71d', 'v0.5.20@94602c9c2b7cbdb8efd5c52802dac6a1c180089e', 'v26.7.1@dbacf43d4938816fefe62690ab868a640a195282', 'v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e', 'v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308', 'v0.30.0@ced6857afa0ea7b2e3f0846a62e1394e90f15607', 'v1.12.0@f09e55de5d5f0a0953cd90aa7b0382b45859c4f5', 'v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a', 'v0.1.0-alpha.13@af2df1ffff0ae7a1135554564a6240a3f22f2c35', 'v1.15.2@1462fb7b4835970708717456e3aed85e697ec2eb', 'v0.33.3@76042ed40db3bab9506b689f436716b6df624f23', 'main@ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b', 'main@12f8f3f31111564e5e1b9aac3f7f916e8bba4039', 'master@bb22cc477a6bd317bb2c7e357a85efcab8c7462a', 'main@71c8b22a05d6be72560b2cc326865930063cd0e8', 'main@618b581b32668e317b0d18523d46cf9f55b549d8', 'master@f5258704d7ef5bda28f31ba51950cdea9adbe921', 'volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513', 'main@22fca04564c7cc230fd8b9523b8b92864e1dad47', 'v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc']
+        for revision in revisions:
+            version, commit = revision.split("@")
+            with self.subTest(revision=revision):
+                self.assertIn(version, corpus)
+                self.assertIn(commit, corpus)
 
     def test_teleport_doc_is_registered_rendered_and_source_backed(self):
         docs_by_src = {Path(doc["src"]).name: doc for doc in serve_docs.DOCS}
@@ -761,8 +760,8 @@ class RenderDocLayoutTest(unittest.TestCase):
         doc = docs_by_src["Teleport-Deep-Dive.md"]
         self.assertEqual(Path(doc["dst"]).name, "Teleport-Deep-Dive.html")
         self.assertEqual(doc["href"], "/Teleport-Deep-Dive.html")
-        self.assertEqual(doc["title"], "Self-hosted 基础设施访问平台对比")
-        self.assertEqual(doc["hero"], "Self-hosted 基础设施访问平台对比")
+        self.assertEqual(doc["title"], "基础设施访问治理：Self-hosted 平台对比")
+        self.assertEqual(doc["hero"], "基础设施访问治理：Self-hosted 平台对比")
         self.assertEqual(
             doc["meta"],
             "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.1 · Boundary v0.21.3 · Pomerium v0.33.3 · Guacamole 1.6.0 tag-only · 2026-09-26",
@@ -861,7 +860,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn(
             "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d", html
         )
-        self.assertIn("Self-hosted 基础设施访问平台对比", index_html)
+        self.assertIn("基础设施访问治理：Self-hosted 平台对比", index_html)
         self.assertIn('/Teleport-Deep-Dive.html', index_html)
         self.assertIn("Teleport v18.10.0", index_html)
 
@@ -1889,7 +1888,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         doc = docs_by_src["Multica-Deep-Dive.md"]
         self.assertEqual(Path(doc["dst"]).name, "Multica-Deep-Dive.html")
         self.assertEqual(doc["href"], "/Multica-Deep-Dive.html")
-        self.assertEqual(doc["title"], "Multica 深度技术文档")
+        self.assertEqual(doc["title"], "Agent 协作与编排：Multica")
         self.assertEqual(
             doc["meta"],
             "Multica v0.5.3 · source@ff8b285 · main@12f8f3f · 2026-09-26",
@@ -1925,7 +1924,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             finally:
                 serve_docs.INDEX = original_index
 
-        self.assertIn("Multica 深度技术文档", html)
+        self.assertIn("Agent 协作与编排：Multica", html)
         self.assertIn('/Multica-Deep-Dive.html', html)
         self.assertIn("Multica v0.5.3", html)
         self.assertIn("无 Sandbox", html)

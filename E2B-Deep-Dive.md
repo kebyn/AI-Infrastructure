@@ -1524,6 +1524,8 @@ E2B 适合这些场景：
 
 ### 12.3 实施建议
 
+与 coding agent 平台组合时，[Multica 的 Task / Runtime 权限](Multica-Deep-Dive.md#第八章安全模型与无-sandbox-边界)决定谁触发执行及宿主凭据范围；本篇负责执行环境隔离、生命周期和回收。把外部 Sandbox 接入 daemon 需要明确适配，不能把工作目录直接当成 microVM 边界。基础设施管理入口与短期访问身份见[访问治理](Teleport-Deep-Dive.md#第十三章场景化选型与组合架构)。
+
 推荐分三步落地：
 
 1. **先跑通官方 Terraform 路径或最小 PoC**：验证基础模板、sandbox 创建、端口访问、pause/resume。

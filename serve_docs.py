@@ -47,71 +47,6 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
             'Bench v0.30.0 源码</a> 与 <a '
             'href="https://github.com/modelscope/evalscope/tree/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5">EvalScope '
             'v1.12.0 源码</a> 等官方资料整理'},
- {'src': '/data/E2B-Deep-Dive.md',
-  'dst': '/data/E2B-Deep-Dive.html',
-  'href': '/E2B-Deep-Dive.html',
-  'title': 'E2B 深度技术文档',
-  'category': 'Sandbox',
-  'hero': 'E2B 深度技术文档',
-  'subtitle': 'AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析',
-  'meta': 'E2B Infra 2026.30 · source@f32ee8a · SDK main@ccaf9fc0 · Agent Sandbox v1.0.4@810726d · '
-          '2026-09-26',
-  'summary': '覆盖 Firecracker、Sandbox fork、filesystem-only resume、workload '
-             'identity、Secrets、日志与集群管理、团队配额和计量，以及 Agent Sandbox scoped-token v2、SDK/RL 与迁移边界。',
-  'footer': '基于 <a '
-            'href="https://github.com/e2b-dev/infra/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104">e2b-dev/infra '
-            '2026.30</a>、<a '
-            'href="https://github.com/e2b-dev/e2b/tree/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b">E2B '
-            'SDK 主线快照</a> 与 <a '
-            'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/810726d89c71da77cdc82668bca1b00f5cd21ed8">Agent '
-            'Sandbox v1.0.4</a> 官方资料整理'},
- {'src': '/data/Teleport-Deep-Dive.md',
-  'dst': '/data/Teleport-Deep-Dive.html',
-  'href': '/Teleport-Deep-Dive.html',
-  'title': 'Self-hosted 基础设施访问平台对比',
-  'category': '访问治理',
-  'hero': 'Self-hosted 基础设施访问平台对比',
-  'subtitle': 'Teleport、The Bastion、Warpgate 与 Boundary/Pomerium/Guacamole 的身份、协议、审计和运维比较',
-  'meta': 'Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.1 · Boundary v0.21.3 · Pomerium '
-          'v0.33.3 · Guacamole 1.6.0 tag-only · 2026-09-26',
-  'summary': '覆盖六个平台的统一能力矩阵、信任边界、短期凭据、RBAC/JIT、SSH/Kubernetes/数据库/HTTP/RDP/VNC '
-             '协议审计、录制/SIEM、HA、迁移验收和许可证商业边界。',
-  'footer': '基于 <a '
-            'href="https://github.com/gravitational/teleport/tree/ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d">Teleport '
-            'v18.10.0 源码</a>、<a '
-            'href="https://github.com/ovh/the-bastion/releases/tag/v3.24.01">The Bastion '
-            'v3.24.01</a>、<a '
-            'href="https://github.com/warp-tech/warpgate/releases/tag/v0.29.1">Warpgate '
-            'v0.29.1</a>、<a href="https://developer.hashicorp.com/boundary/docs/concepts">Boundary '
-            '官方文档</a>、<a href="https://www.pomerium.com/docs">Pomerium 官方文档</a> 与 <a '
-            'href="https://guacamole.apache.org/doc/gug/">Guacamole 官方手册</a> 整理'},
- {'src': '/data/Multica-Deep-Dive.md',
-  'dst': '/data/Multica-Deep-Dive.html',
-  'href': '/Multica-Deep-Dive.html',
-  'title': 'Multica 深度技术文档',
-  'category': 'Agent 协作',
-  'hero': 'Multica 深度技术文档',
-  'subtitle': 'AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析',
-  'meta': 'Multica v0.5.3 · source@ff8b285 · main@12f8f3f · 2026-09-26',
-  'summary': '覆盖 Issue 四类 lifecycle 与 Triage、Task/runs、Agent/Runtime、25 种 protocol family、Codex '
-             'usage/thread、Channel、Desktop、Squad、Autopilot、MCP 与无 Sandbox 边界。',
-  'footer': '基于 <a '
-            'href="https://github.com/multica-ai/multica/tree/ff8b285497809e084915016c40c2bc5e5991ffbc">multica-ai/multica '
-            'v0.5.3 源码</a> 与 <a href="https://multica.ai/docs">Multica 官方文档</a> 整理'},
- {'src': '/data/Lustre-3FS-Deep-Dive.md',
-  'dst': '/data/Lustre-3FS-Deep-Dive.html',
-  'href': '/Lustre-3FS-Deep-Dive.html',
-  'title': 'Lustre 与 3FS 深度技术文档',
-  'category': '存储',
-  'hero': 'Lustre 与 3FS 深度技术文档',
-  'subtitle': 'HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析',
-  'meta': 'Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-09-26',
-  'summary': '覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV '
-             'cache 与生产选型。',
-  'footer': '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、<a '
-            'href="https://github.com/deepseek-ai/3fs/tree/22fca04564c7cc230fd8b9523b8b92864e1dad47">deepseek-ai/3fs '
-            'main@22fca04</a> 与 <a href="https://arxiv.org/html/2408.14158v1">Fire-Flyer AI-HPC '
-            '论文</a> 整理'},
  {'src': '/data/Kubernetes-AI-Platform-Deep-Dive.md',
   'dst': '/data/Kubernetes-AI-Platform-Deep-Dive.html',
   'href': '/Kubernetes-AI-Platform-Deep-Dive.html',
@@ -123,8 +58,8 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
           'Koordinator v1.8.0 · Kueue v0.19.6 · Grove alpha.13 · KAI-Scheduler v0.18.0 · Volcano '
           'v1.15.2（升级 v1.8.2 → v1.15.2） · KServe v0.21.0 master@bb22cc4 website@71c8b22 · Kubeflow '
           '26.03.1 · 2026-09-26',
-  'summary': '覆盖 Kubernetes Blog/RSS、v1.37 DRA 扩展、Workload/PodGroup v1beta1、Gang/TAS、GPU Operator、HAMi、五类 '
-             'AI 调度器、Volcano 升级、独立 KServe 与 Kubeflow 发行版，以及成熟度和组合合同。',
+  'summary': '覆盖 Kubernetes Blog/RSS、v1.37 DRA 扩展、Workload/PodGroup v1beta1、Gang/TAS、GPU '
+             'Operator、HAMi、五类 AI 调度器、Volcano 升级、独立 KServe 与 Kubeflow 发行版，以及成熟度和组合合同。',
   'footer': '基于 <a '
             'href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/overview.html">NVIDIA '
             'GPU Operator 26.7 官方文档</a> 与 <a '
@@ -170,6 +105,71 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
             '官网快照</a> 整理 · 基于 <a '
             'href="https://github.com/kubeflow/community-distribution/tree/26.03.1">kubeflow/community-distribution '
             '26.03.1</a> 与 <a href="https://www.kubeflow.org/">Kubeflow 官方文档</a> 整理'},
+ {'src': '/data/Lustre-3FS-Deep-Dive.md',
+  'dst': '/data/Lustre-3FS-Deep-Dive.html',
+  'href': '/Lustre-3FS-Deep-Dive.html',
+  'title': 'AI 存储与文件系统：Lustre 与 3FS',
+  'category': '存储',
+  'hero': 'AI 存储与文件系统：Lustre 与 3FS',
+  'subtitle': 'HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析',
+  'meta': 'Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-09-26',
+  'summary': '覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV '
+             'cache 与生产选型。',
+  'footer': '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、<a '
+            'href="https://github.com/deepseek-ai/3fs/tree/22fca04564c7cc230fd8b9523b8b92864e1dad47">deepseek-ai/3fs '
+            'main@22fca04</a> 与 <a href="https://arxiv.org/html/2408.14158v1">Fire-Flyer AI-HPC '
+            '论文</a> 整理'},
+ {'src': '/data/Teleport-Deep-Dive.md',
+  'dst': '/data/Teleport-Deep-Dive.html',
+  'href': '/Teleport-Deep-Dive.html',
+  'title': '基础设施访问治理：Self-hosted 平台对比',
+  'category': '访问治理',
+  'hero': '基础设施访问治理：Self-hosted 平台对比',
+  'subtitle': 'Teleport、The Bastion、Warpgate 与 Boundary/Pomerium/Guacamole 的身份、协议、审计和运维比较',
+  'meta': 'Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.1 · Boundary v0.21.3 · Pomerium '
+          'v0.33.3 · Guacamole 1.6.0 tag-only · 2026-09-26',
+  'summary': '覆盖六个平台的统一能力矩阵、信任边界、短期凭据、RBAC/JIT、SSH/Kubernetes/数据库/HTTP/RDP/VNC '
+             '协议审计、录制/SIEM、HA、迁移验收和许可证商业边界。',
+  'footer': '基于 <a '
+            'href="https://github.com/gravitational/teleport/tree/ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d">Teleport '
+            'v18.10.0 源码</a>、<a '
+            'href="https://github.com/ovh/the-bastion/releases/tag/v3.24.01">The Bastion '
+            'v3.24.01</a>、<a '
+            'href="https://github.com/warp-tech/warpgate/releases/tag/v0.29.1">Warpgate '
+            'v0.29.1</a>、<a href="https://developer.hashicorp.com/boundary/docs/concepts">Boundary '
+            '官方文档</a>、<a href="https://www.pomerium.com/docs">Pomerium 官方文档</a> 与 <a '
+            'href="https://guacamole.apache.org/doc/gug/">Guacamole 官方手册</a> 整理'},
+ {'src': '/data/Multica-Deep-Dive.md',
+  'dst': '/data/Multica-Deep-Dive.html',
+  'href': '/Multica-Deep-Dive.html',
+  'title': 'Agent 协作与编排：Multica',
+  'category': 'Agent 协作',
+  'hero': 'Agent 协作与编排：Multica',
+  'subtitle': 'AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析',
+  'meta': 'Multica v0.5.3 · source@ff8b285 · main@12f8f3f · 2026-09-26',
+  'summary': '覆盖 Issue 四类 lifecycle 与 Triage、Task/runs、Agent/Runtime、25 种 protocol family、Codex '
+             'usage/thread、Channel、Desktop、Squad、Autopilot、MCP 与无 Sandbox 边界。',
+  'footer': '基于 <a '
+            'href="https://github.com/multica-ai/multica/tree/ff8b285497809e084915016c40c2bc5e5991ffbc">multica-ai/multica '
+            'v0.5.3 源码</a> 与 <a href="https://multica.ai/docs">Multica 官方文档</a> 整理'},
+ {'src': '/data/E2B-Deep-Dive.md',
+  'dst': '/data/E2B-Deep-Dive.html',
+  'href': '/E2B-Deep-Dive.html',
+  'title': 'Sandbox 与执行环境：E2B',
+  'category': 'Sandbox',
+  'hero': 'Sandbox 与执行环境：E2B',
+  'subtitle': 'AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析',
+  'meta': 'E2B Infra 2026.30 · source@f32ee8a · SDK main@ccaf9fc0 · Agent Sandbox v1.0.4@810726d · '
+          '2026-09-26',
+  'summary': '覆盖 Firecracker、Sandbox fork、filesystem-only resume、workload '
+             'identity、Secrets、日志与集群管理、团队配额和计量，以及 Agent Sandbox scoped-token v2、SDK/RL 与迁移边界。',
+  'footer': '基于 <a '
+            'href="https://github.com/e2b-dev/infra/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104">e2b-dev/infra '
+            '2026.30</a>、<a '
+            'href="https://github.com/e2b-dev/e2b/tree/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b">E2B '
+            'SDK 主线快照</a> 与 <a '
+            'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/810726d89c71da77cdc82668bca1b00f5cd21ed8">Agent '
+            'Sandbox v1.0.4</a> 官方资料整理'},
  {'src': '/data/model_release_timeline.md',
   'dst': '/data/model_release_timeline.html',
   'href': '/model_release_timeline.html',
@@ -276,7 +276,7 @@ def rewrite_document_links(body, source):
         if url.scheme or url.netloc or not url.path.endswith(".md"):
             return match.group(0)
         path = Path(unquote(url.path))
-        if path.resolve() in pages:
+        if path.is_absolute() and path.resolve() in pages:
             pass
         elif url.path.startswith("/"):
             # Root-relative website links name files in the source directory.

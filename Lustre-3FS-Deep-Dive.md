@@ -546,16 +546,7 @@ Lustre 和 3FS 都保留文件系统接口。差异在于 Lustre 更像通用共
 
 ### 10.1 KV Cache 为什么会碰到文件系统
 
-长上下文和多轮会话让 KV Cache 成为主要内存压力来源。典型层级是：
-
-| 层级 | 特点 |
-|------|------|
-| GPU HBM | 延迟最低，容量最贵 |
-| CPU DRAM / pinned memory | 容量更大，可通过 RDMA/NVLink/PCIe 搬运 |
-| 本地 NVMe | 成本低，适合冷 KV 或二级缓存 |
-| 共享 DFS | 支持跨节点复用、持久化、容量扩展 |
-
-文件系统进入 KV Cache 场景，是因为系统希望把部分 KV block/page 写到更大容量的共享层，降低重复 prefill 和 GPU 显存压力。
+KVCache 的资源画像与 P/D 分离见[推理公共概念](AI-Inference-Deep-Dive.md#inference-concepts)，分层缓存与介质差异见[Mooncake Store](AI-Inference-Deep-Dive.md#mooncake-mooncake-store--分布式-kv-缓存存储引擎)。本章集中分析共享文件系统承载 KV block/page 时的 I/O、元数据与回收约束。
 
 ### 10.2 Lustre 作为远端存储层
 
@@ -738,19 +729,15 @@ Lustre 的优势是资料、工具和运维经验成熟；代价是组件多、�
 
 ### 14.1 和 Mooncake 的关系
 
-Mooncake Store 的 DFS persistence、SSD offload、NVMe-oF 和 3FS USRBIO 路径都说明：LLM KV cache 正在把“存储系统”推入推理热路径。
-
-Lustre 可以作为通用 DFS 持久化路径；3FS USRBIO 则代表更贴近高性能 AI cache 的用户态 I/O 路径。两者都需要上层处理对象 key、生命周期、eviction、manifest 和 GC。
+Lustre 的 POSIX DFS 路径与 3FS USRBIO 的客户端差异见本篇第六章；Mooncake 的 DFS persistence、SSD offload、NVMe-oF、驱逐和外部 GC 合同集中在[Mooncake Store](AI-Inference-Deep-Dive.md#mooncake-mooncake-store--分布式-kv-缓存存储引擎)。接入时须由上层明确对象 key、manifest 与文件生命周期。
 
 ### 14.2 和 Dynamo 的关系
 
-Dynamo KVBM 将 KV 存储抽象为 GPU、Host、SSD、Remote Storage 等层。Lustre 更适合作为 Remote Storage 的成熟 POSIX 后端；3FS 更适合作为高吞吐 SSD/RDMA remote storage 或 KV cache backend 候选。
-
-Router 和 KV-aware scheduling 不应与存储后端混淆：Router 决定请求去哪，KVBM/LMCache/FlexKV/3FS 等后端决定 KV block 如何存储、读取和清理。
+Dynamo Router、KVBM、LMCache、FlexKV 与 HiCache 的职责和支持矩阵见[推理缓存路径比较](AI-Inference-Deep-Dive.md#dynamo-11-8-四种路径对比与选型)。其中 KVBM 在 Dynamo v1.5.0 已 deprecated，不能把旧分层示例推定为后续版本的兼容承诺。Lustre/3FS 作为后端候选时，须验证 connector、对象布局与 I/O 路径，而不只验证共享目录可读写。
 
 ### 14.3 和 KServe/Kubeflow 的关系
 
-KServe/Kubeflow 更关注 Kubernetes 控制面、模型服务声明、Notebook、Pipeline 和多租户 MLOps。它们需要底层共享存储，但不替代存储系统本身。
+[Kubernetes AI 平台](Kubernetes-AI-Platform-Deep-Dive.md#platform-selection)统一说明 KServe 服务能力、Kubeflow 发行版集成与调度职责。存储接入仍须单独验证以下条件：
 
 在 Kubernetes 中接入 Lustre 或 3FS，要额外考虑：
 

@@ -756,10 +756,10 @@ mooncake_master --enable_snapshot=true --snapshot_interval_seconds=300 \
 | 小节 | 关注点 |
 |------|--------|
 | 5.7 | 快速理解 DRAM、DFS、SSD offload、NVMe-oF、CXL 和 Local Hot Cache 的整体关系 |
-| 5.7.1 | 各类存储后端的介质、协议、配置和部署差异 |
-| 5.7.2 | DFS persistence 为什么不支持自动文件驱逐，以及它和 SSD offload 的边界 |
-| 5.7.3 | DFS、SSD offload、NVMe-oF 的使用场景与容量治理策略 |
-| 5.7.4 | DFS 外部文件生命周期清理的安全流程、GC 架构和监控指标 |
+| [2.5.8](#mooncake-5-7-1-存储类型详解) | 各类存储后端的介质、协议、配置和部署差异 |
+| [2.5.9](#mooncake-5-7-2-dfs-持久化存储限制不支持-dfs-驱逐) | DFS persistence 为什么不支持自动文件驱逐，以及它和 SSD offload 的边界 |
+| [2.5.10](#mooncake-5-7-3-使用场景与容量治理dfs-ssd-offload-nvme-of) | DFS、SSD offload、NVMe-oF 的使用场景与容量治理策略 |
+| [2.5.11](#mooncake-5-7-4-dfs-外部文件生命周期清理) | DFS 外部文件生命周期清理的安全流程、GC 架构和监控指标 |
 
 Mooncake Store 的分层存储可以分成三类：主存储层、持久化/卸载层、扩展介质层。主存储层承担低延迟读写；持久化/卸载层负责在 DRAM 压力下保留或迁移 KV Cache；扩展介质层提供更大容量或更低成本的硬件选项。
 
@@ -2969,6 +2969,7 @@ Mooncake 已适配以下硬件平台：
 > **固定文档证据**：[Store Deployment](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/mooncake-store-deployment-guide.md) | [SSD Offload](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/ssd/ssd-offload.md) | [NVMe KV](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/ssd/nvme-kv.md) | [Multi-tenancy](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/deployment/multi-tenancy.md) | [DataProto Structured Object](https://github.com/kvcache-ai/Mooncake/blob/719735896c86b56fabec6cf3e825fb2ea640597a/docs/source/api-reference/python/dataproto-structured-object-transfer.md)
 >
 > **滚动官方文档**：https://kvcache-ai.github.io/Mooncake/
+
 ## 第3篇：Dynamo {#dynamo}
 
 
@@ -4809,6 +4810,7 @@ helm install dynamo-platform \
 | Dynamo Operator | <https://github.com/ai-dynamo/dynamo/blob/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/developer-guide/knowledge-base/kubernetes/kubernetes-operator/dynamo-operator.md> |
 | Kubernetes Installation | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac/docs/fern/pages/kubernetes/installation> |
 | Container Quickstart | <https://github.com/ai-dynamo/dynamo/tree/03014943323e78feb5bd672ef08b72caea0918ac#quick-start> |
+
 ## 第4篇：压测工具与评估方法 {#benchmark}
 
 
@@ -6162,6 +6164,7 @@ python3 -m sglang.benchmark.serving \
 | EvalScope Parameters | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/parameters.md> |
 | EvalScope Examples | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/examples.md> |
 | EvalScope vs vLLM Bench | <https://github.com/modelscope/evalscope/blob/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5/docs/zh/user_guides/stress_test/vs_vllm_bench.md> |
+
 ## 第5篇：组合架构与选型 {#inference-selection}
 
 先确定计算、路由、缓存和测量各层的职责，再选择组件与容量验证方法。

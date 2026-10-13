@@ -907,11 +907,7 @@ flowchart TB
 
 ### 8.5 推荐隔离层级
 
-| 层级 | 部署方式 | 适合场景 | 注意事项 |
-| --- | --- | --- | --- |
-| 基础 | 专用 Unix 用户 | 受信团队、单机 Runtime | 只授予需要的仓库与凭据，禁止使用个人 home |
-| 中等 | 容器内运行 daemon | 需要限制挂载和进程可见性 | 只挂载必要目录/secret；rootless、seccomp、只读层和网络策略需单独配置 |
-| 强 | 专用 VM | 不可信输入、高价值凭据、强故障域 | 使用短期实例、独立磁盘/网络、最小云 IAM |
+daemon 的隔离方式应与输入来源、凭据价值和故障域一起确定。专用 Unix 用户限制宿主权限；容器内运行 daemon 时，只挂载必要目录和 secret，并分别配置 rootless、seccomp、只读层和网络策略；专用 VM 使用短期实例、独立磁盘/网络和最小云 IAM。microVM Sandbox 的生命周期和自托管条件见[E2B 执行隔离](E2B-Deep-Dive.md#第七章网络-安全与隔离)。这些外部边界不会由 Multica 自动创建，Task 级 workdir、Agent Access 和 provider adapter 的合同仍以本章为准。
 
 无论选择哪一层，都应使用专用部署 key、只读或按仓库细分的 VCS token、受限云 IAM、独立 Kubernetes service account 和 egress allowlist。不要把个人 SSH key、云管理员凭据或无关生产 kubeconfig 留在 daemon 用户可达路径。
 
