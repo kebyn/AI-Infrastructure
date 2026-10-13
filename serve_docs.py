@@ -19,19 +19,19 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': '推理与压测',
   'hero': '推理系统与压测深度文档',
   'subtitle': '公共概念、Mooncake、Dynamo、压测工具与组合选型',
-  'meta': 'Mooncake v0.3.13.post1 · Dynamo v1.5.0 source@b83b1d9 · ModelExpress v0.6.0 · AIPerf '
-          'v0.13.0 · GuideLLM v0.7.4 · inference-perf v0.7.0 · SGLang v0.5.20 · vLLM v0.30.0 · '
-          'EvalScope v1.12.0 · 2026-09-26',
+  'meta': 'Mooncake v0.3.13.post1 · Dynamo v1.5.1 source@2093662 · ModelExpress v0.7.0 · AIPerf '
+          'v0.13.0 · GuideLLM v0.7.4 · inference-perf v0.7.0 · SGLang v0.5.21 · vLLM v0.31.0 · '
+          'EvalScope v1.13.0 · 2026-10-13',
   'summary': '覆盖 KVCache、P/D 分离、Mooncake Transfer Engine/Store/HiCache、Dynamo '
              'Router/Planner/ModelExpress，以及 AIPerf、SGLang Bench、vLLM Bench、EvalScope 的指标、trace 与 '
              'SLO/goodput。',
   'footer': '基于 <a href="https://kvcache-ai.github.io/Mooncake">Mooncake 官方文档</a> 与 <a '
             'href="https://github.com/kvcache-ai/Mooncake/tree/719735896c86b56fabec6cf3e825fb2ea640597a">v0.3.13.post1 '
             '源码</a> 整理 · 基于 <a '
-            'href="https://github.com/ai-dynamo/dynamo/tree/b83b1d9304ebfc624709ac46db32b1b6f1ff1615">ai-dynamo/dynamo '
-            'v1.5.0 源码</a> 与 <a '
-            'href="https://github.com/ai-dynamo/modelexpress/tree/e91f650aa6a1847959e7f7da1b39c19e16b312e3">ModelExpress '
-            'v0.6.0 源码</a> 与 <a href="https://docs.nvidia.com/dynamo/">NVIDIA Dynamo 官方文档</a> 整理 · '
+            'href="https://github.com/ai-dynamo/dynamo/tree/2093662a4d4e5fd318732935213dde08dc7be818">ai-dynamo/dynamo '
+            'v1.5.1 源码</a> 与 <a '
+            'href="https://github.com/ai-dynamo/modelexpress/tree/ac6d03a87a550c8188c3ed59f187b90d4f0554f5">ModelExpress '
+            'v0.7.0 源码</a> 与 <a href="https://docs.nvidia.com/dynamo/">NVIDIA Dynamo 官方文档</a> 整理 · '
             '<a '
             'href="https://github.com/ai-dynamo/aiperf/tree/794f8bb75f8582f22e412d7e650fc71ca2a3d21a">AIPerf '
             'v0.13.0 源码</a>、<a '
@@ -41,12 +41,12 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
             'v0.7.0 源码</a>、<a '
             'href="https://github.com/sgl-project/genai-bench/tree/v0.0.5">genai-bench '
             'v0.0.5</a>、<a '
-            'href="https://github.com/sgl-project/sglang/tree/94602c9c2b7cbdb8efd5c52802dac6a1c180089e">SGLang '
-            'Bench v0.5.20 源码</a>、<a '
-            'href="https://github.com/vllm-project/vllm/tree/ced6857afa0ea7b2e3f0846a62e1394e90f15607/benchmarks">vLLM '
-            'Bench v0.30.0 源码</a> 与 <a '
-            'href="https://github.com/modelscope/evalscope/tree/f09e55de5d5f0a0953cd90aa7b0382b45859c4f5">EvalScope '
-            'v1.12.0 源码</a> 等官方资料整理'},
+            'href="https://github.com/sgl-project/sglang/tree/e00930c5489053f26d86b179cee0d087f846acbb">SGLang '
+            'Bench v0.5.21 源码</a>、<a '
+            'href="https://github.com/vllm-project/vllm/tree/db9527a46873454610df6dbedf79a36d6bf1a7f6/benchmarks">vLLM '
+            'Bench v0.31.0 源码</a> 与 <a '
+            'href="https://github.com/modelscope/evalscope/tree/498027686e6e3cf4eb32405a3fd21c65ff9237f1">EvalScope '
+            'v1.13.0 源码</a> 等官方资料整理'},
  {'src': '/data/Kubernetes-AI-Platform-Deep-Dive.md',
   'dst': '/data/Kubernetes-AI-Platform-Deep-Dive.html',
   'href': '/Kubernetes-AI-Platform-Deep-Dive.html',
@@ -55,9 +55,9 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'hero': 'Kubernetes AI 平台深度文档',
   'subtitle': '版本演进、调度、GPU 设备、服务平台与统一组合选型',
   'meta': 'Kubernetes v1.37.1 source@f78e722 · GPU Operator v26.7.1@dbacf43 · HAMi v2.10.0 · '
-          'Koordinator v1.8.0 · Kueue v0.19.6 · Grove alpha.13 · KAI-Scheduler v0.18.0 · Volcano '
-          'v1.15.2（升级 v1.8.2 → v1.15.2） · KServe v0.21.0 master@bb22cc4 website@71c8b22 · Kubeflow '
-          '26.03.1 · 2026-09-26',
+          'Koordinator v1.8.0 · Kueue v0.20.1 · Grove alpha.15 · KAI-Scheduler v0.18.5 · Volcano '
+          'v1.15.3（升级 v1.8.2 → v1.15.3） · KServe v0.21.0 master@bb22cc4 website@71c8b22 · Kubeflow '
+          '26.03.1 · Kubernetes v1.38.0-alpha.2 仅作预览 · 2026-10-13',
   'summary': '覆盖 Kubernetes Blog/RSS、v1.37 DRA 扩展、Workload/PodGroup v1beta1、Gang/TAS、GPU '
              'Operator、HAMi、五类 AI 调度器、Volcano 升级、独立 KServe 与 Kubeflow 发行版，以及成熟度和组合合同。',
   'footer': '基于 <a '
@@ -79,18 +79,18 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
             'href="https://github.com/kubernetes/kubernetes/tree/f78e722310e50bcaca9276be22276d9e91d91308">kubernetes/kubernetes '
             'v1.37.1 源码</a> 整理 · 基于 <a '
             'href="https://github.com/koordinator-sh/koordinator">Koordinator</a>、<a '
-            'href="https://github.com/kubernetes-sigs/kueue/tree/f0e95cea51b5591e0177fbe0fa06a299f36db548">Kueue '
-            'v0.19.6</a>、<a '
-            'href="https://github.com/ai-dynamo/grove/tree/af2df1ffff0ae7a1135554564a6240a3f22f2c35">Grove '
-            'alpha.13</a>、<a '
-            'href="https://github.com/kai-scheduler/KAI-Scheduler/tree/2df9a1ffca535d602d57023074b824606e312797">KAI-Scheduler '
-            'v0.18.0</a> 与 <a '
+            'href="https://github.com/kubernetes-sigs/kueue/tree/237d77ecdf4a7551784bb5c07a497bb64c5dff2f">Kueue '
+            'v0.20.1</a>、<a '
+            'href="https://github.com/ai-dynamo/grove/tree/70f3e1b6afaa2c6fd29e840d917948704f6e2e36">Grove '
+            'alpha.15</a>、<a '
+            'href="https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11">KAI-Scheduler '
+            'v0.18.5</a> 与 <a '
             'href="https://github.com/kai-scheduler/KAI-Scheduler/tree/5922dc7d1a4661d3fc43d60943f92a775c892bdc">v0.20.1 '
             'tag-only 边界</a>、<a '
-            'href="https://github.com/volcano-sh/volcano/tree/1462fb7b4835970708717456e3aed85e697ec2eb">Volcano '
-            'v1.15.2</a> 官方资料整理 · 基于 <a '
-            'href="https://github.com/volcano-sh/volcano/tree/1462fb7b4835970708717456e3aed85e697ec2eb">Volcano '
-            'v1.15.2</a>、<a '
+            'href="https://github.com/volcano-sh/volcano/tree/d2dd7024f4af3070f9d99d68a78973893908a743">Volcano '
+            'v1.15.3</a> 官方资料整理 · 基于 <a '
+            'href="https://github.com/volcano-sh/volcano/tree/d2dd7024f4af3070f9d99d68a78973893908a743">Volcano '
+            'v1.15.3</a>、<a '
             'href="https://github.com/volcano-sh/website/blob/f5258704d7ef5bda28f31ba51950cdea9adbe921/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md">Cloud '
             'Native Colocation</a>、<a '
             'href="https://github.com/volcano-sh/website/blob/f5258704d7ef5bda28f31ba51950cdea9adbe921/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md">Queue '
@@ -112,7 +112,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': '存储',
   'hero': 'AI 存储与文件系统：Lustre 与 3FS',
   'subtitle': 'HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析',
-  'meta': 'Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-09-26',
+  'meta': 'Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-10-13',
   'summary': '覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV '
              'cache 与生产选型。',
   'footer': '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、<a '
@@ -126,8 +126,8 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': '访问治理',
   'hero': '基础设施访问治理：Self-hosted 平台对比',
   'subtitle': 'Teleport、The Bastion、Warpgate 与 Boundary/Pomerium/Guacamole 的身份、协议、审计和运维比较',
-  'meta': 'Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.1 · Boundary v0.21.3 · Pomerium '
-          'v0.33.3 · Guacamole 1.6.0 tag-only · 2026-09-26',
+  'meta': 'Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.2 · Boundary v0.21.3 · Pomerium '
+          'v0.33.4 · Guacamole 1.6.0 tag-only · 2026-10-13',
   'summary': '覆盖六个平台的统一能力矩阵、信任边界、短期凭据、RBAC/JIT、SSH/Kubernetes/数据库/HTTP/RDP/VNC '
              '协议审计、录制/SIEM、HA、迁移验收和许可证商业边界。',
   'footer': '基于 <a '
@@ -135,9 +135,10 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
             'v18.10.0 源码</a>、<a '
             'href="https://github.com/ovh/the-bastion/releases/tag/v3.24.01">The Bastion '
             'v3.24.01</a>、<a '
-            'href="https://github.com/warp-tech/warpgate/releases/tag/v0.29.1">Warpgate '
-            'v0.29.1</a>、<a href="https://developer.hashicorp.com/boundary/docs/concepts">Boundary '
-            '官方文档</a>、<a href="https://www.pomerium.com/docs">Pomerium 官方文档</a> 与 <a '
+            'href="https://github.com/warp-tech/warpgate/releases/tag/v0.29.2">Warpgate '
+            'v0.29.2</a>、<a href="https://developer.hashicorp.com/boundary/docs/concepts">Boundary '
+            '官方文档</a>、<a href="https://github.com/pomerium/pomerium/releases/tag/v0.33.4">Pomerium '
+            'v0.33.4</a> 与 <a '
             'href="https://guacamole.apache.org/doc/gug/">Guacamole 官方手册</a> 整理'},
  {'src': '/data/Multica-Deep-Dive.md',
   'dst': '/data/Multica-Deep-Dive.html',
@@ -146,12 +147,12 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': 'Agent 协作',
   'hero': 'Agent 协作与编排：Multica',
   'subtitle': 'AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析',
-  'meta': 'Multica v0.5.3 · source@ff8b285 · main@12f8f3f · 2026-09-26',
+  'meta': 'Multica v0.6.2 · source@7ab92d7 · main@7ab92d7 · 2026-10-13',
   'summary': '覆盖 Issue 四类 lifecycle 与 Triage、Task/runs、Agent/Runtime、25 种 protocol family、Codex '
              'usage/thread、Channel、Desktop、Squad、Autopilot、MCP 与无 Sandbox 边界。',
   'footer': '基于 <a '
-            'href="https://github.com/multica-ai/multica/tree/ff8b285497809e084915016c40c2bc5e5991ffbc">multica-ai/multica '
-            'v0.5.3 源码</a> 与 <a href="https://multica.ai/docs">Multica 官方文档</a> 整理'},
+            'href="https://github.com/multica-ai/multica/tree/7ab92d7622ecd81d179a8d83ae2dea74835a5069">multica-ai/multica '
+            'v0.6.2 源码</a> 与 <a href="https://multica.ai/docs">Multica 官方文档</a> 整理'},
  {'src': '/data/E2B-Deep-Dive.md',
   'dst': '/data/E2B-Deep-Dive.html',
   'href': '/E2B-Deep-Dive.html',
@@ -159,17 +160,17 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': 'Sandbox',
   'hero': 'Sandbox 与执行环境：E2B',
   'subtitle': 'AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析',
-  'meta': 'E2B Infra 2026.30 · source@f32ee8a · SDK main@ccaf9fc0 · Agent Sandbox v1.0.4@810726d · '
-          '2026-09-26',
+  'meta': 'E2B Infra 2026.30 · source@f32ee8a · SDK main@62a17dfc · Agent Sandbox v1.0.6@cd0761d · '
+          '2026-10-13',
   'summary': '覆盖 Firecracker、Sandbox fork、filesystem-only resume、workload '
              'identity、Secrets、日志与集群管理、团队配额和计量，以及 Agent Sandbox scoped-token v2、SDK/RL 与迁移边界。',
   'footer': '基于 <a '
             'href="https://github.com/e2b-dev/infra/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104">e2b-dev/infra '
             '2026.30</a>、<a '
-            'href="https://github.com/e2b-dev/e2b/tree/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b">E2B '
+            'href="https://github.com/e2b-dev/e2b/tree/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3">E2B '
             'SDK 主线快照</a> 与 <a '
-            'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/810726d89c71da77cdc82668bca1b00f5cd21ed8">Agent '
-            'Sandbox v1.0.4</a> 官方资料整理'},
+            'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/cd0761d5001baaf293460cd382ee318744d6b249">Agent '
+            'Sandbox v1.0.6</a> 官方资料整理'},
  {'src': '/data/model_release_timeline.md',
   'dst': '/data/model_release_timeline.html',
   'href': '/model_release_timeline.html',
@@ -177,7 +178,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': '模型时间线',
   'hero': '模型发布时间时间线',
   'subtitle': '2022—2026 九大阵营主线公开模型的首次发布与开放形态',
-  'meta': '2022-01—2026-10-13 · 117 条记录 · 审校日期 2026-10-13',
+  'meta': '2022-01—2026-10-13 · 121 条记录 · 审校日期 2026-10-13',
   'summary': '按首次公开日期整理九个模型阵营的主线版本，并支持按供应商、年份、多模态和开放权重筛选及 CSV/JSON/Markdown 导出。',
   'footer': '事实来源为 <a '
             'href="/model_release_timeline.md">model_release_timeline.md</a>；每条记录保留对应的官方公告、模型页、技术报告或官方仓库链接。',
