@@ -6,7 +6,7 @@ from html import escape, unescape
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import re
 from pathlib import Path
-from urllib.parse import unquote, urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 from pymdownx.superfences import fence_div_format
 from pygments.formatters import HtmlFormatter
@@ -15,6 +15,33 @@ INDEX = "/data/index.html"
 CATEGORIES = (
     "推理与压测", "模型时间线", "存储", "访问治理", "Kubernetes 平台", "Agent 协作", "Sandbox",
 )
+
+SITE_NAME = "AI 基础设施深度文档"
+# 填写正式域名后 canonical / og:url 输出绝对地址；留空则用根相对路径（对本地静态服务有效）。
+SITE_BASE_URL = ""
+SITE_DESCRIPTION = (
+    "AI 基础设施深度文档：覆盖 LLM 推理与压测、AI 存储与文件系统、Kubernetes AI 平台、"
+    "基础设施访问治理、Agent 协作编排、Sandbox 执行环境与模型发布时间线，"
+    "每篇均固定上游稳定版本与 exact source commit。"
+)
+
+
+def _favicon_data_uri(background, glyph):
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        f'<rect width="32" height="32" rx="7" fill="{background}"/>'
+        f'<g fill="{glyph}">'
+        '<rect x="9" y="9" width="14" height="3" rx="1.5"/>'
+        '<rect x="9" y="14.5" width="14" height="3" rx="1.5"/>'
+        '<rect x="9" y="20" width="9" height="3" rx="1.5"/>'
+        '</g></svg>'
+    )
+    return "data:image/svg+xml," + quote(svg, safe="")
+
+
+FAVICON_LIGHT_HREF = _favicon_data_uri("#1759a6", "#ffffff")
+FAVICON_DARK_HREF = _favicon_data_uri("#58a6ff", "#0d1117")
+
 DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'dst': '/data/AI-Inference-Deep-Dive.html',
   'href': '/AI-Inference-Deep-Dive.html',
@@ -816,6 +843,14 @@ const siteHeader = document.querySelector('.site-header');
 const updateHeaderHeight = () => document.documentElement.style.setProperty('--header-height', `${siteHeader.offsetHeight}px`);
 updateHeaderHeight();
 new ResizeObserver(updateHeaderHeight).observe(siteHeader);
+const syncThemeColor = () => {
+  const resolved = window.docsTheme.getResolved();
+  document.querySelectorAll('meta[name="theme-color"][data-theme-color]').forEach((meta) => {
+    meta.setAttribute('media', meta.getAttribute('data-theme-color') === resolved ? 'all' : 'not all');
+  });
+};
+window.addEventListener('docs-theme-change', syncThemeColor);
+syncThemeColor();
 </script>
 """
 
@@ -1824,6 +1859,50 @@ strong { color: var(--text); }
 p strong, li strong { color: var(--green); }
 """
 
+def canonical_url(path):
+    """Absolute URL when SITE_BASE_URL is set, otherwise a root-relative path."""
+    if SITE_BASE_URL:
+        return SITE_BASE_URL.rstrip("/") + path
+    return path
+
+
+def plain_text(value):
+    """Strip tags and entities for reuse in meta descriptions and aria labels."""
+    return unescape(re.sub(r"<[^>]+>", "", value or "")).strip()
+
+
+def build_head(title, description, canonical_path, og_type):
+    """Shared <head> content, keeping the theme bootstrap ahead of <style>."""
+    title_esc = escape(title, quote=True)
+    desc = plain_text(description)
+    if len(desc) > 160:
+        desc = desc[:159].rstrip() + "…"
+    desc_esc = escape(desc, quote=True)
+    canonical = escape(canonical_url(canonical_path), quote=True)
+    return "\n".join([
+        '<meta charset="UTF-8">',
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+        f'<title>{title_esc}</title>',
+        f'<meta name="description" content="{desc_esc}">',
+        f'<link rel="canonical" href="{canonical}">',
+        f'<meta property="og:type" content="{escape(og_type, quote=True)}">',
+        f'<meta property="og:title" content="{title_esc}">',
+        f'<meta property="og:description" content="{desc_esc}">',
+        f'<meta property="og:url" content="{canonical}">',
+        f'<meta property="og:site_name" content="{escape(SITE_NAME, quote=True)}">',
+        '<meta property="og:locale" content="zh_CN">',
+        '<meta name="twitter:card" content="summary">',
+        f'<meta name="twitter:title" content="{title_esc}">',
+        f'<meta name="twitter:description" content="{desc_esc}">',
+        f'<link rel="icon" type="image/svg+xml" media="(prefers-color-scheme: light)" href="{FAVICON_LIGHT_HREF}">',
+        f'<link rel="icon" type="image/svg+xml" media="(prefers-color-scheme: dark)" href="{FAVICON_DARK_HREF}">',
+        '<meta name="theme-color" data-theme-color="light" media="(prefers-color-scheme: light)" content="#f8fafc">',
+        '<meta name="theme-color" data-theme-color="dark" media="(prefers-color-scheme: dark)" content="#0d1117">',
+        '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
+        '<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">',
+    ])
+
+
 def render_doc(doc):
     with open(doc["src"], "r", encoding="utf-8") as f:
         md_text = f.read()
@@ -1886,13 +1965,13 @@ def render_doc(doc):
         if toc_html
         else ""
     )
+    description = doc.get("summary") or doc.get("subtitle") or doc.get("hero") or ""
+    head = build_head(doc["title"], description, doc.get("href", "/"), "article")
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{doc["title"]}</title>
+{head}
 {THEME_BOOTSTRAP}
 <style>{CSS}</style>
 </head>
@@ -1951,12 +2030,11 @@ def render_index():
         f'<option value="{escape(category, quote=True)}">{escape(category)}</option>'
         for category in categories
     )
+    head = build_head(SITE_NAME, SITE_DESCRIPTION, "/", "website")
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 基础设施深度文档</title>
+{head}
 {THEME_BOOTSTRAP}
 <style>{CSS}</style>
 </head>

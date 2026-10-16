@@ -44,7 +44,7 @@
 
 文档页在桌面显示左侧目录，手机使用左下角「目录」按钮打开抽屉。抽屉支持键盘焦点循环、关闭按钮、Escape 与遮罩关闭，关闭后焦点返回原控件。长表格和代码块可以在各自区域横向滚动。Mermaid 图随主题重新渲染，加载或渲染失败时保留可读的原始图定义。时间线继续支持筛选、URL 状态与 CSV / JSON / Markdown 导出。
 
-代码块由 Pygments 在构建期做语法高亮（`pymdownx.highlight` + `pymdownx.superfences`），随明暗主题切换。
+代码块由 Pygments 在构建期做语法高亮（`pymdownx.highlight` + `pymdownx.superfences`），随明暗主题切换。每页 `<head>` 输出 description、Open Graph / Twitter 卡片、主题感知的 `theme-color`、canonical 与内联 SVG favicon；canonical 默认使用根相对路径，在 `serve_docs.py` 里填写 `SITE_BASE_URL` 后输出绝对地址。
 
 首次运行使用 uv 创建虚拟环境并安装锁定的依赖：
 

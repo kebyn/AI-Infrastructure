@@ -246,6 +246,29 @@ class SharedThemeRenderingTest(unittest.TestCase):
                         low, high = sorted((luminance(colors[foreground]), luminance(colors[background])))
                         self.assertGreaterEqual((high + 0.05) / (low + 0.05), 4.5)
 
+    def test_head_metadata_present_on_all_page_types(self):
+        with tempfile.TemporaryDirectory() as directory:
+            render_visual_fixture(directory)
+            timeline = next(item for item in serve_docs.DOCS if item.get("type") == "timeline")
+            with redirect_stdout(StringIO()):
+                serve_docs.render_doc(dict(timeline, dst=str(Path(directory) / "timeline.html")))
+            for name, og_type in (
+                ("index.html", "website"),
+                ("sample.html", "article"),
+                ("timeline.html", "article"),
+            ):
+                with self.subTest(page=name):
+                    html = (Path(directory) / name).read_text(encoding="utf-8")
+                    self.assertIn('<meta name="description" content="', html)
+                    self.assertIn('<link rel="canonical" href="/', html)
+                    self.assertIn(f'<meta property="og:type" content="{og_type}">', html)
+                    self.assertIn('<meta property="og:title" content="', html)
+                    self.assertIn('<meta name="twitter:card" content="summary">', html)
+                    self.assertIn('rel="icon" type="image/svg+xml"', html)
+                    self.assertIn('rel="preconnect" href="https://cdn.jsdelivr.net"', html)
+                    self.assertEqual(html.count('<meta name="theme-color"'), 2)
+                    self.assertLess(html.index("localStorage.getItem"), html.index("<style>"))
+
     def test_pygments_highlighting_and_theme_scoping(self):
         with tempfile.TemporaryDirectory() as directory:
             src = Path(directory) / "code.md"
