@@ -4,7 +4,7 @@
 >
 > 基于 E2B 官方基础设施仓库整理：<https://github.com/e2b-dev/infra>
 >
-> 稳定版本基线：Infra `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104` 未变；SDK 当前未发布主线快照 `main@62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3`；Agent Sandbox 稳定对照为 annotated tag `v1.0.6`（tag object `cdeac1ba4f4d29a20c8426a76cff25fcf326d5ea`，peeled source `cd0761d5001baaf293460cd382ee318744d6b249`）；审校日期：2026-10-13。Infra `2026.30` 是 lightweight tag，所列 commit 是 tag 直接指向的源码；正文对 Agent Sandbox 使用 peeled source commit 而非 tag object。SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
+> 稳定版本基线：Infra `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104` 未变；SDK 当前未发布主线快照 `main@62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3`；Agent Sandbox 稳定对照为 annotated tag `v1.0.7`（tag object `b3832ed88cb8acc57cc5e81072f551d52f14b32f`，peeled source `807cc37107bd7c012115afac9fa9c3b77b8365c2`）；审校日期：2026-10-16。Infra `2026.30` 是 lightweight tag，所列 commit 是 tag 直接指向的源码；正文对 Agent Sandbox 使用 peeled source commit 而非 tag object。SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
 
 ---
 
@@ -403,7 +403,7 @@ curl --fail-with-body \
 
 HTTP Header 名称大小写不敏感，但本文沿用源码中的规范拼写。**这一固定版本不支持 `X-Sandbox-ID` 和 `X-Sandbox-Port`，它们不是兼容别名。** 如果企业网关对外采用自定义 `X-*` 名称，必须在进入 Client Proxy 前显式重写为 `E2b-Sandbox-Id` 和 `E2b-Sandbox-Port`。
 
-对照边界：Agent Sandbox `v1.0.6` 是 annotated tag；其 Go Router（对照，不是 E2B 能力）也有自己的 scoped-token、path routing 与 `X-Sandbox-*` 约定，exact source 为 `cd0761d5001baaf293460cd382ee318744d6b249`。不能因为两个项目都出现 Sandbox Router，就把 Agent Sandbox 的 Header、CRD 或 token 行为写成 E2B Infra 2026.30 的兼容接口。
+对照边界：Agent Sandbox `v1.0.7` 是 annotated tag；其 Go Router（对照，不是 E2B 能力）也有自己的 scoped-token、path routing 与 `X-Sandbox-*` 约定，exact source 为 `807cc37107bd7c012115afac9fa9c3b77b8365c2`。不能因为两个项目都出现 Sandbox Router，就把 Agent Sandbox 的 Header、CRD 或 token 行为写成 E2B Infra 2026.30 的兼容接口。
 
 私有 ingress 还必须同时携带 Traffic Token；路由 Header 不是凭证，不提供认证或授权：
 
@@ -527,9 +527,9 @@ Orchestrator Proxy 的限流也不同于 Agent Router：它限制的是某个 Sa
 | catalog/目标 Sandbox 不存在、guest port 未开放、上游连接失败 | `502` |
 | 未分类的路由内部错误 | `500` |
 
-参考 Agent Sandbox Router 时，应只借鉴“静态入口 + Header 选择动态目标”的架构思想，HTTP 契约仍以 E2B 固定源码为准。对照材料升级为 Agent Sandbox 稳定版 `v1.0.6@cd0761d5001baaf293460cd382ee318744d6b249`；该 annotated tag 的 tag object 是 `cdeac1ba4f4d29a20c8426a76cff25fcf326d5ea`，正文链接使用 peeled source commit。v1.0.0 首次正式发布顶层 Go Router；v1.0.2 在保留 allow-all、TokenReview 和 HMAC scoped-token v1 迁移路径的同时，加入 Ed25519 scoped-token v2；v1.0.6 的 scoped-token v2 与 Pod cache 绑定规则见下文。它们都不是 E2B Infra 2026.30 的能力：
+参考 Agent Sandbox Router 时，应只借鉴“静态入口 + Header 选择动态目标”的架构思想，HTTP 契约仍以 E2B 固定源码为准。对照材料升级为 Agent Sandbox 稳定版 `v1.0.7@807cc37107bd7c012115afac9fa9c3b77b8365c2`；该 annotated tag 的 tag object 是 `b3832ed88cb8acc57cc5e81072f551d52f14b32f`，正文链接使用 peeled source commit。v1.0.0 首次正式发布顶层 Go Router；v1.0.2 在保留 allow-all、TokenReview 和 HMAC scoped-token v1 迁移路径的同时，加入 Ed25519 scoped-token v2；v1.0.7 继续继承 scoped-token v2 与 Pod cache 绑定规则，并新增 sandboxd bearer-token 与 SDK 流式命令边界，见下文。它们都不是 E2B Infra 2026.30 的能力：
 
-| 维度 | E2B Infra 2026.30 | Agent Sandbox v1.0.6 Go Router（对照，不是 E2B 能力） |
+| 维度 | E2B Infra 2026.30 | Agent Sandbox v1.0.7 Go Router（对照，不是 E2B 能力） |
 | --- | --- | --- |
 | 路由组件 | Client Proxy + Orchestrator Proxy 两级 | Kubernetes 中央 Router Deployment |
 | 路由 Header | `E2b-Sandbox-Id`、`E2b-Sandbox-Port` | `X-Sandbox-ID`、Namespace、Port、Pod-IP、Timeout |
@@ -589,9 +589,9 @@ v1.0.3（2026-09-17 发布）与 v1.0.4（2026-09-24 发布）继续沿用 v1bet
 | RL fleet 隔离 | `FleetConfig.run_isolation`（`names`/`namespace`）让并发训练 run 不互相 resize/delete/stall 对方 warm pool；TypeScript `CreateSandboxOptions.shutdownAfterSeconds` 由 controller 强制过期 | run 隔离不是 E2B Infra 能力；`getSandboxClaimWarmpoolName()` 返回类型放宽为 `Promise<string \| undefined>` 是 v1.0.4 的 TS SDK breaking change |
 | 流式下载与路径 | `ReadTo`/`read_to` 把文件流式写入自定义 sink 而不整块缓冲；Python SDK 保留路径首尾/中间空格、避免百分号转义二次解码，并对符号链接根做路径清洗 | SDK 文件 API 行为；E2B 文件读取契约不变 |
 
-#### Agent Sandbox v1.0.6 多集群与 scoped-token 迁移边界
+#### Agent Sandbox v1.0.6 上一对照基线：多集群与 scoped-token 迁移边界
 
-Agent Sandbox `v1.0.6`（2026-10-08 发布）继续沿用 v1beta1-only CRD 与先行迁移链，但新增多集群 WarmPool fleet planner，并补齐 TypeScript `commands.start()` 与 Go/Python SDK 的行为对齐。这些是 Agent Sandbox 的 Kubernetes fleet/SDK 能力，不属于 E2B Infra `2026.30` 的创建、fork、resume 或 workload identity 合同。
+Agent Sandbox `v1.0.6`（2026-10-08 发布）是本轮前的对照基线，继续沿用 v1beta1-only CRD 与先行迁移链，并新增多集群 WarmPool fleet planner，补齐 TypeScript `commands.start()` 与 Go/Python SDK 的行为对齐。以下表格保留其迁移证据；当前对照基线已升级到 v1.0.7。这些是 Agent Sandbox 的 Kubernetes fleet/SDK 能力，不属于 E2B Infra `2026.30` 的创建、fork、resume 或 workload identity 合同。
 
 | breaking/change | v1.0.6 行为 | 升级动作 |
 | --- | --- | --- |
@@ -604,6 +604,21 @@ Agent Sandbox `v1.0.6`（2026-10-08 发布）继续沿用 v1beta1-only CRD 与�
 `X-Sandbox-Port` 不是 E2B 的兼容 Header。E2B 固定版本不支持 `X-Sandbox-Namespace`、`X-Sandbox-Pod-IP`、`X-Sandbox-Timeout`，也没有 `TRUSTED_PROXY_CIDRS` 或 Router Bearer Token。企业网关若对外暴露 `X-Sandbox-ID`、`X-Sandbox-Port`，必须在请求进入 Client Proxy 前成对转换为 `E2b-Sandbox-Id`、`E2b-Sandbox-Port`，并在可信边界内完成目标授权；不能把其他自定义 Header 原样映射成未经授权的内部寻址能力。
 
 共享域名可以减少 SDK 控制流量或自定义服务端客户端对高基数通配子域名的依赖，但不会自动替代所有 `getHost()` 业务 URL。部署仍需让 `sandbox.<domain>` 的 DNS、TLS、负载均衡和 Client Proxy 路由同时生效；若继续暴露编码 Host，还要保留对应的 wildcard DNS 与证书。官方 GCP IaC 中的 Cloud Armor 会识别小写形式 `e2b-sandbox-id`、`e2b-sandbox-port`，但对应规则是 `preview=true` 的观测/限流规则，不是认证策略，也不能替代 Traffic Token。
+
+#### Agent Sandbox v1.0.7 bearer-token、流式命令与 WarmPool 边界
+
+Agent Sandbox `v1.0.7@807cc37107bd7c012115afac9fa9c3b77b8365c2` 是本轮确认的最新正式 source；它来自 annotated tag，tag object 为 `b3832ed88cb8acc57cc5e81072f551d52f14b32f`。本节只描述 Agent Sandbox 对照项目，不把这些接口写成 E2B Infra `2026.30` 的稳定 API，也不改变 Infra、E2B SDK 主线和 Agent Sandbox 三者的能力隔离。
+
+| breaking/change | v1.0.7 行为 | 升级与验证边界 |
+| --- | --- | --- |
+| sandboxd bearer token | `sandboxd` 可选启用 `--auth-token-sha256=<hex>` 或 `--auth-token-file=<path>`；请求使用 `Authorization: Bearer <token>`。健康检查保持开放，NetworkPolicy 仍是主要隔离边界 | token hash/file 只约束 sandboxd REST/gRPC 入口，不是 E2B Traffic Token、envd token 或 E2B Proxy 认证；验证合法/缺失/错误 token、健康检查、NetworkPolicy 和日志脱敏，不能把 bearer token 放入文档或镜像 |
+| sandboxd 信号退出码 | Start/Execute 进程收到信号时，退出码从 `-1` 改为 `128+n`，例如 SIGKILL 为 `137` | SDK、任务队列和监控若依赖 `-1` 必须迁移；分别回归 SIGTERM、SIGKILL、取消、超时和非零普通退出，区分信号退出与命令自身退出 |
+| Python 日志 | Python SDK 不再主动配置 root logger；调用方负责显式调用 `logging.basicConfig` 或安装 handler/level | 升级后检查 CLI、controller、Notebook 和测试进程的日志是否仍可见且无重复 handler；不能把 SDK 的日志策略推断为 E2B SDK 行为 |
+| WarmPool scheduling gate | 成员被 scheduling gate 阻塞时，WarmPool 保留成员而不是持续删除/重建造成 churn；缺失 SandboxTemplate 会发出事件，grace period 从成员被调度后开始 | 验证 gate 阻塞、模板缺失、调度成功、节点失败、扩缩和 controller restart；同时检查新 action/event 名称和旧告警规则迁移，不能把 WarmPool 当作 E2B template cache |
+| Go SDK streaming command | `Commands.Start` 返回 `ProcessHandle`，可流式读取 stdout/stderr，并取得 exit/signal 结果；该路径要求 sandboxd | 先确认 sandboxd 版本与 SDK 对齐，再验证大输出、并行 stdout/stderr、断开、信号和 handle close；它不等于 E2B SDK 的 `commands.run` 或 envd streaming 合同 |
+| SDK/runtime fail-fast | 终止态 Pod 快速失败；Python/TypeScript 支持 env/cwd 等命令上下文、named claims 和 custom kubeconfig 相关路径 | 迁移时把 terminated Pod、API 错误和可重试网络错误分开；逐项验证 env/cwd、claim、kubeconfig 与 RBAC，不能将 Kubernetes client 配置写成 Infra 自托管要求 |
+
+升级前导出 CRD、SandboxTemplate、Sandbox、SandboxWarmPool、RBAC、NetworkPolicy 和 SDK/runtime 配置。staging 验收至少包含：bearer-token 与健康检查、NetworkPolicy、信号退出码、Python 日志初始化、WarmPool scheduling gate/缺失模板/事件、Go streaming command、terminated Pod fail-fast，以及回滚到 v1.0.6 后旧客户端和对象是否可读。以上都是 Agent Sandbox 对照边界，不是 E2B Infra `2026.30` 的接口承诺。
 
 #### 4.2.2 Public 与 Private ingress
 
@@ -1552,7 +1567,7 @@ E2B 适合这些场景：
 
 ## 附录 A：固定版本与官方来源
 
-本文的服务端兼容边界固定在 E2B Infra `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`。SDK 链接固定到官方 monorepo 未发布主线快照 `62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3`，只用于证明 `getHost()`、`trafficAccessToken`、示例调用形态，以及记录 transport/MCP cleanup/IAM 客户端边界；Host 编码、共享 envd URL、官方路由 Header 注入与 token 属性的观察不改变 Infra 2026.30 的稳定承诺。Agent Sandbox `v1.0.6@cd0761d5001baaf293460cd382ee318744d6b249` 只作 Kubernetes Sandbox、Router、SDK/RL 与迁移契约对照。另注：官方基础设施仓库 `e2b-dev/infra` 在本轮审校期间更名为 [`e2b-dev/runtime`](https://github.com/e2b-dev/runtime)（GitHub 301 保留既有链接解析），`2026.30` Release 仍挂在更名后的仓库；本文保留更名前的仓库名与固定 commit 链接，升级时按新仓库名重新核对。
+本文的服务端兼容边界固定在 E2B Infra `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`。SDK 链接固定到官方 monorepo 未发布主线快照 `62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3`，只用于证明 `getHost()`、`trafficAccessToken`、示例调用形态，以及记录 transport/MCP cleanup/IAM 客户端边界；Host 编码、共享 envd URL、官方路由 Header 注入与 token 属性的观察不改变 Infra 2026.30 的稳定承诺。Agent Sandbox `v1.0.7@807cc37107bd7c012115afac9fa9c3b77b8365c2`（tag object `b3832ed88cb8acc57cc5e81072f551d52f14b32f`）只作 Kubernetes Sandbox、Router、SDK/RL 与迁移契约对照。另注：官方基础设施仓库 `e2b-dev/infra` 在本轮审校期间更名为 [`e2b-dev/runtime`](https://github.com/e2b-dev/runtime)（GitHub 301 保留既有链接解析），`2026.30` Release 仍挂在更名后的仓库；本文保留更名前的仓库名与固定 commit 链接，升级时按新仓库名重新核对。
 
 | 主题 | 官方固定快照 |
 | --- | --- |
@@ -1598,18 +1613,22 @@ E2B 适合这些场景：
 | envd loopback 端口扫描与 `socat` 转发 | [`envd/internal/port/forward.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/port/forward.go) |
 | envd `1s` 扫描周期与转发器启动 | [`envd/main.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/main.go) |
 | guest 各类监听地址可达性集成测试 | [`localhost_bind_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/envd/localhost_bind_test.go) |
-| Agent Sandbox v1.0.6 exact source | [`agent-sandbox` v1.0.6@cd0761d](https://github.com/kubernetes-sigs/agent-sandbox/tree/cd0761d5001baaf293460cd382ee318744d6b249) |
-| Agent Sandbox v1.0.0 migration guide（v1.0.6 继承） | [`docs/api-migration-guide.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/docs/api-migration-guide.md) |
-| Agent Sandbox `Authorizer` target interface | [`authz/authorizer.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/sandbox-router/authz/authorizer.go) |
-| Agent Sandbox scoped-token v2 | [`authz/scopedtoken_v2.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/sandbox-router/authz/scopedtoken_v2.go) |
-| Agent Sandbox Router namespace manifest | [`deploy/deployment.yaml`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/sandbox-router/deploy/deployment.yaml) |
-| Agent Sandbox RL fleet adoption | [`examples/agent-sandbox-rl/agent_sandbox_rl/fleet.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/examples/agent-sandbox-rl/agent_sandbox_rl/fleet.py) |
-| Agent Sandbox Go Router 对照说明 | [`sandbox-router/README.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/sandbox-router/README.md) |
-| Agent Sandbox path routing 与 browser session | [`proxy/pathroute.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/sandbox-router/proxy/pathroute.go)、[`proxy/browsersession.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/sandbox-router/proxy/browsersession.go) |
-| Agent Sandbox Go Router Header/target 解析 | [`proxy/headers.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/sandbox-router/proxy/headers.go) |
-| Agent Sandbox Go Router 代理与鉴权边界 | [`proxy/proxy.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/sandbox-router/proxy/proxy.go) |
-| Agent Sandbox `sandboxd` 用户指南 | [`packages/sandboxd/USER_GUIDE.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/packages/sandboxd/USER_GUIDE.md) |
-| Agent Sandbox legacy Python Router | [`sandbox_router.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/cd0761d5001baaf293460cd382ee318744d6b249/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py) |
+| Agent Sandbox v1.0.7 release | <https://github.com/kubernetes-sigs/agent-sandbox/releases/tag/v1.0.7> |
+| Agent Sandbox v1.0.7 tag object | <https://github.com/kubernetes-sigs/agent-sandbox/tree/b3832ed88cb8acc57cc5e81072f551d52f14b32f> |
+| Agent Sandbox v1.0.7 exact source | [`agent-sandbox` v1.0.7@807cc371](https://github.com/kubernetes-sigs/agent-sandbox/tree/807cc37107bd7c012115afac9fa9c3b77b8365c2) |
+| Agent Sandbox v1.0.0 migration guide（v1.0.7 继承） | [`docs/api-migration-guide.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/docs/api-migration-guide.md) |
+| Agent Sandbox `Authorizer` target interface | [`authz/authorizer.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/authz/authorizer.go) |
+| Agent Sandbox scoped-token v2 | [`authz/scopedtoken_v2.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/authz/scopedtoken_v2.go) |
+| Agent Sandbox bearer-token auth | [`auth.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandboxd/pkg/server/auth.go) |
+| Agent Sandbox Go streaming commands | [`commands.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/clients/go/sandbox/commands.go)；[`process.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/clients/go/sandbox/process.go) |
+| Agent Sandbox Router namespace manifest | [`deploy/deployment.yaml`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/deploy/deployment.yaml) |
+| Agent Sandbox RL fleet adoption | [`examples/agent-sandbox-rl/agent_sandbox_rl/fleet.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/examples/agent-sandbox-rl/agent_sandbox_rl/fleet.py) |
+| Agent Sandbox Go Router 对照说明 | [`sandbox-router/README.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/README.md) |
+| Agent Sandbox path routing 与 browser session | [`proxy/pathroute.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/proxy/pathroute.go)、[`proxy/browsersession.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/proxy/browsersession.go) |
+| Agent Sandbox Go Router Header/target 解析 | [`proxy/headers.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/proxy/headers.go) |
+| Agent Sandbox Go Router 代理与鉴权边界 | [`proxy/proxy.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/proxy/proxy.go) |
+| Agent Sandbox `sandboxd` 用户指南 | [`packages/sandboxd/USER_GUIDE.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/packages/sandboxd/USER_GUIDE.md) |
+| Agent Sandbox legacy Python Router | [`sandbox_router.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py) |
 | TypeScript SDK 共享 envd URL 与 `getHost()` 边界 | [`packages/js-sdk/src/connectionConfig.ts`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/js-sdk/src/connectionConfig.ts) |
 | TypeScript Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/js-sdk/src/sandbox/index.ts) |
 | TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/js-sdk/tests/sandbox/network.test.ts) |
@@ -1622,7 +1641,7 @@ E2B 适合这些场景：
 
 ### A.1 合并前历史证据（迁移审计）
 
-以下链接来自合并前的 SDK 与 Agent Sandbox v1.0.4 文档。当前正文已升级到 SDK `main@62a17dfc` 与 Agent Sandbox `v1.0.6@cd0761d`；旧链接仅用于复核迁移前证据，不扩大 Infra `2026.30` 的稳定兼容范围。
+以下链接来自合并前的 SDK 与 Agent Sandbox v1.0.4 文档。当前正文已升级到 SDK `main@62a17dfc` 与 Agent Sandbox `v1.0.7@807cc371`；旧链接仅用于复核迁移前证据，不扩大 Infra `2026.30` 的稳定兼容范围。
 
 - E2B SDK 旧版 TypeScript connection config：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/js-sdk/src/connectionConfig.ts>
 - E2B SDK 旧版 TypeScript Sandbox：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/js-sdk/src/sandbox/index.ts>

@@ -1,6 +1,6 @@
 # Kubernetes AI 平台深度文档
 
-> 审校日期：2026-10-13。沿用各组件固定证据，正式 Release、Alpha/Beta、RC、tag-only 与未发布主线快照分别记录；本次完成官方上游版本复核与增量同步。
+> 审校日期：2026-10-16。沿用各组件固定证据，正式 Release、Alpha/Beta、RC、tag-only 与未发布主线快照分别记录；本次完成官方上游版本复核与增量同步。
 
 ## 第1篇：版本演进 {#k8s-history}
 
@@ -8,9 +8,9 @@
 
 > **Kubernetes v1.24—v1.37、Gateway API、AI/Agent 平台、控制面性能、安全与运维的 Blog 历史审计**
 >
-> 本文基于 Kubernetes 官方 Blog 2022 年起（约 v1.24）至 2026-10-13 的年份归档、RSS、sitemap，以及对应的 Release 页面、文档、KEP 和 v1.37.1 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-AI-Platform-Deep-Dive.md#k8s-scheduler) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers)。
+> 本文基于 Kubernetes 官方 Blog 2022 年起（约 v1.24）至 2026-10-16 的年份归档、RSS、sitemap，以及对应的 Release 页面、文档、KEP 和 v1.37.1 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-AI-Platform-Deep-Dive.md#k8s-scheduler) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers)。
 >
-> 稳定版本基线：Kubernetes <code>v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-10-13。<code>v1.37.1</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
+> 稳定版本基线：Kubernetes <code>v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-10-16。<code>v1.37.1</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
 >
 > 预览线单独记录：Kubernetes <code>v1.38.0-alpha.2</code> 于 2026-10-07 发布，annotated tag object 为 <code>145a3b6e4355651b0fcb26ec74c680e7a4444469</code>，解引用后的 source commit 为 <code>f3a03cbd1d301c6f0123b0b79113316a497da874</code>；它只用于预览 API、feature gate 和升级预演，不替换 <code>v1.37.1</code> Stable 兼容基线。
 
@@ -22,7 +22,7 @@
 
 #### 1.1.1 这篇综述读取了什么 {#k8s-history-1-1-这篇综述读取了什么}
 
-RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口是 2022-01-01 至 2026-10-13 已发布的文章，重点选择以下四类：
+RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口是 2022-01-01 至 2026-10-16 已发布的文章，重点选择以下四类：
 
 | 类型 | 纳入方式 | 证据边界 |
 | --- | --- | --- |
@@ -33,7 +33,7 @@ RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口�
 
 RSS XML 的 <code>description</code> 是文章摘要或 HTML 片段，不能代替网页正文；正文以对应官方页面为准。链接、日期和成熟度也应以审校时的 RSS 与 Release 页面为准，未来文章发布不会自动改变本文的历史截止边界。
 
-#### 1.1.2 截至 2026-10-13 的近期文章地图 {#k8s-history-1-2-截至-2026-09-26-的近期文章地图}
+#### 1.1.2 截至 2026-10-16 的近期文章地图 {#k8s-history-1-2-截至-2026-09-26-的近期文章地图}
 
 下表列出本文的主要证据入口。它不是把 RSS 文章长段复制到仓库，而是把相互关联的文章按平台问题重新组织。
 
@@ -1433,7 +1433,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 ### 1.15 结论 {#k8s-history-结论}
 
-截至 2026-10-13，Kubernetes Blog/RSS 展示的核心趋势可以概括为：
+截至 2026-10-16，Kubernetes Blog/RSS 展示的核心趋势可以概括为：
 
 1. **控制面更重视峰值和恢复。** RangeStream、watch cache protection、concurrent decode 和 storage migration 共同处理大规模 API server 的内存、恢复和版本生命周期。
 2. **AI 调度的上游基础开始成形。** Workload/PodGroup、Gang、workload-aware preemption、DRA claim、标准 NUMA 属性和 Pod-level manager 让 Kubernetes 可以表达更多 AI/HPC 资源关系，但许多组合仍默认关闭。
@@ -1458,7 +1458,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 | v1.37 enhancement count | 67 |
 | Stable / Beta / Alpha / deprecation | 16 / 23 / 27 / 1 |
 | RSS feed | <https://kubernetes.io/feed.xml> |
-| 审校日期 | 2026-10-13 |
+| 审校日期 | 2026-10-16 |
 
 <code>v1.37.1</code> 的 tag object 和 source commit 是两个不同的 Git object。本文以及仓库渲染元数据使用 source commit；tag object 仅保留在本表作为 Git ref 复核信息。Blog 中的 Beta/Alpha、Working Group proposal、生态 CRD 和主线实现均不扩大 <code>v1.37.1</code> 的 Stable 兼容承诺。
 
@@ -1583,7 +1583,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 #### 1.16.8 排除项与审计统计 {#k8s-history-a-8-排除项与审计统计}
 
-年份归档和 RSS 中的文章先按标题、正文和发布日期去重，再按下表分类。统计是截至 2026-10-13 的审计快照；由于 Blog RSS 只保留近期条目，2022—2025 的候选来自年份归档、sitemap 和文章页面，不把当前 feed 的截断误判为历史文章不存在。
+年份归档和 RSS 中的文章先按标题、正文和发布日期去重，再按下表分类。统计是截至 2026-10-16 的审计快照；由于 Blog RSS 只保留近期条目，2022—2025 的候选来自年份归档、sitemap 和文章页面，不把当前 feed 的截断误判为历史文章不存在。
 
 | 分类 | 处理 | 2022—2026 快照数量/说明 |
 | --- | --- | --- |
@@ -1729,7 +1729,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 >
 > 基于 Kubernetes 官方 Scheduling、Preemption and Eviction 文档、调度配置参考与 v1.37.1 源码整理
 >
-> 版本基线：Kubernetes `v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308`；审校日期：2026-10-13。`v1.37.1` 为 annotated tag，正文使用解引用后的 source commit，不使用 tag object。AI 调度器对照同步至 Kueue `v0.20.1`、Grove `v0.1.0-alpha.15`、KAI-Scheduler `v0.18.5` 与 Volcano `v1.15.3`；Koordinator 版本未变化。
+> 版本基线：Kubernetes `v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308`；审校日期：2026-10-16。`v1.37.1` 为 annotated tag，正文使用解引用后的 source commit，不使用 tag object。AI 调度器对照同步至 Kueue `v0.20.2`、Grove `v0.1.0-alpha.16`、KAI-Scheduler `v0.18.6` 与 Volcano `v1.16.0`；Koordinator 版本本轮复核未变化。
 
 ---
 
@@ -3114,7 +3114,7 @@ kubectl describe podgroup -n <namespace> <podgroup>
 | DRAWorkloadResourceClaims | v1.37 Beta，默认关闭 |
 | SchedulerPreQueueingHints | v1.37 Alpha，默认关闭 |
 | OpportunisticBatching | v1.35 Beta，v1.37.0 默认开启 |
-| 审校日期 | 2026-10-13 |
+| 审校日期 | 2026-10-16 |
 
 `v1.37.1` 是 annotated tag：tag object 为 `d2b770f4c94636a992534a8d3156b6b2d8e82ac3`，解引用后的源码 commit 为 `f78e722310e50bcaca9276be22276d9e91d91308`。本文页头和站点元数据使用后者；保留 tag object 仅用于复核 Git ref，不把它当作 source commit。
 
@@ -3188,7 +3188,7 @@ v1.37.0 是新的 minor baseline：除 Workload/PodGroup v1beta1 与工作负载
 >
 > 基于 NVIDIA GPU Operator 官方仓库与 26.7 官方文档整理：<https://github.com/NVIDIA/gpu-operator>
 >
-> 文档快照：GPU Operator `v26.7.1`，源码提交 `dbacf43d4938816fefe62690ab868a640a195282`（annotated tag 解引用；tag object `ea2c14903a9aa3379880bd65511c353bcb233335` 仅作类型证据），审校日期：2026-10-13
+> 文档快照：GPU Operator `v26.7.2`，源码提交 `5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832`（annotated tag 解引用；tag object `9ae64a28deb145182fc0def6f4ceb23fdd3aba79` 仅作类型证据），审校日期：2026-10-16
 
 ---
 
@@ -3244,11 +3244,11 @@ GPU Operator 与 HAMi 也不是简单替代关系。GPU Operator 擅长部署 NV
 
 本文固定到以下事实基线，不把 `latest` 页面未来可能新增的行为倒灌进正文：
 
-- GPU Operator Release：`v26.7.1`。
-- Git 标签解引用提交：`dbacf43d4938816fefe62690ab868a640a195282`（`v26.7.1` 是 annotated tag）。
-- 官方 Chart：`gpu-operator-v26.7.1.tgz`，`version` 与 `appVersion` 均为 `v26.7.1`。
-- 官方文档：NVIDIA GPU Operator 26.7 版本路径（v26.7.1 复用 26.7 门户）。
-- 组件默认版本以 `v26.7.1` Chart `values.yaml` 为准。
+- GPU Operator Release：`v26.7.2`。
+- Git 标签解引用提交：`5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832`（`v26.7.2` 是 annotated tag，tag object 为 `9ae64a28deb145182fc0def6f4ceb23fdd3aba79`）。
+- 官方 Chart：`gpu-operator-v26.7.2.tgz`，`version` 与 `appVersion` 均为 `v26.7.2`。
+- 官方文档：NVIDIA GPU Operator 26.7 版本路径（v26.7.2 复用 26.7 门户）。
+- 组件默认版本以 `v26.7.2` Chart `values.yaml` 为准；本 patch 只新增 DRA Driver `v0.5.1`，其余组件仍须按矩阵单独核对。
 
 文中的“默认启用”有两层含义：Helm Values 中的布尔值，以及满足父级功能门控和节点选择器后真正创建/运行的 Operand。两者不总是相同，例如 `ccManager.enabled=true`，但默认 `sandboxWorkloads.enabled=false`，所以默认容器工作负载安装不会实际运行 CC Manager。
 
@@ -3262,18 +3262,20 @@ v26.7.0 还新增 `nvidia.com/gpu.deploy.client` node label，允许 Operator �
 
 NRI 开启时，`NRI_MANAGEMENT_CDI_DEVICE_NAMESPACES` 默认只允许 Operator 所在 namespace 请求 management CDI device；immutable host 上不要再挂载 NRI 不需要的 containerd 配置路径。`devicePlugin.config.create=true` 但 name/data 为空现在会被 chart 拒绝，避免产生引用不存在 ConfigMap 的 Pod。
 
-#### 3.1.6 v26.7.1 组件补丁与驱动边界 {#gpu-operator-1-6-v26-7-1-组件补丁与驱动边界}
+#### 3.1.6 v26.7.2 组件补丁与驱动边界 {#gpu-operator-1-6-v26-7-2-组件补丁与驱动边界}
 
-`v26.7.1` 是 `v26.7.x` 的组件补丁 release，不改架构、API 或 feature gate；文档门户仍复用 26.7 路径。关键变化：
+`v26.7.2` 是 `v26.7.x` 的组件补丁 release，不改 GPUCluster/ClusterPolicy 架构、API 或 feature gate；文档门户仍复用 26.7 路径。相较已审校的 v26.7.1，关键变化是 DRA driver 版本、operand 标签和一组 OpenShift/OLM 修复：
 
-| 领域 | v26.7.1 行为 | 升级与兼容边界 |
+| 领域 | v26.7.2 行为 | 升级与兼容边界 |
 |------|--------------|----------------|
-| 组件版本 | Driver Manager `v0.12.1`、Container Toolkit `v1.20.1`、Device Plugin/GFD `v0.20.1`、DCGM `4.6.1-1`、DCGM Exporter `4.6.1-4.8.4`、MIG Manager `v0.15.1`、vGPU Device Manager `v0.5.1`、VFIO Manager `v0.12.1`、CC Manager `v0.4.4`；GDS/GDRCopy/Kata/DRA driver 不变 | 镜像 digest 与 SBOM 要按新组件版本重建；跨 v26.7.0→v26.7.1 的对比必须固定组件矩阵 |
-| 驱动支持 | 新增 Data Center GPU Driver `615.71.09`（默认仍为 `595.91.07`） | 新驱动按 R615+ 提供 per-GPU CUDA memory limit 与 R615 固件注入；升级驱动前先看下方 MIG 注意事项 |
+| 组件版本 | Driver Manager `v0.12.1`、Container Toolkit `v1.20.1`、Device Plugin/GFD `v0.20.1`、DCGM `4.6.1-1`、DCGM Exporter `4.6.1-4.8.4`、MIG Manager `v0.15.1`、vGPU Device Manager `v0.5.1`、VFIO Manager `v0.12.1`、CC Manager `v0.4.4`；DRA Driver for NVIDIA GPUs 升为 `v0.5.1` | 镜像 digest 与 SBOM 要按新组件版本重建；不要把 Operator patch 号当成所有 Operand 的版本号 |
+| operand 标签 | DCGM、DCGM Exporter 的 DaemonSet/Pod/Service 增加 `app.kubernetes.io/component`，值分别为 `nvidia-dcgm`、`nvidia-dcgm-exporter`；同时适用于 `ClusterPolicy` 和 `GPUCluster` | 自定义 `daemonsets.labels` 不能覆盖已有 operand 标签；选择器、监控和告警要同时验证两类资源 |
+| OpenShift DRA/MPS | `GPUCluster` + DRA + `MPSSupport` 下 MPS control daemon 使用 DRA driver service account，`nvidia-dra-driver` SCC 允许 host PID；ComputeDomain daemon 可使用 `anyuid` SCC 并删除 `ComputeDomainClique` | 只在 OpenShift、DRA 和对应 feature gate 路径验证；不能把 SCC 修复写成通用 Kubernetes 权限收缩 |
+| 驱动支持 | 继承 v26.7.1 的 Data Center GPU Driver `615.71.09`（默认仍为 `595.91.07`） | 新驱动按 R615+ 提供 per-GPU CUDA memory limit 与 R615 固件注入；升级驱动前先看下方 MIG 注意事项 |
 | CUDA memory limit | `NVIDIA_GPU_MEMORY_REQUEST` / `NVIDIA_GPU_MEMORY_LIMIT` 环境变量按 GPU 施加 soft/hard CUDA 内存上限（需 R615+ 驱动） | 这是容器内 CUDA 层限制，不是 GPU 分区或 MIG 替代；硬超限行为按 CUDA 语义处理 |
 | H100 MIG 升级注意 | 从 `595.91.07` 升到 `615.71.09` 且不重启/复位 GPU 时，后续 MIG 重新配置可能失败（`NVML ERROR_UNKNOWN`、Xid 119） | 官方建议升级驱动后先重启节点再改 MIG；无重启路径需按顺序：MIG `all-disabled` → 暂停 GPU operands → 升驱动 → `nvidia-smi -r` 复位 → 恢复 labels → 重新应用 MIG 配置 |
 | ComputeDomain | deprecated 的 `spec.numNodes` 改为可选，缺省 `0` | 依赖该字段的自动化可以去掉强制填写，但不要把缺省当作新语义 |
-| 修复 | GFD 可删除 `NodeFeature`（修复 `OwnerReferencesPermissionEnforcement` 启用时的更新失败）；GPU operands 等待 driver 校验完成再启动（修复 MIG Manager `ERROR_LIBRARY_NOT_FOUND`）；Driver Manager cordon/uncordon 对瞬时 API 错误做有界退避；CDI hook 修复 Podman userns 映射（crun 1.27+）；`nvidia-ctk runtime configure` 不再覆盖既有 Docker feature flags | 升级后回归：GFD RBAC、driver 重启后的 operand 顺序、节点 cordon 状态与 CDI 特殊运行时 |
+| 修复 | 继承 v26.7.1 的 GFD/RBAC、driver readiness、CDI 和 Docker feature flag 修复；另修复 NVIDIADriver node selector label 变化后的 driver ownership、MPS 配置变化后的 daemon reload、事件 patch 权限、Arm64 OLM vGPU image index 和既有 `NVIDIADriver` 的可选字段校验 | 升级后回归：GFD RBAC、driver 重启后的 operand 顺序、节点 selector/ownership、MPS reload、事件更新、Arm64 OLM 和 CDI 特殊运行时 |
 
 ---
 
@@ -3584,7 +3586,7 @@ spec:
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --set driver.nvidiaDriverCRD.enabled=true
 ```
 
@@ -3662,7 +3664,7 @@ kubectl get nodes -o json \
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --set nfd.enabled=false
 ```
 
@@ -3677,7 +3679,7 @@ helm repo update nvidia
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --wait
 ```
 
@@ -3691,7 +3693,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --set driver.enabled=false \
   --wait
 ```
@@ -3702,7 +3704,7 @@ Driver 与 Container Toolkit 都已预装：
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --set driver.enabled=false \
   --set toolkit.enabled=false \
   --wait
@@ -3716,7 +3718,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
 
 #### 3.5.5 containerd、CRI-O、CDI 与 NRI {#gpu-operator-5-5-containerd-cri-o-cdi-与-nri}
 
-`v26.7.1` 默认 `cdi.enabled=true`。标准 Device Plugin 工作负载仍然请求 `nvidia.com/gpu`，设备注入由支持 CDI 的 containerd/CRI-O 处理，对应用通常透明。
+`v26.7.2` 默认 `cdi.enabled=true`。标准 Device Plugin 工作负载仍然请求 `nvidia.com/gpu`，设备注入由支持 CDI 的 containerd/CRI-O 处理，对应用通常透明。
 
 默认 NRI 关闭。开启 NRI 需要 CDI，并要求 containerd `v1.7.30+`、`v2.1.x`、`v2.2.x`，或 CRI-O `v1.34+`：
 
@@ -3724,7 +3726,7 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --set cdi.nriPluginEnabled=true \
   --wait
 ```
@@ -3737,7 +3739,7 @@ NRI 模式下，Toolkit 不再修改运行时配置，不创建 `nvidia` Runtime
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --set toolkit.env[0].name=CONTAINERD_CONFIG \
   --set toolkit.env[0].value=/etc/containerd/config.toml \
   --set toolkit.env[1].name=CONTAINERD_SOCKET \
@@ -3992,7 +3994,7 @@ flowchart LR
 
 #### 3.7.3 CDI、RuntimeClass 与 legacy 路径 {#gpu-operator-7-3-cdi-runtimeclass-与-legacy-路径}
 
-从 GPU Operator 25.10 起，CDI 默认为普通 workload 的设备注入机制。`v26.7.1` 中：
+从 GPU Operator 25.10 起，CDI 默认为普通 workload 的设备注入机制。`v26.7.2` 中：
 
 - `cdi.enabled=true`：Device Plugin 分配结果交给支持 CDI 的运行时。
 - 未启用 NRI 时，仍创建 `nvidia` RuntimeClass，供 GPU 管理容器通过 `NVIDIA_VISIBLE_DEVICES` 访问设备；标准 Device Plugin Pod 不必显式写 RuntimeClass。
@@ -4129,7 +4131,7 @@ MPS Control Daemon 将每个 replica 的显存与计算能力限制为大致相�
 helm upgrade --install gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
   --create-namespace \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --set mig.strategy=mixed \
   --wait
 ```
@@ -4335,15 +4337,16 @@ Time-Slicing 下，DCGM Exporter 不能可靠把指标关联到具体容器。�
 
 #### 3.10.6 镜像和版本不是单一数字 {#gpu-operator-10-6-镜像和版本不是单一数字}
 
-GPU Operator Release 不是 Driver Release 的别名。`v26.7.1` Chart 默认组合包括：
+GPU Operator Release 不是 Driver Release 的别名。`v26.7.2` Chart 默认组合包括：
 
 | 组件 | 该 Chart 默认版本 |
 |------|------------------|
-| GPU Operator/Validator | `v26.7.1`（未覆写时使用 Chart AppVersion） |
+| GPU Operator/Validator | `v26.7.2`（未覆写时使用 Chart AppVersion） |
 | NVIDIA Driver | `595.91.07`（默认；`615.71.09` 亦受支持） |
 | Driver Manager | `v0.12.1` |
 | Container Toolkit | `v1.20.1` |
 | Device Plugin | `v0.20.1` |
+| DRA Driver for NVIDIA GPUs | `v0.5.1` |
 | DCGM | `4.6.1-1` |
 | DCGM Exporter | `v4.6.1-4.8.4` |
 | MIG Manager | `v0.15.1` |
@@ -4383,14 +4386,14 @@ GPU Operator Release 不是 Driver Release 的别名。`v26.7.1` Chart 默认组
 
 #### 3.11.3 CRD 升级 {#gpu-operator-11-3-crd-升级}
 
-Helm 对 `crds/` 下已有 CRD 不会自动升级。GPU Operator 从 24.9 起默认启用 pre-upgrade Hook（`operator.upgradeCRD=true`）。使用 Hook 升级 26.7.3 时，官方要求加入 `--disable-openapi-validation`：
+Helm 对 `crds/` 下已有 CRD 不会自动升级。GPU Operator 从 24.9 起默认启用 pre-upgrade Hook（`operator.upgradeCRD=true`）。使用 Hook 升级到 26.7.2 时，官方要求加入 `--disable-openapi-validation`：
 
 ```bash
 helm repo update nvidia
 
 helm upgrade gpu-operator nvidia/gpu-operator \
   --namespace gpu-operator \
-  --version=v26.7.1 \
+  --version=v26.7.2 \
   --disable-openapi-validation \
   --reuse-values
 ```
@@ -4399,7 +4402,7 @@ helm upgrade gpu-operator nvidia/gpu-operator \
 
 ```bash
 helm show values nvidia/gpu-operator \
-  --version=v26.7.1 > gpu-operator-v26.7.1-values.yaml
+  --version=v26.7.2 > gpu-operator-v26.7.2-values.yaml
 ```
 
 若组织不允许 Hook，先从固定 tag 手工 `kubectl apply` 两个 NVIDIA CRD 和 NFD CRD，再执行 Helm upgrade。不要从 `main` 或 `latest` 拉 CRD 配固定 Release。
@@ -4651,7 +4654,7 @@ operator:
 
 #### 3.13.2 安装基线 {#gpu-operator-13-2-安装基线}
 
-- [ ] 固定 `--version=v26.7.1`，保存 Chart digest 和所有镜像 digest。
+- [ ] 固定 `--version=v26.7.2`，保存 Chart digest 和所有镜像 digest。
 - [ ] 核对硬件、OS、kernel、Kubernetes、containerd/CRI-O 支持矩阵。
 - [ ] 选择 `ClusterPolicy` Driver 或 `NVIDIADriver`，不重叠管理。
 - [ ] 确认 NFD 只有一套且覆盖 GPU 节点。
@@ -4700,8 +4703,8 @@ kubectl get events -n gpu-operator --sort-by=.lastTimestamp | tail -50
 #### 3.14.1 查看固定版本 Chart {#gpu-operator-a-1-查看固定版本-chart}
 
 ```bash
-helm show chart nvidia/gpu-operator --version=v26.7.1
-helm show values nvidia/gpu-operator --version=v26.7.1
+helm show chart nvidia/gpu-operator --version=v26.7.2
+helm show values nvidia/gpu-operator --version=v26.7.2
 ```
 
 #### 3.14.2 查看策略与组件 {#gpu-operator-a-2-查看策略与组件}
@@ -4756,9 +4759,11 @@ kubectl logs -n gpu-operator -l app=nvidia-mig-manager \
 - [Upgrade](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/upgrade.html)
 - [Uninstall](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/uninstall.html)
 - [Troubleshooting](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/troubleshooting.html)
-- [GPU Operator `v26.7.1` source snapshot](https://github.com/NVIDIA/gpu-operator/tree/dbacf43d4938816fefe62690ab868a640a195282)
-- [`ClusterPolicy` Go type](https://github.com/NVIDIA/gpu-operator/blob/dbacf43d4938816fefe62690ab868a640a195282/api/nvidia/v1/clusterpolicy_types.go)
-- [`v26.7.1` Helm Values](https://github.com/NVIDIA/gpu-operator/blob/dbacf43d4938816fefe62690ab868a640a195282/deployments/gpu-operator/values.yaml)
+- [GPU Operator `v26.7.2` release](https://github.com/NVIDIA/gpu-operator/releases/tag/v26.7.2)
+- [GPU Operator `v26.7.2` tag object](https://github.com/NVIDIA/gpu-operator/tree/9ae64a28deb145182fc0def6f4ceb23fdd3aba79)
+- [GPU Operator `v26.7.2` source snapshot](https://github.com/NVIDIA/gpu-operator/tree/5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832)
+- [`ClusterPolicy` Go type](https://github.com/NVIDIA/gpu-operator/blob/5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832/api/nvidia/v1/clusterpolicy_types.go)
+- [`v26.7.2` Helm Values](https://github.com/NVIDIA/gpu-operator/blob/5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832/deployments/gpu-operator/values.yaml)
 - [NVIDIA Device Plugin `v0.20.1`](https://github.com/NVIDIA/k8s-device-plugin/tree/v0.20.1)
 
 版本和平台支持会变化。落地时应同时检查目标 GPU 型号、Driver 分支、Linux kernel、Kubernetes 发行版、容器运行时与云平台的当前兼容矩阵；不要把本文的固定快照当作未来版本的兼容承诺。
@@ -4771,7 +4776,7 @@ kubectl logs -n gpu-operator -l app=nvidia-mig-manager \
 >
 > 基于 HAMi 官方仓库与官网文档整理：<https://github.com/Project-HAMi/HAMi>
 >
-> 稳定版本基线：`v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e`，审校日期：2026-10-13。主线中的后续实现不作为 v2.10.0 的稳定能力；本轮复核稳定 Release 未变化。
+> 稳定版本基线：`v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e`，审校日期：2026-10-16。主线中的后续实现不作为 v2.10.0 的稳定能力；本轮复核稳定 Release 未变化。
 
 ---
 
@@ -5913,7 +5918,7 @@ curl http://<scheduler-ip>:31993/metrics
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`、Kueue `v0.20.1@237d77ecdf4a7551784bb5c07a497bb64c5dff2f`、Grove `v0.1.0-alpha.15@70f3e1b6afaa2c6fd29e840d917948704f6e2e36`、KAI-Scheduler `v0.18.5@36b2cabb463ef63e9cbde73c17ca8e4eac644f11`、Volcano `v1.15.3@d2dd7024f4af3070f9d99d68a78973893908a743`；审校日期：2026-10-13。未发布辅助快照为 Koordinator `main@618b581b32668e317b0d18523d46cf9f55b549d8`。Volcano 官网证据固定到 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；现有 Helm Chart 证据为 `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513`，v1.15.3 部署前需重新固定 chart/OCI digest。主线快照只作证据，不扩大稳定版本承诺。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`（本轮复核未变化）、Kueue `v0.20.2@296ec3db567abbe36b65a63695710e3d3f3d0bdb`、Grove `v0.1.0-alpha.16@e33b8353e66dd6ed86fd4913660f88f8dbd17955`、KAI-Scheduler `v0.18.6@279f61c6d55b20bd47a43f2560c1b4f646a55547`、Volcano `v1.16.0@41f27d567fb5bdaf2cab01e1caaf48f7e266eefb`；审校日期：2026-10-16。未发布辅助快照为 Koordinator `main@618b581b32668e317b0d18523d46cf9f55b549d8`。Volcano 官网证据固定到 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；v1.16.0 的 chart/OCI 发布物仍应在部署前按 release 固定 digest。主线快照只作证据，不扩大稳定版本承诺。
 
 ---
 
@@ -6419,7 +6424,7 @@ LWS 限制修复的是明确的 quota bypass：旧行为允许已 admitted 的 L
 | 并发与配额泄漏 | 修复 ConcurrentAdmission 在父 Workload 名不含 `-` 时 panic、evicted StatefulSet/LeaderWorkerSet 零 Pod Workload 持有配额、ResourceTransformations 排除输入绕过配额、Pod 级请求低于容器聚合请求时按聚合请求+overhead 记账 | 修复方向都是收紧配额；升级后队列可能变满，属预期不是回归 |
 | RBAC/gates | `kueue-batch-admin-role` 恢复 AdmissionCheck 等 5 种资源访问；新 gate：`TASPartialSlices`（Alpha，默认开启）、`PodIntegrationCountSucceededPodsAsReady`、`DeploymentJobUIDLabel`、`EnforceProvisioningPodTemplateContents`（Alpha，默认关闭） | `TASPartialSlices` 默认开启会改变 slice 非整数倍 PodSet 的 placement；其余 gate 按需评估 |
 
-`v0.20.0-rc.1` 是历史 prerelease，不进入稳定基线；在 v0.20.1 发布后，它不再是当前候选。它仍可用于解释 v0.20.0 的迁移预演，但不能替代 v0.20.1 的正式 Release、CRD、Chart 或兼容承诺。
+`v0.20.0-rc.1` 是历史 prerelease，不进入稳定基线；在 v0.20.2 发布后，它不再是当前候选。它仍可用于解释 v0.20.0 的迁移预演，但不能替代 v0.20.2 的正式 Release、CRD、Chart 或兼容承诺。
 
 #### 5.3.18 v0.20.1 patch 修复与升级边界 {#ai-schedulers-4-18-v0-20-1-patch-修复与升级边界}
 
@@ -6431,7 +6436,22 @@ LWS 限制修复的是明确的 quota bypass：旧行为允许已 admitted 的 L
 | `kueuectl` | 修复 delete workload 路径 | 自动化需验证 namespace、名称、错误码和重复删除行为；不要把 CLI 修复写成 controller API 的新兼容保证 |
 | minor 前置 | 官方 release 明确要求先阅读并执行 v0.20.0 的升级说明 | 先检查 fair-share anchor、LWS immutable group size、metrics selector、RayService gate、DRA Alpha 等 v0.20.0 变化，再滚动到 v0.20.1 |
 
-因此当前稳定 Kueue 基线提升为 v0.20.1；旧 v0.19.x 章节仍用于解释历史迁移和记账变化，不能与 v0.20.1 的结果直接拼接。
+因此 v0.20.1 曾是本轮前的稳定 Kueue 基线；旧 v0.19.x 和 v0.20.1 章节仍用于解释历史迁移和记账变化，不能与当前 v0.20.2 的结果直接拼接。
+
+#### 5.3.19 v0.20.2 KueueViz、DRA 与校验修复 {#ai-schedulers-4-19-v0-20-2-kueueviz-dra-与校验修复}
+
+`v0.20.2@296ec3db567abbe36b65a63695710e3d3f3d0bdb` 是本轮审校确认的最新正式 patch source；它是 annotated tag，tag object 为 `b0fbbfe44ff20ee7f74cc0485c1a6812fe999a93`。当前稳定基线因此切换为 v0.20.2；v0.20.1 只保留为上一 patch 的迁移证据。
+
+| 区域 | v0.20.2 行为 | 升级与验证边界 |
+|------|---------------|----------------|
+| KueueViz | Workloads dashboard 可展示 pod-group Workload 的 Pods，覆盖 StatefulSet 与 LeaderWorkerSet | 升级后验证 dashboard 数据、空页、关闭/重启、WebSocket 与 KueueViz RBAC；它是可观测性入口，不改变 Workload admission |
+| CLI 与 API | 修复带连字符的资源 quota、未带 queueName 的 workload list、非默认 Helm release 下的 version、重复 list、dry-run LocalQueue 和 validation message | 自动化要同时验证 namespace/name、错误码和 server-side dry-run；不能把 CLI 修复当作 controller API 新字段 |
+| DRA 与记账 | 修复 stale quota charge、ElasticJob slices 以及 Pod overhead 负值/重复记账路径；DRA charge 的结果可能收紧可用 quota | 升级前后比较 ClusterQueue usage、ResourceFlavor 余量、slice 回收和 controller restart；重点覆盖有 `negative Pod overhead` 的输入拒绝/归一化场景 |
+| Fair Sharing | 修复 nominal quota 触发 false preemption 的路径 | 在多个 ClusterQueue、借用和抢占组合下重放公平性与 victim 选择；不要据此推导新的公平算法配置 |
+| Pod/Workload 校验 | 加强 label、`role-hash`、Workload validation 和 JobSet/ElasticJob 状态边界；`PodIntegrationVerifyRoleRequests` 为 Alpha 且默认关闭 | 现有 workload 若依赖旧 label 或 role hash，先在 staging 做 dry-run 和 admission 回放；只有明确启用 gate 才验证新 reject 行为 |
+| TAS 与 WebSocket/RBAC | 修复 TAS、KueueViz 状态/空页面/关闭以及 websocket 权限路径；同时覆盖 workload validation | 拓扑准入仍由 TAS 配置和底层 scheduler/DRA 共同决定；不能把 patch 修复写成新的拓扑兼容承诺 |
+
+升级顺序应是先备份 CRD、ClusterQueue、LocalQueue 和 Workload，再在 canary namespace 验证 KueueViz、DRA 记账、Fair Sharing、JobSet/LeaderWorkerSet、TAS 与 PodIntegration gate，最后滚动 controller/webhook。v0.20.2 仍继承 v0.20.0 的 minor migration 和 feature-gate 前置，不是跨 minor 的无条件替换。
 
 ---
 
@@ -6488,7 +6508,7 @@ Grove scheduler backend 的职责是：
 - 同步创建、更新和删除后端资源。
 - 将 Grove 的拓扑绑定映射到后端 topology API。
 
-Grove v0.1.0-alpha.15 已提供可插拔 scheduler backend profile，API 列出的有效 profile 包括 `default-scheduler`、`kai-scheduler`、`volcano` 和 `lpx-scheduler`；alpha.12 首次将 KAI backend 与“一条 Grove PodGang 对应一个 KAI PodGroup”的转换纳入 release，alpha.13 在此基础上修复 map 重建和 backend 依赖。当前 alpha.15 仍是 Alpha，各 backend 对 Gang、拓扑和状态回传的语义并不完全等价，部署前必须按固定 release 的 backend 文档和 CRD 验证。
+Grove v0.1.0-alpha.15 已提供可插拔 scheduler backend profile，API 列出的有效 profile 包括 `default-scheduler`、`kai-scheduler`、`volcano` 和 `lpx-scheduler`；alpha.12 首次将 KAI backend 与“一条 Grove PodGang 对应一个 KAI PodGroup”的转换纳入 release，alpha.13 在此基础上修复 map 重建和 backend 依赖。当前 alpha.16 仍是 Alpha，并新增 Kueue prebuilt workload backend；各 backend 对 Gang、拓扑、queue label 和状态回传的语义并不完全等价，部署前必须按固定 release 的 backend 文档和 CRD 验证。
 
 #### 5.4.4 启动顺序与服务发现 {#ai-schedulers-5-4-启动顺序与服务发现}
 
@@ -6504,7 +6524,7 @@ PodClique 支持同配置 Pod 的稳定命名，Grove 还能注入环境变量�
 
 Grove 通过 ClusterTopologyBinding 建立自己的拓扑层级与后端 topology resource 的映射。它可以描述从广到窄的层级，例如 zone、rack、host、NVLink domain，并决定后端资源由 Grove 管理还是由平台外部管理。
 
-对 GB200/GB300 等 Multi-Node NVLink 场景，v0.1.0-alpha.15 的 API 和设计文档包含 DRA `ResourceClaimTemplate`、ComputeDomain 和多 Pod 共享 claim，但 `autoMNNVLEnabled` 默认关闭。这类 Alpha 能力涉及三层契约：
+对 GB200/GB300 等 Multi-Node NVLink 场景，alpha.15 的 API 和设计文档包含 DRA `ResourceClaimTemplate`、ComputeDomain 和多 Pod 共享 claim，但 `autoMNNVLEnabled` 默认关闭；alpha.16 仍继承这一 Alpha 边界。这类 Alpha 能力涉及三层契约：
 
 1. Grove 表达哪些组件共享资源声明。
 2. scheduler backend 保证这些组件按 Gang 和拓扑放置。
@@ -6601,6 +6621,18 @@ PodGang epoch migration、KAI backend 与 operator/CRD 必须按同一 alpha.12 
 | webhook | 不再把 `MaxUnavailable` 受限于 resource template replicas | 需要检查现有 webhook/CRD 校验结果和 rollout 行为；升级前仍应审查最大不可用副本，不能把上限变化直接视为无风险 |
 
 升级前导出 PodCliqueSet、PodCliqueScalingGroup 和 PodGang，先在 staging 验证扩容 gate 与 coherent rollout，再升级 operator/webhook。alpha.15 继续只承诺 Alpha 级 API，不能替代稳定版调度器、Kueue 配额或 backend 的最终放置。
+
+#### 5.4.12 v0.1.0-alpha.16 Kueue prebuilt workload backend {#ai-schedulers-5-12-v0-1-0-alpha-16-kueue-prebuilt-workload-backend}
+
+`v0.1.0-alpha.16@e33b8353e66dd6ed86fd4913660f88f8dbd17955` 是本轮确认的最新 Grove Alpha source；该版本为 lightweight tag，tag 直接指向上述 source commit。官方 release 说明新增 Kueue prebuilt workload backend，但 alpha 级 API 和 scheduler backend 的职责边界不变。
+
+| 区域 | alpha.16 行为 | 升级与验证边界 |
+|------|----------------|----------------|
+| Kueue backend | Grove 可以使用预构建的 Kueue Workload backend，把 PodCliqueSet/PodGang 的准入意图接入 Kueue Workload，而不要求平台先为每类 workload 自行实现 backend | 先确认 Kueue v0.20.2 的 Workload/PodSet、owner 和 queue 配置，再验证 suspend/admit/unsuspend、扩缩和回收；backend 只负责接入，不替代 Kueue quota 或最终 scheduler |
+| queue labels | alpha.16 改变 queue label 的要求，并增加 reject queue label 相关处理 | 升级前检查既有 PodCliqueSet、PodGang 和生成 Pod 的 label；在 admission reject、queue 不存在、queue 迁移和 controller restart 场景下验证，避免旧 label 让 workload 静默进入错误队列 |
+| scheduler profile | 保留 scheduler profile 配置，不应因切换 Kueue prebuilt workload backend 丢失 `default-scheduler`、`kai-scheduler`、`volcano` 等 profile | 对每个 backend 读取生成 Pod 的 `schedulerName` 和 PodGang 状态；不要用 backend 可用误判最终绑定已经完成 |
+
+升级前导出 Grove CRD、PodCliqueSet、PodCliqueScalingGroup、PodGang/PodGangMap 和相关 queue labels，先在 staging 进行 Kueue admission、scale-out/scale-in、reject queue、profile 保留与回滚验证。alpha.16 仍不是 GA，Kueue backend 的新路径不能扩大 Grove 或 Kueue 的稳定兼容承诺。
 
 ---
 
@@ -6822,9 +6854,21 @@ v0.17.0 同时修复 operator 全集群缓存导致的内存增长、DRA device 
 
 #### 5.5.17 v0.20.1 tag-only 边界 {#ai-schedulers-6-17-v0-20-1-tag-only-边界}
 
-截至本轮审校，仓库已有 `v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc` tag，但它没有对应的正式 GitHub Release；按本文“最新非 draft、非 prerelease Release”规则，正文稳定基线使用 `v0.18.5@36b2cabb463ef63e9cbde73c17ca8e4eac644f11`。不能仅按 tag 排序把 v0.19-v0.20 的 CRD、Chart 或 scheduler 行为纳入兼容承诺。
+截至本轮审校，仓库已有 `v0.20.1@5922dc7d1a4661d3fc43d60943f92a775c892bdc` tag，但它没有对应的正式 GitHub Release；按本文“最新非 draft、非 prerelease Release”规则，正文稳定基线使用正式 release `v0.18.6@279f61c6d55b20bd47a43f2560c1b4f646a55547`。不能仅按 tag 排序把 v0.19-v0.20 的 CRD、Chart 或 scheduler 行为纳入兼容承诺。
 
-历史上 GitHub “latest” 也曾指向旧维护分支 `v0.16.9@724da8388358b7673495a935948ea0a67a86140b`；这同样说明 release channel、维护分支与 tag 序列必须分开审计。需要评估 v0.20.1 时，应等价地把它作为 tag-only 测试快照，独立检查 migration、CRD、镜像与 Helm chart，而不是覆盖本文的 v0.18.5 Release 基线。
+历史上 GitHub “latest” 也曾指向旧维护分支 `v0.16.9@724da8388358b7673495a935948ea0a67a86140b`；这同样说明 release channel、维护分支与 tag 序列必须分开审计。需要评估 v0.20.1 时，应等价地把它作为 tag-only 测试快照，独立检查 migration、CRD、镜像与 Helm chart，而不是覆盖本文的 v0.18.6 Release 基线。
+
+#### 5.5.18 v0.18.6 节点排序、拓扑域与 BindRequest 重试 {#ai-schedulers-6-18-v0-18-6-节点排序拓扑域与-bindrequest重试}
+
+`v0.18.6@279f61c6d55b20bd47a43f2560c1b4f646a55547` 是本轮确认的最新正式 release source；该版本为 lightweight tag，tag 直接指向上述 commit。它不是 v0.20.1 tag-only 快照的替代说明，而是当前正式 release 线的稳定 patch。
+
+| 区域 | v0.18.6 行为 | 升级与验证边界 |
+|------|---------------|----------------|
+| 节点评分 | 在没有 per-worker score map 时仍可对节点进行 score/sort，避免评分阶段因 worker map 缺失丢失排序 | 对 GPU sharing、空 worker map、节点加入/删除和 scheduler restart 重放 score/sort；不要把 fallback score 当作新的 GPU 资源分配语义 |
+| 拓扑与 replacement | replacement subgroup 保持在 required topology domain 内，不因重建或替换丢失原有 topology 约束 | 验证 subgroup replacement、节点故障、拓扑域不可行和 retry；实际可容纳性仍取决于节点标签、DRA 和 scheduler 配置 |
+| Binder/BindRequest | scheduler 只删除失败的 BindRequest；binder 跳过 terminal BindRequest，去重重复 reconcile event，并在重试期间保留 reservation | 升级后重放 bind 失败、terminal 状态、重复 event、API 重试和 reservation timeout，确认不会误删可重试请求或泄漏 reservation |
+
+这组修复主要改善调度和绑定的 correctness，不改变 PodGroup、Queue、GPU sharing 或外部 runtime 的 API 稳定性。升级前应按 v0.18.x migration guide 对 CRD、Helm values、镜像和 scheduler/binder 配置做 diff，并用 Kueue/Grove 生成的 workload 做端到端验证。
 
 ---
 
@@ -6876,7 +6920,7 @@ Volcano Job 可以包含多个 Task，例如 parameter server、worker 和 chief
 
 每个调度周期创建 Session，加载当前 Node、Queue、Job/PodGroup 和 Task 快照。Action 决定调度周期做什么，Plugin 为 Action 提供排序、过滤、资源公平和可抢占判断。
 
-Volcano v1.15.3 的主要 actions 延续 v1.15.0 基线，包括：
+Volcano v1.16.0 的主要 actions 延续 v1.15.x 基线，并在 Queue/namespace fairness 与不可调度缓存路径上增加可选能力，包括：
 
 | Action | 作用 |
 |--------|------|
@@ -6957,7 +7001,7 @@ spec:
 
 #### 5.6.9 安装、升级与兼容性事实 {#ai-schedulers-7-9-安装-升级与兼容性事实}
 
-本章负责 Volcano 架构与当前能力；`v1.8.2 → v1.15.3` 的 chart/manifest、Queue 迁移、Webhook、Agent、GHSA-j38h-7pfq-cxmw、安全与调度补丁、故障处置及验收集中到[Volcano 升级篇](#volcano-upgrade)。正式稳定基线提升为 v1.15.3；prerelease 不计入稳定承诺。
+本章负责 Volcano 架构与当前能力；`v1.8.2 → v1.16.0` 的 chart/manifest、Queue 迁移、Webhook、Agent、GHSA-j38h-7pfq-cxmw、安全与调度补丁、故障处置及验收集中到[Volcano 升级篇](#volcano-upgrade)。正式稳定基线提升为 v1.16.0；更早的 v1.15.3 只作为上一 patch 的迁移证据，prerelease 不计入稳定承诺。
 
 #### 5.6.10 v1.15.3 稳定 patch 增量 {#ai-schedulers-7-10-v1-15-3-稳定-patch-增量}
 
@@ -6971,7 +7015,21 @@ spec:
 
 从 v1.15.2 升级到 v1.15.3 前，保留原有 GHSA/DRA、reclaim/preempt、backfill、HAMi/Ascend 和 terminating PodGroup 回归；本 patch 不改变 v1.15.0 引入的显式 action/gate 配置边界。
 
-#### 5.6.11 优势与限制 {#ai-schedulers-7-11-优势与限制}
+#### 5.6.11 v1.16.0 NamespaceQueue、fairshare 与 HyperNode {#ai-schedulers-7-11-v1-16-0-namespacequeue-fairshare与hypernode}
+
+`v1.16.0@41f27d567fb5bdaf2cab01e1caaf48f7e266eefb` 是本轮确认的最新正式 Volcano source；它是 annotated tag，tag object 为 `b4ad252f3fd42c766d11d204e97622cddbbe4bd5`。v1.15.3 仍是上一 patch 的历史基线，不能把本节的新增能力倒写到 v1.15.x。
+
+| 区域 | v1.16.0 行为 | 升级与验证边界 |
+|------|---------------|----------------|
+| NamespaceQueue | 引入 namespace-scoped、可层级化的 Queue/配额模型和管理员授权的 resource pool；首个实现只有 capacity plugin，功能默认关闭 | 仅在明确设置 `NamespaceQueue=true` 且使用 capacity plugin 时验证；NamespaceQueue 与 proportion 不能同时启用，默认层级深度为 5，先在非生产 namespace 做 quota、继承和越权测试 |
+| fairshare | 按 namespace 统计历史 resource-seconds，并以指数衰减计算公平份额；默认衰减窗口为 4h，配置和持久化均默认关闭 | 启用前先把 fairshare plugin 放在 drf 之后并确认历史数据来源、重启恢复和跨 namespace 结果；默认安装不会自动提供持久公平性 |
+| Unschedulable Job Cache | 缓存暂不可调度 Job，支持事件提示和 watchdog；默认通过 `UnschedulableJobCache=true` 关闭，watchdog 默认 5m，缓存只在内存中且重启清空 | 开启后验证事件触发、watchdog 周期、节点/配额变化后的重新入队、controller restart 与内存占用；不能把 cache 命中当成持久队列状态 |
+| HyperNode 与拓扑 | 增加 HyperNode controller/API 集成，PodGroup 拓扑反亲和可以利用 HyperNode 语义 | 需同时部署匹配的 HyperNode API/controller、节点拓扑标签和 scheduler plugin；先验证 PodGroup 放置、替换、节点失效和旧对象回滚 |
+| Kubernetes/DRA | 支持 Kubernetes 1.36 相关变更，并改进 DRA score、按 nodegroup 的 queue-level quota 和 accelerator 路径 | 目标集群需单独验证 Kubernetes 版本、DRA driver/API、ResourceClaim 和 queue quota；不能把 v1.16.0 的 scheduler 支持等同于所有 DRA driver 已兼容 |
+
+v1.16.0 的新插件和 gate 均不能默认视为已启用的稳定行为。升级前导出 scheduler config、Queue、NamespaceQueue/HyperNode（如有）、PodGroup 和 quota 状态；在 staging 分别验证默认关闭路径与显式开启路径，再执行 v1.15.3 的 DRA overflow、PodGroup annotation、snapshot、GHSA、reclaim/preempt 和 terminating PodGroup 回归。
+
+#### 5.6.12 优势与限制 {#ai-schedulers-7-12-优势与限制}
 
 **优势：** 完整批处理系统、成熟 Gang/Queue/DRF 插件、HPC/大数据生态广、Job 生命周期和拓扑能力丰富。
 
@@ -7102,18 +7160,18 @@ Workload API / PodSets
 | 项目 | Release | 提交 |
 |------|---------|------|
 | Koordinator | `v1.8.0` | `989ca85c62abcca92b303aa12fd2ccff2ed30fed` |
-| Kueue | `v0.20.1` | `237d77ecdf4a7551784bb5c07a497bb64c5dff2f` |
-| Grove | `v0.1.0-alpha.15` | `70f3e1b6afaa2c6fd29e840d917948704f6e2e36` |
-| KAI-Scheduler | `v0.18.5` | `36b2cabb463ef63e9cbde73c17ca8e4eac644f11` |
-| Volcano | `v1.15.3` | `d2dd7024f4af3070f9d99d68a78973893908a743` |
+| Kueue | `v0.20.2` | `296ec3db567abbe36b65a63695710e3d3f3d0bdb` |
+| Grove | `v0.1.0-alpha.16` | `e33b8353e66dd6ed86fd4913660f88f8dbd17955` |
+| KAI-Scheduler | `v0.18.6` | `279f61c6d55b20bd47a43f2560c1b4f646a55547` |
+| Volcano | `v1.16.0` | `41f27d567fb5bdaf2cab01e1caaf48f7e266eefb` |
 
 除明确标为 Alpha 的 Grove 外，正文按表中稳定 release 审校。生产仍须核对各项目的 Kubernetes compatibility、migration guide、Chart 和镜像 digest。
 
 辅助主线快照（未发布，仅用于审计时的实现/文档对照）：Koordinator `main@618b581b32668e317b0d18523d46cf9f55b549d8`。Grove 的 alpha.13 tag 直接指向 `af2df1ffff0ae7a1135554564a6240a3f22f2c35`；没有额外主线能力层纳入稳定承诺。这些分支事实不替代上表的稳定 release。
 
-Volcano `v1.16.0-alpha.0`、`.1`、`.2` 均为 prerelease，不替代 `v1.15.3`；Kubernetes `v1.38.0-alpha.2` 仍是 Core 预览线，不替代 `v1.37.1`；Kueue `v0.20.0-rc.1` 是历史 RC，最终稳定线已进入 `v0.20.1`。Alpha/RC 只用于 CRD、Chart 和升级预演，不能进入稳定选型矩阵。
+Volcano `v1.16.0-alpha.0`、`.1`、`.2` 是 v1.16.0 之前的历史 prerelease；Kubernetes `v1.38.0-alpha.2` 仍是 Core 预览线，不替代 `v1.37.1`；Kueue `v0.20.0-rc.1` 是历史 RC，最终稳定线已进入 `v0.20.2`。Alpha/RC 只用于 CRD、Chart 和升级预演，不能进入稳定选型矩阵。
 
-KAI 的 tag-only 证据：[`v0.20.1@5922dc7d`](https://github.com/kai-scheduler/KAI-Scheduler/tree/5922dc7d1a4661d3fc43d60943f92a775c892bdc)；审校时它没有对应正式 GitHub Release，不替代上表的 v0.18.5。旧维护分支 [`v0.16.9@724da838`](https://github.com/kai-scheduler/KAI-Scheduler/tree/724da8388358b7673495a935948ea0a67a86140b) 也只作历史分支证据。
+KAI 的 tag-only 证据：[`v0.20.1@5922dc7d`](https://github.com/kai-scheduler/KAI-Scheduler/tree/5922dc7d1a4661d3fc43d60943f92a775c892bdc)；审校时它没有对应正式 GitHub Release，不替代上表的正式 v0.18.6。旧维护分支 [`v0.16.9@724da838`](https://github.com/kai-scheduler/KAI-Scheduler/tree/724da8388358b7673495a935948ea0a67a86140b) 也只作历史分支证据。
 
 #### 5.9.2 通用排障命令 {#ai-schedulers-a-2-通用排障命令}
 
@@ -7154,9 +7212,11 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kubernetes-sigs/kueue> |
-| v0.20.1 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.20.1> |
-| v0.20.1 tag object | <https://github.com/kubernetes-sigs/kueue/tree/a88dc455091a6c204c982884043b9ccf8d585ab5> |
-| v0.20.1 exact source | <https://github.com/kubernetes-sigs/kueue/tree/237d77ecdf4a7551784bb5c07a497bb64c5dff2f> |
+| v0.20.2 Release | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.20.2> |
+| v0.20.2 tag object | <https://github.com/kubernetes-sigs/kueue/tree/b0fbbfe44ff20ee7f74cc0485c1a6812fe999a93> |
+| v0.20.2 exact source | <https://github.com/kubernetes-sigs/kueue/tree/296ec3db567abbe36b65a63695710e3d3f3d0bdb> |
+| v0.20.1 Release（历史） | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.20.1> |
+| v0.20.1 exact source（历史） | <https://github.com/kubernetes-sigs/kueue/tree/237d77ecdf4a7551784bb5c07a497bb64c5dff2f> |
 | v0.19.6 exact source（历史） | <https://github.com/kubernetes-sigs/kueue/tree/f0e95cea51b5591e0177fbe0fa06a299f36db548> |
 | v0.19.0 minor Release（升级前置仍适用） | <https://github.com/kubernetes-sigs/kueue/releases/tag/v0.19.0> |
 | 官方文档 | <https://kueue.sigs.k8s.io/docs/> |
@@ -7173,32 +7233,32 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/ai-dynamo/grove> |
-| v0.1.0-alpha.15 Release | <https://github.com/ai-dynamo/grove/releases/tag/v0.1.0-alpha.15> |
-| v0.1.0-alpha.15 exact source | <https://github.com/ai-dynamo/grove/tree/70f3e1b6afaa2c6fd29e840d917948704f6e2e36> |
-| Core Concepts | <https://github.com/ai-dynamo/grove/tree/70f3e1b6afaa2c6fd29e840d917948704f6e2e36/docs/user-guide/01_core-concepts> |
-| Operator API | <https://github.com/ai-dynamo/grove/blob/70f3e1b6afaa2c6fd29e840d917948704f6e2e36/docs/api-reference/operator-api.md> |
-| Scheduler API | <https://github.com/ai-dynamo/grove/blob/70f3e1b6afaa2c6fd29e840d917948704f6e2e36/docs/api-reference/scheduler-api.md> |
-| Topology-Aware Scheduling | <https://github.com/ai-dynamo/grove/blob/70f3e1b6afaa2c6fd29e840d917948704f6e2e36/docs/user-guide/topology-aware-scheduling.md> |
-| Scheduler Backend Framework | <https://github.com/ai-dynamo/grove/blob/70f3e1b6afaa2c6fd29e840d917948704f6e2e36/docs/proposals/375-scheduler-backend-framework/README.md> |
-| KAI Backend Proposal | <https://github.com/ai-dynamo/grove/blob/70f3e1b6afaa2c6fd29e840d917948704f6e2e36/docs/proposals/525-KAI-Scheduler-Backend/README.md> |
+| v0.1.0-alpha.16 Release | <https://github.com/ai-dynamo/grove/releases/tag/v0.1.0-alpha.16> |
+| v0.1.0-alpha.16 exact source（lightweight tag） | <https://github.com/ai-dynamo/grove/tree/e33b8353e66dd6ed86fd4913660f88f8dbd17955> |
+| Core Concepts | <https://github.com/ai-dynamo/grove/tree/e33b8353e66dd6ed86fd4913660f88f8dbd17955/docs/user-guide/01_core-concepts> |
+| Operator API | <https://github.com/ai-dynamo/grove/blob/e33b8353e66dd6ed86fd4913660f88f8dbd17955/docs/api-reference/operator-api.md> |
+| Scheduler API | <https://github.com/ai-dynamo/grove/blob/e33b8353e66dd6ed86fd4913660f88f8dbd17955/docs/api-reference/scheduler-api.md> |
+| Topology-Aware Scheduling | <https://github.com/ai-dynamo/grove/blob/e33b8353e66dd6ed86fd4913660f88f8dbd17955/docs/user-guide/topology-aware-scheduling.md> |
+| Scheduler Backend Framework | <https://github.com/ai-dynamo/grove/blob/e33b8353e66dd6ed86fd4913660f88f8dbd17955/docs/proposals/375-scheduler-backend-framework/README.md> |
+| KAI Backend Proposal | <https://github.com/ai-dynamo/grove/blob/e33b8353e66dd6ed86fd4913660f88f8dbd17955/docs/proposals/525-KAI-Scheduler-Backend/README.md> |
 
 #### 5.9.6 KAI-Scheduler 官方参考 {#ai-schedulers-a-6-kai-scheduler-官方参考}
 
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/kai-scheduler/KAI-Scheduler> |
-| v0.18.5 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.18.5> |
-| v0.18.5 exact source | <https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11> |
-| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/docs/quickstart> |
-| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/docs/batch> |
-| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/docs/queues> |
-| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/docs/fairness> |
-| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/docs/topology> |
-| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/docs/gpu-sharing> |
-| Preemption Delay | <https://github.com/kai-scheduler/KAI-Scheduler/blob/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/docs/preemption-delay/README.md> |
-| Preemption Delay API | <https://github.com/kai-scheduler/KAI-Scheduler/blob/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/pkg/apis/scheduling/v2alpha2/podgroup_types.go> |
-| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/docs/migrationguides> |
-| segmented elastic PyTorchJob 修复源码 | <https://github.com/kai-scheduler/KAI-Scheduler/blob/36b2cabb463ef63e9cbde73c17ca8e4eac644f11/pkg/podgrouper/podgrouper/plugins/kubeflow/pytorch/pytorch_grouper.go> |
+| v0.18.6 Release | <https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.18.6> |
+| v0.18.6 exact source（lightweight tag） | <https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547> |
+| Quickstart | <https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547/docs/quickstart> |
+| Batch Scheduling | <https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547/docs/batch> |
+| Queues | <https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547/docs/queues> |
+| Fairness | <https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547/docs/fairness> |
+| Topology | <https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547/docs/topology> |
+| GPU Sharing | <https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547/docs/gpu-sharing> |
+| Preemption Delay | <https://github.com/kai-scheduler/KAI-Scheduler/blob/279f61c6d55b20bd47a43f2560c1b4f646a55547/docs/preemption-delay/README.md> |
+| Preemption Delay API | <https://github.com/kai-scheduler/KAI-Scheduler/blob/279f61c6d55b20bd47a43f2560c1b4f646a55547/pkg/apis/scheduling/v2alpha2/podgroup_types.go> |
+| Migration Guides | <https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547/docs/migrationguides> |
+| segmented elastic PyTorchJob 修复源码 | <https://github.com/kai-scheduler/KAI-Scheduler/blob/279f61c6d55b20bd47a43f2560c1b4f646a55547/pkg/podgrouper/podgrouper/plugins/kubeflow/pytorch/pytorch_grouper.go> |
 | CNCF Sandbox 申请 | <https://github.com/cncf/sandbox/issues/372> |
 | CNCF Landscape | <https://landscape.cncf.io/?item=orchestration-management--scheduling-orchestration--kai-scheduler> |
 
@@ -7207,9 +7267,12 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 | 主题 | 链接 |
 |------|------|
 | GitHub | <https://github.com/volcano-sh/volcano> |
-| v1.15.3 Release | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.3> |
-| v1.15.3 tag object | <https://github.com/volcano-sh/volcano/tree/72a1885f88ce90aa3f89bd23442c448e1ca6fada> |
-| v1.15.3 源码快照 | <https://github.com/volcano-sh/volcano/tree/d2dd7024f4af3070f9d99d68a78973893908a743> |
+| v1.16.0 Release | <https://github.com/volcano-sh/volcano/releases/tag/v1.16.0> |
+| v1.16.0 tag object | <https://github.com/volcano-sh/volcano/tree/b4ad252f3fd42c766d11d204e97622cddbbe4bd5> |
+| v1.16.0 peeled source | <https://github.com/volcano-sh/volcano/tree/41f27d567fb5bdaf2cab01e1caaf48f7e266eefb> |
+| v1.15.3 Release（历史） | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.3> |
+| v1.15.3 tag object（历史） | <https://github.com/volcano-sh/volcano/tree/72a1885f88ce90aa3f89bd23442c448e1ca6fada> |
+| v1.15.3 源码快照（历史） | <https://github.com/volcano-sh/volcano/tree/d2dd7024f4af3070f9d99d68a78973893908a743> |
 | v1.15.2 源码快照（历史） | <https://github.com/volcano-sh/volcano/tree/1462fb7b4835970708717456e3aed85e697ec2eb> |
 | GHSA-j38h-7pfq-cxmw | <https://github.com/volcano-sh/volcano/security/advisories/GHSA-j38h-7pfq-cxmw> |
 | 官网固定快照 | <https://github.com/volcano-sh/website/tree/f5258704d7ef5bda28f31ba51950cdea9adbe921> |
@@ -7226,7 +7289,7 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 
 #### 5.9.8 合并前历史证据（迁移审计）
 
-以下链接保留合并前 AI scheduler 文档使用的 exact source 和 release 证据。当前正文已升级到 Kueue v0.20.1、Grove alpha.15 与 KAI-Scheduler v0.18.5；历史链接只用于复核旧章节，不扩大当前稳定承诺。
+以下链接保留合并前 AI scheduler 文档使用的 exact source 和 release 证据。当前正文已升级到 Kueue v0.20.2、Grove alpha.16、KAI-Scheduler v0.18.6 与 Volcano v1.16.0；历史链接只用于复核旧章节，不扩大当前稳定承诺。
 
 - Grove alpha.13 Release：<https://github.com/ai-dynamo/grove/releases/tag/v0.1.0-alpha.13>
 - Grove alpha.13 exact source：<https://github.com/ai-dynamo/grove/tree/af2df1ffff0ae7a1135554564a6240a3f22f2c35>
@@ -7262,13 +7325,13 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 
 
 
-> **从 v1.8.2 到 v1.15.3：Helm、Webhook、CRD、Queue 调度语义与 Cloud Native Colocation 的兼容边界**
+> **从 v1.8.2 到 v1.16.0：Helm、Webhook、CRD、Queue 调度语义与 Cloud Native Colocation 的兼容边界**
 
 ---
 
-> 稳定目标版本：Volcano `v1.15.3@d2dd7024f4af3070f9d99d68a78973893908a743`；官方文档快照 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；Helm Chart 继续沿用 `volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513` 的已固定 chart 证据，应用版本升级到 v1.15.3 后需重新核对 chart 发布物；审校日期：2026-10-13。网站分支只用于文档证据；不把其后主线内容写成 v1.15.3 能力。
+> 稳定目标版本：Volcano `v1.16.0@41f27d567fb5bdaf2cab01e1caaf48f7e266eefb`；tag object 为 `b4ad252f3fd42c766d11d204e97622cddbbe4bd5`；官方文档快照 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；`volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513` 只作历史 chart 证据，v1.16.0 部署前需重新核对 chart/OCI 发布物；审校日期：2026-10-16。网站分支只用于文档证据；不把其后主线内容写成 v1.16.0 能力。
 
-> 审校窗口内的 `v1.16.0-alpha.0`、`.1`、`.2` 均为 prerelease，只用于后续升级预演，不替代 v1.15.3 正式目标、Chart 或兼容承诺。
+> `v1.16.0-alpha.0`、`.1`、`.2` 是正式 v1.16.0 之前的历史 prerelease；当前稳定目标已切换到 v1.16.0，不把 alpha 阶段的中间行为当作独立稳定承诺。
 
 ---
 
@@ -7276,7 +7339,7 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 
 #### 6.1.1 核心结论 {#volcano-upgrade-1-1-核心结论}
 
-Volcano v1.8.2 到 v1.15.3 不能被视为一次单纯的 Deployment 镜像替换。这个跨度同时经过了 Queue API 字段扩展、默认 Queue plugin 两次切换、admission 证书 Job 生命周期修复、Cloud Native Colocation/Volcano Agent 引入、更多 CRD 加入、v1.15.0 的新抢占与 DRA quota 语义，以及 v1.15.1/v1.15.2/v1.15.3 的安全和调度补丁。
+Volcano v1.8.2 到 v1.16.0 不能被视为一次单纯的 Deployment 镜像替换。这个跨度同时经过了 Queue API 字段扩展、默认 Queue plugin 两次切换、admission 证书 Job 生命周期修复、Cloud Native Colocation/Volcano Agent 引入、更多 CRD 加入、v1.15.0 的新抢占与 DRA quota 语义、v1.15.1/v1.15.2/v1.15.3 的安全和调度补丁，以及 v1.16.0 的 NamespaceQueue、fairshare、Unschedulable Job Cache 和 HyperNode 能力。
 
 最需要提前锁定的结论是：
 
@@ -7286,7 +7349,7 @@ Volcano v1.8.2 到 v1.15.3 不能被视为一次单纯的 Deployment 镜像替�
 4. `custom.colocation_enable=true` 只为 Helm 安装增加 Volcano Agent、RBAC 和节点访问链路，不会自动切换 Queue plugin，也不会自动为 Queue 配置批资源配额。
 5. v1.13.0 起可以把 Agent 限定为通用 Linux 可用的 `OverSubscription,Eviction,Resources`。CPU QoS、Memory QoS、CPU Burst 和 Network QoS 仍有内核、cgroup、BPF/CNI 或特定 OS 能力依赖。
 6. v1.15.0 引入、v1.15.2 延续的 `gangPreempt`/`gangReclaim` 是显式启用的 Alpha actions，官方要求不要与旧 `preempt`/`reclaim` 同时配置。DRA Queue quota 只属于 `capacity` plugin 路径，并需要对应参数和 Kubernetes DRA 环境。
-7. v1.15.2 修复 GHSA-j38h-7pfq-cxmw 的 DRA capacity 线性迭代拒绝服务风险，并补齐 reclaim/preempt 设备可行性复核、backfill nil panic、HAMi Ascend normal preemption 与 terminating PodGroup 状态修复；v1.15.3 进一步修复 DRA int64 溢出、stale PodGroup annotation 和 not-ready placeholder node snapshot；这些补丁应进入目标验证集。
+7. v1.15.2 修复 GHSA-j38h-7pfq-cxmw 的 DRA capacity 线性迭代拒绝服务风险，并补齐 reclaim/preempt 设备可行性复核、backfill nil panic、HAMi Ascend normal preemption 与 terminating PodGroup 状态修复；v1.15.3 进一步修复 DRA int64 溢出、stale PodGroup annotation 和 not-ready placeholder node snapshot；v1.16.0 还需要加入 NamespaceQueue/fairshare/cache/HyperNode 的默认关闭与显式开启验证；这些补丁和 gate 都应进入目标验证集。
 
 #### 6.1.2 本文覆盖什么 {#volcano-upgrade-1-2-本文覆盖什么}
 
@@ -7344,7 +7407,7 @@ Webhook 位于 API Server 写入路径上。证书或 Service 失效时，问题
 
 ---
 
-### 6.3 v1.8.2 到 v1.15.3 版本矩阵 {#volcano-upgrade-v1-8-2-到-v1-15-3-版本矩阵}
+### 6.3 v1.8.2 到 v1.16.0 版本矩阵 {#volcano-upgrade-v1-8-2-到-v1-16-0-版本矩阵}
 
 #### 6.3.1 主版本变化矩阵 {#volcano-upgrade-3-1-主版本变化矩阵}
 
@@ -7361,14 +7424,15 @@ Webhook 位于 API Server 写入路径上。证书或 Service 失效时，问题
 | v1.15.1 | `proportion` | 修复 PrePredicate 失败后未尊重 `NeedContinueAllocating`、DRA device count 溢出、PVC informer race、scheduler nil panic、scalar milli-unit 与 HAMi/Ascend 设备记账 | `golang.org/x/crypto` 升至 v0.53.0，纳入上游 SSH 安全修复；官方 chart 1.15.1 的 `appVersion` 同步为 1.15.1 | 保持 v1.15.0 feature 语义；需要重放 OnDemand PVC、PrePredicate、DRA quota、HAMi vGPU 与 Ascend vNPU 场景 |
 | v1.15.2 | `proportion` | DRA count 改为常数时间、校验非法值并使用 overflow-safe arithmetic；reclaim/preempt 驱逐后复核 predicate/device feasibility；修复 backfill nil node、HAMi Ascend preemption 和 terminating PodGroup 状态 | 正式 Chart tag `volcano-1.15.2` 指向 `c2050e3...`；不改变 v1.15.0 feature 开关模型 | `>=1.15.0,<1.15.2` 受 GHSA-j38h-7pfq-cxmw 影响，应升级并重放恶意大 count、设备抢占与 terminating PodGroup 用例 |
 | v1.15.3 | `proportion` | 修复 DRA quota int64 overflow、Pod 重建后的 stale PodGroup annotation，以及增量 snapshot 纳入 not-ready placeholder node | release source `d2dd702...`；chart 发布物需按 v1.15.3 tag/OCI digest 重新核对；不改变 v1.15.0 feature 开关模型 | 从 v1.15.2 升级后重放大计数、Pod 重建、节点 NotReady/Ready 和 GPU/DRA snapshot 场景 |
+| v1.16.0 | `proportion`（NamespaceQueue/fairshare/cache 默认关闭） | 引入 NamespaceQueue 层级 namespace quota、fairshare 历史 resource-seconds、Unschedulable Job Cache、HyperNode 拓扑集成；支持 Kubernetes 1.36、DRA scoring、nodegroup queue quota 和 accelerator 改进 | `NamespaceQueue=true`、`UnschedulableJobCache=true` 等能力需显式开启；NamespaceQueue 先只有 capacity plugin，不能与 proportion 并用；fairshare 默认无持久化 | 先验证默认关闭路径，再分别验证 NamespaceQueue、fairshare、cache、HyperNode、DRA 与 Kubernetes 1.36 组合；缓存重启清空，不能当作持久状态 |
 
-> v1.15.3 是本文的稳定目标版本。官网分支快照只用于固定辅助证据；现有 `volcano-1.15.2` chart commit 仅作为已验证 chart 证据，v1.15.3 的 chart/OCI 发布物必须在部署前重新固定，不把晚于该 tag 的主线能力写成稳定能力。
+> v1.16.0 是本文的稳定目标版本。官网分支快照只用于固定辅助证据；现有 `volcano-1.15.2` chart commit 仅作为历史已验证 chart 证据，v1.16.0 的 chart/OCI 发布物必须在部署前重新固定，不把晚于该 tag 的主线能力写成稳定能力。
 
 #### 6.3.2 Queue CRD 字段不是 Queue 行为 {#volcano-upgrade-3-2-queue-crd-字段不是-queue-行为}
 
 tagged Queue CRD 的关键字段演进如下：
 
-| 字段 | v1.8.2 | v1.9.0 | v1.10.0 到 v1.15.3 | 主要消费者 |
+| 字段 | v1.8.2 | v1.9.0 | v1.10.0 到 v1.16.0 | 主要消费者 |
 |---|---:|---:|---:|---|
 | `weight` | 有 | 有 | 有 | `proportion` 根据权重动态计算份额 |
 | `deserved` | 无 | 新增 | 有 | `capacity` 的显式应得资源 |
@@ -7399,6 +7463,7 @@ v1.14.0 proportion
 v1.15.0 proportion
 v1.15.1 proportion
 v1.15.2 proportion
+v1.16.0 proportion（NamespaceQueue/fairshare/cache 默认关闭）
 ```
 
 但生产集群可能通过 `custom.scheduler_config_override`、GitOps 覆盖、直接编辑 ConfigMap 或不同 chart 来源改变它。判断现场行为时，唯一可靠的入口是运行中的 ConfigMap以及对应 scheduler Pod 实际挂载内容。
@@ -7419,7 +7484,7 @@ v1.15.2 proportion
 | 回滚 | Helm 可回滚已记录模板，但不能自动回滚外部节点状态或所有 CRD 语义 | 需要重新 apply 旧 manifest，并自行处理状态兼容 |
 | 切换路径 | 需要核对现有资源 Helm ownership | 需要核对 field manager、资源名和 namespace，不能直接假设可互换 |
 
-不要在一次升级中同时完成“v1.8.2 到 v1.15.3”和“manifest 安装改成 Helm”两种迁移。两者同时发生会把版本差异、字段所有权、资源命名和 hook 生命周期混在同一个故障面中。
+不要在一次升级中同时完成“v1.8.2 到 v1.16.0”和“manifest 安装改成 Helm”两种迁移。两者同时发生会把版本差异、字段所有权、资源命名和 hook 生命周期混在同一个故障面中。
 
 #### 6.4.2 关键 chart 差异 {#volcano-upgrade-4-2-关键-chart-差异}
 
@@ -7562,7 +7627,7 @@ v1.15.2 是保持 v1.15 feature 模型不变的安全/正确性补丁，但它�
 | HAMi Ascend | device-share 支持 Ascend normal preemption | 同时检查 victim 选择、vNPU annotation、释放后的 device cache 与后续可分配性 |
 | terminating PodGroup | 存在 terminating Pod 时不再把 PodGroup 错误退回 `Inqueue` | 删除/终止含多个 Pod 的 Job，验证 PodGroup phase 和 controller cleanup 单调收敛 |
 
-该 GHSA 的确认影响是 scheduler CPU-time exhaustion 与全局调度不可用，没有证据表明产生机密性或数据完整性影响。风险路径还要求启用 DRA、显式启用 Volcano 的 `DRAConsumableCapacity`，并允许攻击者创建/引用相关 namespaced ResourceClaim；这些前置只影响暴露面判断，不改变“升级到 v1.15.2 或更高版本”的处置建议；当前目标应进一步固定为 v1.15.3。
+该 GHSA 的确认影响是 scheduler CPU-time exhaustion 与全局调度不可用，没有证据表明产生机密性或数据完整性影响。风险路径还要求启用 DRA、显式启用 Volcano 的 `DRAConsumableCapacity`，并允许攻击者创建/引用相关 namespaced ResourceClaim；这些前置只影响暴露面判断，不改变“升级到 v1.15.2 或更高版本”的处置建议；当前目标应固定为 v1.16.0，并保留 v1.15.3 的安全回归。
 
 #### 6.5.8 v1.15.3 稳定 patch 修复 {#volcano-upgrade-5-8-v1-15-3-稳定-patch-修复}
 
@@ -7575,6 +7640,20 @@ v1.15.3 保持 v1.15 feature 模型不变，新增三项目标验证：
 | agent-scheduler snapshot | 增量 snapshot 跳过 not-ready placeholder node | 重放节点加入、NotReady/Ready 切换、snapshot rebuild 和 GPU/DRA 节点过滤，确认不误判真实节点 |
 
 从 v1.15.2 升级到 v1.15.3 不会自动改变 Queue plugin、gang action 或 Agent feature；仍需执行 v1.15.2 的 GHSA/DRA、reclaim/preempt、backfill、HAMi/Ascend 与 terminating PodGroup 回归。
+
+#### 6.5.9 v1.16.0 新增队列、缓存与 HyperNode 验证 {#volcano-upgrade-5-9-v1-16-0-新增队列缓存与-hypernode验证}
+
+v1.16.0 的新增能力不能按 patch upgrade 的方式直接套入现有 scheduler ConfigMap。它们默认关闭或受 plugin 组合约束，建议把“升级到 v1.16.0”和“启用新调度语义”拆成两个变更单：
+
+| 能力 | 默认与配置边界 | 定向验证 |
+|---|---|---|
+| NamespaceQueue | `NamespaceQueue=true` 才启用；首版只有 capacity plugin，不能与 proportion 并用；默认层级深度 5，支持 namespace-scoped hierarchical queue、quota 和管理员授权 resource pool | 用 namespace 创建/删除、父子 queue、quota 超限、管理员/租户 RBAC、跨 namespace 同名对象和回滚验证；确认未启用时旧 Queue 行为不变 |
+| fairshare | 按 namespace 累积 resource-seconds，默认指数衰减窗口 4h；plugin 和持久化默认关闭，需在 drf 之后配置 | 验证多 namespace 长短作业、衰减窗口、scheduler restart、历史数据清空/恢复和与 reclaim/preempt 的交互；不要把内存历史当作可靠审计账本 |
+| Unschedulable Job Cache | `UnschedulableJobCache=true` 才启用；event hint/watchdog 默认 5m；cache 为内存态，重启清空 | 验证资源释放、节点更新、配额变化、watchdog、重复 event、cache hit/miss、controller restart 和内存上界 |
+| HyperNode | controller/API 与 scheduler topology plugin 共同提供 HyperNode 语义；PodGroup topology anti-affinity 可使用该层次 | 验证 HyperNode 创建/更新/删除、节点拓扑变化、PodGroup replacement、节点失效和旧对象回滚；缺任一 controller/API 时应明确失败而非静默降级 |
+| Kubernetes 1.36 / DRA | 支持 Kubernetes 1.36 相关路径，并增强 DRA scoring、nodegroup queue-level quota 和 accelerator | 按 Kubernetes 1.35/1.36、DRA driver、ResourceClaim、nodegroup quota 和 GPU/DRA score 组合建立矩阵；支持不等于所有 driver 已通过兼容性认证 |
+
+升级验收至少包括：旧 Queue/Job/PodGroup 连续推进、v1.15.3 的 DRA/annotation/snapshot 回归、NamespaceQueue 默认关闭和显式开启、fairshare 计量、cache 重入队、HyperNode 拓扑放置，以及回滚到旧 scheduler 后对象可读。只有这些测试全部通过，才能把 v1.16.0 写入生产稳定基线。
 
 ---
 
@@ -7933,6 +8012,8 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 
 | 仓库 | 分支 | 提交 |
 |---|---|---|
+| Volcano | `v1.16.0` annotated tag object | `b4ad252f3fd42c766d11d204e97622cddbbe4bd5`（仅 ref 元数据） |
+| Volcano | `v1.16.0` peeled source commit | `41f27d567fb5bdaf2cab01e1caaf48f7e266eefb` |
 | Volcano | `v1.15.3` annotated tag object | `72a1885f88ce90aa3f89bd23442c448e1ca6fada`（仅 ref 元数据） |
 | Volcano | `v1.15.3` peeled source commit | `d2dd7024f4af3070f9d99d68a78973893908a743` |
 | Volcano | `v1.15.2` annotated tag object | `f0917e48403c4ffa2d8a022f05f1f5097fbe9c10`（仅 ref 元数据） |
@@ -7955,6 +8036,7 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 | v1.15.1 | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.1> |
 | v1.15.2 | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.2> |
 | v1.15.3 | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.3> |
+| v1.16.0 | <https://github.com/volcano-sh/volcano/releases/tag/v1.16.0> |
 
 #### 6.12.3 Feature 与源码证据 {#volcano-upgrade-a-3-feature-与源码证据}
 
@@ -7977,7 +8059,8 @@ actions: "enqueue, allocate, backfill, gangPreempt, gangReclaim"
 | v1.15.2 DRA O(1) 安全修复 | <https://github.com/volcano-sh/volcano/blob/1462fb7b4835970708717456e3aed85e697ec2eb/pkg/scheduler/api/job_info.go> |
 | v1.15.2 reclaim predicate 复核 | <https://github.com/volcano-sh/volcano/blob/1462fb7b4835970708717456e3aed85e697ec2eb/pkg/scheduler/actions/reclaim/reclaim.go> |
 | v1.15.2 backfill nil 防护 | <https://github.com/volcano-sh/volcano/blob/1462fb7b4835970708717456e3aed85e697ec2eb/pkg/scheduler/actions/backfill/backfill.go> |
-| v1.15.3 DRA overflow / snapshot / PodGroup 修复 | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.3> |
+| v1.15.3 DRA overflow / snapshot / PodGroup 修复（历史） | <https://github.com/volcano-sh/volcano/releases/tag/v1.15.3> |
+| v1.16.0 NamespaceQueue / fairshare / cache / HyperNode | <https://github.com/volcano-sh/volcano/releases/tag/v1.16.0> |
 | v1.15.2 Helm Charts index | <https://github.com/volcano-sh/helm-charts/blob/c2050e3debe58dbcdf9bb75b667799eec9409513/index.yaml> |
 | Helm Charts | <https://github.com/volcano-sh/helm-charts> |
 
@@ -8016,7 +8099,7 @@ kubectl get jobs.batch.volcano.sh,podgroups.scheduling.volcano.sh -A
 kubectl get events -A --sort-by=.lastTimestamp
 ```
 
-最终验收必须回到[6.2 升级成功的六个层次](#volcano-upgrade-升级成功的六个层次)的六层模型。只有 Helm、Pod Ready 或 CRD list 成功，都不足以单独证明 v1.8.2 到 v1.15.3 已实现行为兼容的平滑升级。
+最终验收必须回到[6.2 升级成功的六个层次](#volcano-upgrade-升级成功的六个层次)的六层模型。只有 Helm、Pod Ready 或 CRD list 成功，都不足以单独证明 v1.8.2 到 v1.16.0 已实现行为兼容的平滑升级；NamespaceQueue、fairshare、Unschedulable Job Cache 和 HyperNode 还要分别验证默认关闭与显式开启路径。
 
 ## 第7篇：KServe {#kserve}
 
@@ -8026,7 +8109,7 @@ kubectl get events -A --sort-by=.lastTimestamp
 >
 > 基于 KServe 官方仓库与官网文档整理：<https://github.com/kserve/kserve>
 >
-> 稳定版本基线：`kserve/kserve v0.21.0@d1482554fc4f66dd41aee70e01f5174e24f265bd`（lightweight tag，commit 即源码）；未发布主线快照：`kserve/kserve master@bb22cc477a6bd317bb2c7e357a85efcab8c7462a`、官网 `kserve/website main@71c8b22a05d6be72560b2cc326865930063cd0e8`；审校日期：2026-10-13。主线快照只用于说明未进入 tag 的后续方向，不计入 v0.21.0 兼容承诺。
+> 稳定版本基线：`kserve/kserve v0.21.0@d1482554fc4f66dd41aee70e01f5174e24f265bd`（lightweight tag，commit 即源码）；未发布主线快照：`kserve/kserve master@bb22cc477a6bd317bb2c7e357a85efcab8c7462a`、官网 `kserve/website main@71c8b22a05d6be72560b2cc326865930063cd0e8`；审校日期：2026-10-16。主线快照只用于说明未进入 tag 的后续方向，不计入 v0.21.0 兼容承诺。
 
 > `v0.21.0-rc0`/`rc1` 已被 `v0.21.0` 正式 Release 取代，不再单列边界；本轮没有更新的 prerelease。
 
@@ -9401,7 +9484,7 @@ kubectl get daemonset -n kserve kserve-localmodelnode-agent
 >
 > 基于 Kubeflow Community Distribution 官方仓库整理：<https://github.com/kubeflow/community-distribution>
 >
-> 稳定版本基线：Community Distribution `26.03.1@f09f3eeaa25cc852665f460497a42b7fc68639ac`，审校日期：2026-10-13。组件矩阵以该 release 的 manifests 为准；本轮复核稳定 Release 未变化。
+> 稳定版本基线：Community Distribution `26.03.1@f09f3eeaa25cc852665f460497a42b7fc68639ac`，审校日期：2026-10-16。组件矩阵以该 release 的 manifests 为准；本轮复核稳定 Release 未变化。
 
 ---
 
@@ -10578,7 +10661,7 @@ KServe 安装和测试：
 | 节点软件栈 | [GPU Operator](#gpu-operator) | Driver、Toolkit、CDI、Plugin、GFD 与 DCGM；不拥有租户准入 |
 | 设备份额与隔离 | [HAMi](#hami)及 MIG / DRA driver | 唯一资源名、设备分配与注入链路；GPU 配额不自动形成硬隔离 |
 | Job 准入与放置 | [AI 调度器](#ai-schedulers) | Kueue 管配额/准入；Grove 管组件图；最终 Bind 交给明确的 scheduler |
-| 升级迁移 | [Volcano 升级](#volcano-upgrade) | 固定 `v1.8.2 → v1.15.3` 的版本矩阵、Queue/Webhook/Agent 与验收 |
+| 升级迁移 | [Volcano 升级](#volcano-upgrade) | 固定 `v1.8.2 → v1.16.0` 的版本矩阵、Queue/Webhook/Agent 与验收 |
 | 独立模型服务 | [KServe](#kserve) | 独立 `v0.21.0`、API、数据面、缓存、灰度和伸缩 |
 | 发行版平台 | [Kubeflow](#kubeflow) | `26.03.1` 固定组件、Profiles/RBAC、安装 patch 和升级约束 |
 | KV 与推理内部编排 | [推理系统](AI-Inference-Deep-Dive.md) | Mooncake / Dynamo 数据移动、缓存路由与 P/D；不自动成为发行版内置组件 |
@@ -10600,18 +10683,18 @@ KServe 安装和测试：
 
 #### 9.2.2 能力矩阵 {#k8s-scheduler-10-2-能力矩阵}
 
-下表按本站固定版本比较：Kubernetes v1.37.1、Koordinator v1.8.0、Kueue v0.20.1、Grove v0.1.0-alpha.15、KAI-Scheduler v0.18.5 与 Volcano v1.15.3。“Gang 原子性”指 scheduler/admission 的组级提交语义，不代表 API Server 对多个 Pod binding 提供 ACID 事务。
+下表按本站固定版本比较：Kubernetes v1.37.1、Koordinator v1.8.0（本轮复核未变化）、Kueue v0.20.2、Grove v0.1.0-alpha.16、KAI-Scheduler v0.18.6 与 Volcano v1.16.0。“Gang 原子性”指 scheduler/admission 的组级提交语义，不代表 API Server 对多个 Pod binding 提供 ACID 事务。
 
-| 维度 | kube-scheduler v1.37.1 | Koordinator v1.8.0 | Kueue v0.20.1 | Grove v0.1.0-alpha.15 | KAI-Scheduler v0.18.5 | Volcano v1.15.3 |
+| 维度 | kube-scheduler v1.37.1 | Koordinator v1.8.0 | Kueue v0.20.2 | Grove v0.1.0-alpha.16 | KAI-Scheduler v0.18.6 | Volcano v1.16.0 |
 |------|------------------------|--------------------|---------------|--------------------------|-----------------------|-----------------|
 | API 稳定性 | 单 Pod API 稳定；DRA `resource.k8s.io/v1`；Workload/PodGroup `v1beta1` 但 gate 默认关闭；CompositePodGroup `v1alpha3` | 多组扩展 API/CRD 仍含 `v1alpha1`，需核对 feature gate 与 koordlet | 核心 API 为 `v1beta2`，有明确转换与弃用策略 | 主体 `v1alpha1`，本版本仍明确为 Alpha | PodGroup、Queue、Operator API 快速演进，需按 migration guide 升级 | 历史较长，多组 `v1alpha1`/`v1beta1` CRD，升级面较大 |
 | 最终 Bind | 是，Scheduling Framework | 是，`koord-scheduler` | 通常否，准入后交给下游 scheduler | 否，生成/翻译编排意图给 backend | 是，独立 scheduler + Binder | 是，独立 scheduler |
 | Gang 原子性 | `GenericWorkload` Beta、默认关闭；初始组级提交，真实 Bind 仍异步 | Coscheduling/PodGroup；保证取决于启用的插件与 controller 契约 | Workload/PodSet 准入和 PodsReady 恢复，不等于节点级原子 Bind | 表达层次化 PodGang；实际保证由所选 backend 决定 | PodGroup/SubGroup 是核心调度单元，支持层次化组决策 | gang + enqueue/allocate；PodGroup `minMember/minResources` 驱动组决策 |
-| 队列、借用与公平 | 无完整租户队列或历史公平系统 | ElasticQuota 多树与 quota runtime | ClusterQueue/LocalQueue/Cohort、借用、Fair Sharing 是核心 | 无全局租户队列 | 层级队列、DRF、priority/time-based fairshare | Queue + DRF/Proportion/Capacity，支持 reclaim |
-| Job 准入 | 不负责；`WorkloadWithJob` 只自动接入特定 Indexed Job | 非核心职责 | suspend/admit、ResourceFlavor、AdmissionCheck、MultiKueue | 依赖上游队列或 backend | 支持 Pod Grouper/批调度路径 | Volcano Job、PodGroup 和广泛 controller 集成 |
-| 拓扑 | Pod/Node 约束稳定；PodGroup TAS Alpha、单 topology constraint | NetworkTopology、NUMA 与设备拓扑 | 在准入层分配 topology domain，具体节点仍由 scheduler 选择 | ClusterTopologyBinding 表达多层拓扑，落地依赖 backend | workload/SubGroup 级 TAS、GPU/NVLink domain 与 DRA | HyperNode、network-topology-aware、NUMA/task topology plugins |
-| 具体设备分配 | Device Plugin 或 DRA；DRA 与节点在同一调度周期联合选择 | DeviceShare、joint allocation、NUMA；隔离仍依赖节点实现 | 对 GPU/DRA 资源做 quota/flavor 准入，不直接选择 device ID | 描述共享 claim/ComputeDomain，设备由 DRA/backend 分配 | Binder、GPU sharing、DRA/ComputeDomain、DRA-backed extended resources；隔离依赖 driver/runtime | DeviceShare、Dynamic MIG、厂商插件；v1.15.0+ 可把 DRA 纳入 Queue quota |
-| 工作负载级抢占 | 默认 Pod 抢占稳定；组级抢占 Alpha，可跨节点，但不支持带 TAS 的组；默认抢占不支持 DRA device | priority/preemption 与 Reservation/QoS 组合，需按插件语义验证 | Queue/Cohort 配额层 reclaim/preemption，不等于节点 victims | 不独立抢占，由 backend 解释 PodGang | queue/PodGroup-aware reclaim、preempt、consolidation、最小运行保护与 preemption delay | preempt/reclaim 及 gangpreempt/gangreclaim actions |
+| 队列、借用与公平 | 无完整租户队列或历史公平系统 | ElasticQuota 多树与 quota runtime | ClusterQueue/LocalQueue/Cohort、借用、Fair Sharing 与 DRA quota；KueueViz 只做观测 | 无全局租户队列；alpha.16 可接 Kueue prebuilt workload backend | 层级队列、DRF、priority/time-based fairshare；v0.18.6 修复排序 fallback | Queue + DRF/Proportion/Capacity、reclaim；NamespaceQueue/fairshare 默认关闭 |
+| Job 准入 | 不负责；`WorkloadWithJob` 只自动接入特定 Indexed Job | 非核心职责 | suspend/admit、ResourceFlavor、AdmissionCheck、MultiKueue；KueueViz 展示 Pods | alpha.16 可通过 prebuilt workload backend 接入 Kueue；不拥有 quota | 支持 Pod Grouper/批调度路径 | Volcano Job、PodGroup 和广泛 controller 集成 |
+| 拓扑 | Pod/Node 约束稳定；PodGroup TAS Alpha、单 topology constraint | NetworkTopology、NUMA 与设备拓扑 | 在准入层分配 topology domain，具体节点仍由 scheduler 选择 | ClusterTopologyBinding 表达多层拓扑，Kueue backend/所选 scheduler 决定落地 | workload/SubGroup 级 TAS、GPU/NVLink domain 与 DRA；replacement 保持 required domain | HyperNode、network-topology-aware、NUMA/task topology plugins；HyperNode 需显式部署 |
+| 具体设备分配 | Device Plugin 或 DRA；DRA 与节点在同一调度周期联合选择 | DeviceShare、joint allocation、NUMA；隔离仍依赖节点实现 | 对 GPU/DRA 资源做 quota/flavor 准入，不直接选择 device ID；v0.20.2 修复 stale charge | 描述共享 claim/ComputeDomain，设备由 DRA/backend 分配 | Binder、GPU sharing、DRA/ComputeDomain、DRA-backed extended resources；隔离依赖 driver/runtime | DeviceShare、Dynamic MIG、厂商插件；v1.16.0 增强 DRA score 和 nodegroup quota |
+| 工作负载级抢占 | 默认 Pod 抢占稳定；组级抢占 Alpha，可跨节点，但不支持带 TAS 的组；默认抢占不支持 DRA device | priority/preemption 与 Reservation/QoS 组合，需按插件语义验证 | Queue/Cohort 配额层 reclaim/preemption，不等于节点 victims；v0.20.2 修复 Fair Sharing false preemption | 不独立抢占，由 backend 解释 PodGang | queue/PodGroup-aware reclaim、preempt、consolidation、最小运行保护与 preemption delay | preempt/reclaim 及 gangpreempt/gangreclaim actions；fairshare/cache/NamespaceQueue 需显式启用 |
 | 应用编排 | 只对特定 Indexed Job 有 Alpha 自动接入；不管理多角色依赖 | 不负责应用组件图 | 依赖 Job framework/controller | 核心：clique、角色依赖、服务发现、成组扩缩与滚动更新 | 与 JobSet/Grove 等归组集成，不替代业务 controller | Volcano Job 多 Task/策略较完整，也可接外部 Job controller |
 | 运行时隔离与混部 | requests/priority/kubelet 基础；DRA 不自动提供显存隔离 | koordlet/runtime hooks、QoS 与混部闭环是强项 | 不负责节点侧隔离 | 不负责 | GPU sharing 的硬隔离依赖外部 runtime | 批处理为主，设备与混部能力依赖插件/agent/runtime |
 
