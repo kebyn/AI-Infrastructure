@@ -310,6 +310,8 @@ class SharedThemeRenderingTest(unittest.TestCase):
             return merged
 
         raw = serve_docs.PYGMENTS_CSS
+        # The trailing @media print block re-states light colors; it is not a theme section.
+        raw = raw[:raw.index("@media print")]
         light_text = raw.split("tokens (light) ─── */")[1].split("/* ─── Pygments tokens (dark)")[0]
         rest = raw.split("/* ─── Pygments tokens (dark) ─── */")[1]
         dark_attr_text, _, media_tail = rest.partition("@media (prefers-color-scheme: dark) {")
@@ -328,7 +330,7 @@ class SharedThemeRenderingTest(unittest.TestCase):
                     self.assertGreaterEqual((high + 0.05) / (low + 0.05), 4.5)
 
     def test_print_rules_hide_page_chrome(self):
-        match = re.search(r"@media print \{(.*)\n\}", serve_docs.CSS, re.S)
+        match = re.search(r"/\* ─── Print ─── \*/\n@media print \{\n(.*?)@page \{ margin: 16mm; \}\n\}", serve_docs.CSS, re.S)
         self.assertIsNotNone(match)
         block = match.group(1)
         for selector in (
@@ -337,6 +339,16 @@ class SharedThemeRenderingTest(unittest.TestCase):
         ):
             with self.subTest(selector=selector):
                 self.assertIn(selector, block)
+        # Long code lines and wide tables must wrap/expand instead of clipping.
+        self.assertIn("pre, .highlight pre { white-space: pre-wrap;", block)
+        self.assertIn(".table-wrap, .timeline-table-wrap { overflow-x: visible; }", block)
+        self.assertIn("font-size: 11pt", block)
+        # Printing from dark mode must fall back to the light palette.
+        light_accent = re.search(r"--accent: (#[\da-f]{6});", serve_docs.LIGHT_PALETTE).group(1)
+        self.assertIn(f"--accent: {light_accent} !important;", block)
+        # Token colors get a light-theme print variant so code stays readable.
+        self.assertIn("@media print", serve_docs.PYGMENTS_CSS)
+        self.assertIn("color: #407481 !important;", serve_docs.PYGMENTS_CSS)
 
     def test_heading_anchor_styles_cover_touch_and_target(self):
         self.assertIn("@media (hover: none)", serve_docs.CSS)

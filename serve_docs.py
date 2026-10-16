@@ -1141,8 +1141,9 @@ def _build_pygments_css():
     The container background is dropped so the shared `--bg-code` surface wins;
     the dark stylesheet is emitted twice (attribute selector and media query) to
     match how the site resolves light/dark. Line-number rules are unused (we
-    never enable linenos) and AA overrides are appended last so they win the
-    cascade at equal specificity.
+    never enable linenos); AA overrides follow the base rules so they win the
+    cascade at equal specificity, and the light palette is re-emitted inside
+    @media print so printed output is theme-independent.
     """
     def defs(style):
         css = HtmlFormatter(style=style).get_style_defs(".highlight")
@@ -1159,6 +1160,13 @@ def _build_pygments_css():
     dark = defs(PYGMENTS_DARK_STYLE)
     dark_attr, dark_media = scope_dark(dark)
     dark_overrides_attr, dark_overrides_media = scope_dark(PYGMENTS_DARK_AA_OVERRIDES)
+    # Printed output uses the light token colors regardless of the active theme;
+    # !important beats the higher-specificity dark selectors.
+    light_print = re.sub(
+        r"(?<![-\w])color: (#[0-9a-fA-F]{6})",
+        r"color: \1 !important",
+        light + PYGMENTS_LIGHT_AA_OVERRIDES,
+    )
     return (
         "/* ─── Pygments tokens (light) ─── */\n"
         + light
@@ -1170,6 +1178,9 @@ def _build_pygments_css():
         + dark_media
         + dark_overrides_media
         + "\n}\n"
+        + "\n@media print {\n"
+        + light_print
+        + "}\n"
     )
 
 
@@ -2076,7 +2087,7 @@ body.toc-open .back-to-top { visibility: hidden; }
 /* ─── Strong emphasis with accent ─── */
 strong { color: var(--text); }
 p strong, li strong { color: var(--green); }
-
+""" + ("""
 /* ─── Print ─── */
 @media print {
   .site-header, .doc-sidebar, .toc-fab, .toc-backdrop, .toc-close,
@@ -2084,17 +2095,21 @@ p strong, li strong { color: var(--green); }
   .skip-link, .doc-hero-category, .index-tools, .index-results, .index-empty {
     display: none !important;
   }
+  /* Force the light palette so printing from dark mode stays readable. */
+  :root {""" + LIGHT_PALETTE.replace(";\n", " !important;\n") + """}
   .doc-shell { display: block; grid-template-columns: none; }
   .doc-shell .doc-container, .doc-container { max-width: none; padding: 0; }
-  body { background: #fff; color: #000; }
+  body { background: #fff; color: #000; font-size: 11pt; }
   a { color: #000; text-decoration: underline; }
+  pre, .highlight, .table-wrap, .timeline-table-wrap { overflow-x: visible; }
+  pre, .highlight pre { white-space: pre-wrap; overflow-wrap: anywhere; }
   pre, .highlight, .table-wrap, table, .mermaid, details { break-inside: avoid; }
   pre, .highlight { background: #fff !important; }
   h2, h3 { break-after: avoid; }
   details > *:not(summary) { display: revert; }
   @page { margin: 16mm; }
 }
-"""
+""")
 
 def canonical_url(path):
     """Absolute URL when SITE_BASE_URL is set, otherwise a root-relative path."""
