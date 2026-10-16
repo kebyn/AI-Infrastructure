@@ -1,6 +1,6 @@
 # 主流大模型发布时间时间线
 
-**覆盖范围：** 2022-01-01 至 2026-10-13（UTC，截止日固定为 2026-10-13）。
+**覆盖范围：** 2022-01-01 至 2026-10-16（UTC，截止日固定为 2026-10-16）。
 
 本文按“首次公开发布”排序，整理 DeepSeek、Moonshot/Kimi、Alibaba/Qwen、智谱/GLM、小米 MiMo、腾讯混元、OpenAI、Anthropic、Google 九个阵营的主线公开模型。模型先公布、后开放 API 或权重的情况，在“备注”中补充；同一系列的参数尺寸、日期后缀、蒸馏版和 API 快照通常不单列，除非它改变了模型定位或公开形态。
 
@@ -10,7 +10,7 @@
 - “公开”包括聊天产品、API、研究预览和开放权重；它们不是同一个状态，具体状态写在“发布形态”和“备注”中。
 - 只把重要的通用、推理、多模态、代码和 Agent 模型纳入主表。纯 embedding、rerank、ASR、TTS、图像、视频、翻译等专用模型默认排除；Gemma 作为 Google 的重要开放模型分支保留。
 - “前后继关系”是主线关系，不表示官方唯一命名或严格的一对一替代关系。比如 Flash、Mini、Haiku、Sonnet、Opus 等独立档位，只有在能力或产品定位明显变化时单列。
-- 2026 年条目按截止日当天可见的官方页面整理；官方页面后续可能继续更新。
+- 2026 年条目按截止日当天可见的官方页面整理；官方页面后续可能继续更新。2026-10-16 截止的主表共 126 行，GPT-6 Chat/Intelligent UI 的条目是产品部署更新，不计作新的底层模型。
 
 ## 时间线
 
@@ -132,16 +132,21 @@
 | 2026-08-14 | 智谱 / GLM | GLM-5.3 | 通用、推理、代码、Agent、开放权重 | 开放权重、API | GLM-5.2 的后训练和 Agent 能力升级 | GLM-5.2 → GLM-5.3 | [GLM-5.3](https://z.ai/blog/glm-5.3) | 官方公告日。 |
 | 2026-08-28 | 腾讯混元 | Hy4 Preview | 通用、推理、代码、Agent、开放权重 | 研究预览、开放权重 | 约 770B 总参数、约 49B 激活，超过 1M 上下文，覆盖代码、办公和科学任务 | Hy3 → Hy4 Preview | [Hy4 Preview](https://www.tencent.com/zh-cn/tencent-releases-and-open-sources-tencent-hy4-preview/) | 官方公告日；另见 [官方仓库](https://github.com/Tencent-Hunyuan/Hy4-preview)。 |
 | 2026-09-01 | Anthropic | Claude Fable 5.1 / Mythos 5.1 | 通用、代码、Agent、专用预览 | Fable 公测/产品；Mythos 限量预览 | Fable/Mythos 路线的 5.1 更新，分别服务通用 Agent 和高难度代码/研究 | Fable/Mythos 5 → 5.1 | [Fable 5.1 / Mythos 5.1](https://www.anthropic.com/claude-fable-and-mythos-5-1) | Mythos 的访问范围仍受限；按模型首次公布日期记录。 |
+| 2026-09-03 | OpenAI | GPT-6 Astra | 通用、推理、代码、Agent | 产品/API 正式发布 | GPT-6 主线首个公开模型，强化复杂推理、代码、工具使用和长程 Agent 工作流 | GPT-5.5 → GPT-6 Astra → GPT-6 Sol/Luna | [GPT-6 Astra](https://openai.com/index/gpt-6-astra/) | 以官方模型公告/安全概览确认首次公开日；不把后续 ChatGPT 部署名另算为模型。 |
 | 2026-09-10 | DeepSeek | DeepSeek-V4.1-Flash | 通用、多模态、轻量、Agent | API 正式发布 | 原生视觉、约 552B MoE，Flash 路线强化速度和多模态 Agent；V4-Flash 逐步退役/路由 | V4-Pro → V4.1-Flash | [DeepSeek-V4.1-Flash](https://www.deepseek.com/en/news/deepseek-v4-1-flash/) | 官方页面日期为 2026-09-10；“Flash”是服务档位，不等同于所有 V4 权重版本。 |
 | 2026-09-18 | Alibaba / Qwen | Qwen3.8-Omni-Flash | 原生全模态、Agent、API | API/产品发布 | 统一文本、视觉、音频等模态，面向实时交互和 Agent，支持约 1M 上下文 | Qwen3.5/3.6 → Qwen3.8 Omni | [Qwen3.8-Omni-Flash](https://qwen.ai/blog?id=qwen3.8-omni-flash) | 官方页面为发布公告；专用音频/视频变体不另列。 |
+| 2026-09-22 | OpenAI | GPT-6 Sol / GPT-6 Luna | 通用、推理、代码、Agent | 产品/API 正式发布 | GPT-6 的 Sol 与 Luna 两个公开档位，分别覆盖快速通用任务和更深度推理/Agent 工作流 | GPT-6 Astra → GPT-6 Sol/Luna → GPT-6.1 Sol | [GPT-6 Sol and Luna](https://openai.com/index/introducing-gpt-6-sol-and-luna/) | 同一公告中的两个模型档位合并为一行；不是把 ChatGPT 中的部署名重复计数。 |
 | 2026-09-22 | Anthropic | Claude Opus 5.5 | 推理、代码、Agent | 正式发布、API/产品 | Opus 5 的 5.5 更新，继续强化长程任务、代码和工具使用 | Opus 5 → Opus 5.5 | [Claude Opus 5.5](https://www.anthropic.com/news/claude-opus-5-5) | 以官方新闻页面的 2026-09-22 为首次公开日。 |
 | 2026-09-28 | Anthropic | Claude Sonnet 5.5 | 通用、代码、Agent、视觉 | 正式发布、API/产品 | Sonnet 5 的 5.5 更新，强调编码、视觉和可执行工作流 | Sonnet 5 → Sonnet 5.5 | [Claude Sonnet 5.5](https://www.anthropic.com/claude-sonnet-5-5) | 官方页面日期为 2026-09-28。 |
-| 2026-10-07 | Anthropic | Claude Haiku 5.5 | 轻量、代码、Agent | 正式发布、API/产品 | Haiku 5.5 提供更快、更低成本的 Claude 5.5 档位 | Haiku 4.5 → Haiku 5.5 | [Claude Haiku 5.5](https://www.anthropic.com/claude-haiku-5-5) | 截止 2026-10-13 已公开；不纳入 2026-10-15 之后的条目。 |
+| 2026-09-29 | OpenAI | GPT-6.1 Sol | 通用、推理、代码、Agent | 产品/API 更新 | Sol 档位的模型升级，改善代码、工具和复杂任务执行；保留 GPT-6 Sol 的产品定位 | GPT-6 Sol → GPT-6.1 Sol | [GPT-6.1 Sol](https://openai.com/index/introducing-gpt-6-1-sol/) | 这是模型变体/升级，不是新的 GPT-6 家族根节点；部署切换不重复计数。 |
+| 2026-10-07 | OpenAI | GPT-6 in ChatGPT / Intelligent UI | 产品部署更新、Agent UI | ChatGPT 产品部署更新 | 将 GPT-6 能力接入 ChatGPT 与 Intelligent UI，强调界面、工具和交互形态变化 | GPT-6 family → ChatGPT/Intelligent UI deployment | [GPT-6 and Intelligent UI](https://openai.com/index/gpt-6-for-everyone/) | 这是产品部署更新，不是新的底层模型；不把它与 GPT-6 Astra、Sol/Luna 或 GPT-6.1 Sol 重复计为模型。 |
+| 2026-10-07 | Anthropic | Claude Haiku 5.5 | 轻量、代码、Agent | 正式发布、API/产品 | Haiku 5.5 提供更快、更低成本的 Claude 5.5 档位 | Haiku 4.5 → Haiku 5.5 | [Claude Haiku 5.5](https://www.anthropic.com/claude-haiku-5-5) | 截止 2026-10-16 已公开；不纳入截止日之后的条目。 |
+| 2026-10-13 | Google | Gemini 4 Argon | 通用、多模态、推理、Agent | 模型卡/产品与 API 公开 | 原生多模态和推理能力，支持约 1M context，面向通用 Agent 与复杂任务 | Gemini 3.5 → Gemini 4 Argon | [Gemini 4 Argon model card](https://deepmind.google/models/model-cards/gemini-4-argon/) | Google DeepMind 官方 model card 于 2026-10-13 发布；按新模型计入，不把同日产品部署名另列。 |
 
 ## 覆盖与校验说明
 
 - **阵营覆盖：** 主表覆盖 DeepSeek、Moonshot/Kimi、Alibaba/Qwen、智谱/GLM、Xiaomi/MiMo、腾讯混元、OpenAI、Anthropic、Google 九个阵营；Kimi、MiMo 和 Hunyuan 作为模型品牌/路线处理，没有错误地当作公司名称。
-- **日期处理：** 带“官方回顾”“官方报告”或“仅月份”的行，说明官方没有提供可安全使用的具体日；`2025-09-18/19` 等冲突也保留在备注中。预览、正式可用、API、开放权重分别记录，不相互替代。
+- **日期处理：** 带“官方回顾”“官方报告”或“仅月份”的行，说明官方没有提供可安全使用的具体日；`2025-09-18/19` 等冲突也保留在备注中。预览、正式可用、API、开放权重分别记录，不相互替代。GPT-6.1 Sol 标记为模型变体，GPT-6 Chat/Intelligent UI 标记为产品部署更新；126 行统计不把后者当作新的基础模型。
 - **专用模型边界：** 腾讯 Hunyuan 3D、图像、视频和翻译模型；Google 的 MedGemma、PaliGemma、CodeGemma；以及各家的纯语音、embedding、rerank 模型没有全部铺开，只有当其明显构成通用多模态主线时才保留。
 - **日期排序：** 表格按发布时间升序排列；同日条目按阵营和主线关系分组。`DeepSeek-V3.1` 的 2025-08-21 行记录首次公开，`DeepSeek-V3.1-Terminus` 的 2025-09-22 行记录后续稳定性更新；后者不应在统计模型代际时重复计数。
 - **官方来源：** 每一行至少有一个官方公告、官方模型页、官方仓库、官方文档或官方公司报告链接；第三方页面只用于交叉核对，没有作为主来源。
