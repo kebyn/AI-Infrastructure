@@ -1,6 +1,6 @@
 # 推理系统与压测深度文档
 
-> 审校日期：2026-10-13。沿用各组件固定证据，正式 Release、Alpha/Beta、RC、tag-only 与未发布主线快照分别记录；本次完成官方上游版本复核与增量同步。
+> 审校日期：2026-10-16。沿用各组件固定证据，正式 Release、Alpha/Beta、RC、tag-only 与未发布主线快照分别记录；本轮复核 Mooncake、Dynamo、ModelExpress、AIPerf、GuideLLM、inference-perf、SGLang、vLLM 与 EvalScope 未发现新的正式 Release 取代既有稳定基线。
 
 ## 第1篇：公共概念：KVCache、P/D 分离与性能指标 {#inference-concepts}
 
@@ -135,7 +135,7 @@ LLM 压测至少应报告：
 >
 > 基于 Mooncake 官方文档 (https://kvcache-ai.github.io/Mooncake) 整理编写
 >
-> 稳定版本基线：`v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a`，审校日期：2026-10-13。论文结论与软件实现会明确区分；`v0.3.13.post1` 为 lightweight tag，所列 commit 即 tag 直接指向的源码提交。上游另有 `v0.3.14-rc1`（annotated tag，解引用源码 `78566d459c140956fd15606e102132b1acc83eec`），仅作 RC 审计记录，不替换稳定基线。
+> 稳定版本基线：`v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a`，审校日期：2026-10-16。论文结论与软件实现会明确区分；`v0.3.13.post1` 为 lightweight tag，所列 commit 即 tag 直接指向的源码提交。上游另有 `v0.3.14-rc1`（annotated tag，解引用源码 `78566d459c140956fd15606e102132b1acc83eec`），仅作 RC 审计记录，不替换稳定基线。
 >
 > FAST 2025 最佳论文 | Moonshot AI 的 Kimi 服务平台
 
@@ -2960,7 +2960,7 @@ Mooncake 已适配以下硬件平台：
 
 ---
 
-> **文档版本**：基于 Mooncake `v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a` 与该版本官方文档审校，2026-10-13
+> **文档版本**：基于 Mooncake `v0.3.13.post1@719735896c86b56fabec6cf3e825fb2ea640597a` 与该版本官方文档审校，2026-10-16
 >
 > **项目源码**：https://github.com/kvcache-ai/Mooncake/tree/719735896c86b56fabec6cf3e825fb2ea640597a
 >
@@ -2978,7 +2978,7 @@ Mooncake 已适配以下硬件平台：
 >
 > 基于 Dynamo 官方仓库与文档整理：<https://github.com/ai-dynamo/dynamo>
 >
-> 稳定版本基线：Dynamo `v1.5.1@2093662a4d4e5fd318732935213dde08dc7be818`；ModelExpress 章节固定到其独立稳定版 `v0.7.0@ac6d03a87a550c8188c3ed59f187b90d4f0554f5`；审校日期：2026-10-13。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
+> 稳定版本基线：Dynamo `v1.5.1@2093662a4d4e5fd318732935213dde08dc7be818`；ModelExpress 章节固定到其独立稳定版 `v0.7.0@ac6d03a87a550c8188c3ed59f187b90d4f0554f5`；审校日期：2026-10-16。两个 tag 均为 lightweight tag，所列 commit 是 tag 直接指向的源码提交。未发布主线能力会单独标注，不计入对应版本的兼容承诺。
 
 ---
 
@@ -4849,7 +4849,7 @@ helm install dynamo-platform \
 >
 > 面向准备做 LLM 推理服务压测、容量评估、SLO 验证、KV cache 效果验证和多框架横向对比的工程团队。
 >
-> 稳定版本基线：AIPerf `v0.13.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.21@e00930c5489053f26d86b179cee0d087f846acbb`、LLMPerf `v2.0`、ollama-benchmark `v0.5.4`、vLLM `v0.31.0@db9527a46873454610df6dbedf79a36d6bf1a7f6`、EvalScope `v1.13.0@498027686e6e3cf4eb32405a3fd21c65ff9237f1`；审校日期：2026-10-13。
+> 稳定版本基线：AIPerf `v0.13.0`、GuideLLM `v0.7.4`、inference-perf `v0.7.0`、genai-bench `v0.0.5`、SGLang `v0.5.21@e00930c5489053f26d86b179cee0d087f846acbb`、LLMPerf `v2.0`、ollama-benchmark `v0.5.4`、vLLM `v0.31.0@db9527a46873454610df6dbedf79a36d6bf1a7f6`、EvalScope `v1.13.0@498027686e6e3cf4eb32405a3fd21c65ff9237f1`；审校日期：2026-10-16。本轮复核这些 release/tag 未变化。
 
 > vLLM `v0.30.1rc0` 是历史 prerelease，不替代当时的 `v0.30.0` 稳定基线；当前稳定压测基线已更新为 `v0.31.0`，历史 RC 结果仍不能与正式版容量数据混为同一序列。
 

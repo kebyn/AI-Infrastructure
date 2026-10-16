@@ -21,7 +21,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'subtitle': '公共概念、Mooncake、Dynamo、压测工具与组合选型',
   'meta': 'Mooncake v0.3.13.post1 · Dynamo v1.5.1 source@2093662 · ModelExpress v0.7.0 · AIPerf '
           'v0.13.0 · GuideLLM v0.7.4 · inference-perf v0.7.0 · SGLang v0.5.21 · vLLM v0.31.0 · '
-          'EvalScope v1.13.0 · 2026-10-13',
+          'EvalScope v1.13.0 · 2026-10-16',
   'summary': '覆盖 KVCache、P/D 分离、Mooncake Transfer Engine/Store/HiCache、Dynamo '
              'Router/Planner/ModelExpress，以及 AIPerf、SGLang Bench、vLLM Bench、EvalScope 的指标、trace 与 '
              'SLO/goodput。',
@@ -54,17 +54,20 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': 'Kubernetes 平台',
   'hero': 'Kubernetes AI 平台深度文档',
   'subtitle': '版本演进、调度、GPU 设备、服务平台与统一组合选型',
-  'meta': 'Kubernetes v1.37.1 source@f78e722 · GPU Operator v26.7.1@dbacf43 · HAMi v2.10.0 · '
-          'Koordinator v1.8.0 · Kueue v0.20.1 · Grove alpha.15 · KAI-Scheduler v0.18.5 · Volcano '
-          'v1.15.3（升级 v1.8.2 → v1.15.3） · KServe v0.21.0 master@bb22cc4 website@71c8b22 · Kubeflow '
-          '26.03.1 · Kubernetes v1.38.0-alpha.2 仅作预览 · 2026-10-13',
+  'meta': 'Kubernetes v1.37.1 source@f78e722 · GPU Operator v26.7.2@5a9c8a8 · HAMi v2.10.0 · '
+          'Koordinator v1.8.0 · Kueue v0.20.2@296ec3db · Grove alpha.16@e33b8353 · KAI-Scheduler '
+          'v0.18.6@279f61c6 · Volcano v1.16.0@41f27d56（升级 v1.8.2 → v1.16.0） · KServe v0.21.0 '
+          'master@bb22cc4 website@71c8b22 · Kubeflow 26.03.1 · Kubernetes v1.38.0-alpha.2 仅作预览 · '
+          '2026-10-16',
   'summary': '覆盖 Kubernetes Blog/RSS、v1.37 DRA 扩展、Workload/PodGroup v1beta1、Gang/TAS、GPU '
              'Operator、HAMi、五类 AI 调度器、Volcano 升级、独立 KServe 与 Kubeflow 发行版，以及成熟度和组合合同。',
   'footer': '基于 <a '
             'href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/overview.html">NVIDIA '
             'GPU Operator 26.7 官方文档</a> 与 <a '
-            'href="https://github.com/NVIDIA/gpu-operator/tree/dbacf43d4938816fefe62690ab868a640a195282">NVIDIA/gpu-operator '
-            'v26.7.1 源码</a> 整理 · 基于 <a '
+            'href="https://github.com/NVIDIA/gpu-operator/releases/tag/v26.7.2">NVIDIA GPU Operator '
+            'v26.7.2 Release</a>、<a '
+            'href="https://github.com/NVIDIA/gpu-operator/tree/9ae64a28deb145182fc0def6f4ceb23fdd3aba79">tag object</a> 与 <a '
+            'href="https://github.com/NVIDIA/gpu-operator/tree/5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832">v26.7.2 exact source</a> 整理 · 基于 <a '
             'href="https://github.com/Project-HAMi/HAMi/tree/4707fb02c91c545bc7343ce26dba4c32919f9a3e">Project-HAMi/HAMi '
             'v2.10.0</a> 与 <a href="https://project-hami.io/docs">HAMi 官方文档</a> 整理 · 基于 <a '
             'href="https://kubernetes.io/blog/">Kubernetes 官方 Blog</a>、<a '
@@ -79,18 +82,18 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
             'href="https://github.com/kubernetes/kubernetes/tree/f78e722310e50bcaca9276be22276d9e91d91308">kubernetes/kubernetes '
             'v1.37.1 源码</a> 整理 · 基于 <a '
             'href="https://github.com/koordinator-sh/koordinator">Koordinator</a>、<a '
-            'href="https://github.com/kubernetes-sigs/kueue/tree/237d77ecdf4a7551784bb5c07a497bb64c5dff2f">Kueue '
-            'v0.20.1</a>、<a '
-            'href="https://github.com/ai-dynamo/grove/tree/70f3e1b6afaa2c6fd29e840d917948704f6e2e36">Grove '
-            'alpha.15</a>、<a '
-            'href="https://github.com/kai-scheduler/KAI-Scheduler/tree/36b2cabb463ef63e9cbde73c17ca8e4eac644f11">KAI-Scheduler '
-            'v0.18.5</a> 与 <a '
+            'href="https://github.com/kubernetes-sigs/kueue/releases/tag/v0.20.2">Kueue v0.20.2 Release</a>、<a '
+            'href="https://github.com/kubernetes-sigs/kueue/tree/b0fbbfe44ff20ee7f74cc0485c1a6812fe999a93">Kueue tag object</a>、<a '
+            'href="https://github.com/kubernetes-sigs/kueue/tree/296ec3db567abbe36b65a63695710e3d3f3d0bdb">Kueue exact source</a>、<a '
+            'href="https://github.com/ai-dynamo/grove/releases/tag/v0.1.0-alpha.16">Grove alpha.16 Release</a>、<a '
+            'href="https://github.com/ai-dynamo/grove/tree/e33b8353e66dd6ed86fd4913660f88f8dbd17955">Grove alpha.16 source</a>、<a '
+            'href="https://github.com/kai-scheduler/KAI-Scheduler/releases/tag/v0.18.6">KAI-Scheduler v0.18.6 Release</a>、<a '
+            'href="https://github.com/kai-scheduler/KAI-Scheduler/tree/279f61c6d55b20bd47a43f2560c1b4f646a55547">KAI-Scheduler exact source</a> 与 <a '
             'href="https://github.com/kai-scheduler/KAI-Scheduler/tree/5922dc7d1a4661d3fc43d60943f92a775c892bdc">v0.20.1 '
             'tag-only 边界</a>、<a '
-            'href="https://github.com/volcano-sh/volcano/tree/d2dd7024f4af3070f9d99d68a78973893908a743">Volcano '
-            'v1.15.3</a> 官方资料整理 · 基于 <a '
-            'href="https://github.com/volcano-sh/volcano/tree/d2dd7024f4af3070f9d99d68a78973893908a743">Volcano '
-            'v1.15.3</a>、<a '
+            'href="https://github.com/volcano-sh/volcano/releases/tag/v1.16.0">Volcano v1.16.0 Release</a>、<a '
+            'href="https://github.com/volcano-sh/volcano/tree/b4ad252f3fd42c766d11d204e97622cddbbe4bd5">Volcano tag object</a>、<a '
+            'href="https://github.com/volcano-sh/volcano/tree/41f27d567fb5bdaf2cab01e1caaf48f7e266eefb">Volcano exact source</a> 官方资料整理 · 基于 <a '
             'href="https://github.com/volcano-sh/website/blob/f5258704d7ef5bda28f31ba51950cdea9adbe921/versioned_docs/version-v1.15.0/KeyFeatures/cloudNativeColocation.md">Cloud '
             'Native Colocation</a>、<a '
             'href="https://github.com/volcano-sh/website/blob/f5258704d7ef5bda28f31ba51950cdea9adbe921/versioned_docs/version-v1.15.0/KeyFeatures/QueueResourceManagement.md">Queue '
@@ -112,7 +115,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': '存储',
   'hero': 'AI 存储与文件系统：Lustre 与 3FS',
   'subtitle': 'HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析',
-  'meta': 'Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-10-13',
+  'meta': 'Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-10-16',
   'summary': '覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV '
              'cache 与生产选型。',
   'footer': '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、<a '
@@ -127,7 +130,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'hero': '基础设施访问治理：Self-hosted 平台对比',
   'subtitle': 'Teleport、The Bastion、Warpgate 与 Boundary/Pomerium/Guacamole 的身份、协议、审计和运维比较',
   'meta': 'Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.2 · Boundary v0.21.3 · Pomerium '
-          'v0.33.4 · Guacamole 1.6.0 tag-only · 2026-10-13',
+          'v0.33.4 · Guacamole 1.6.0 tag-only · 2026-10-16',
   'summary': '覆盖六个平台的统一能力矩阵、信任边界、短期凭据、RBAC/JIT、SSH/Kubernetes/数据库/HTTP/RDP/VNC '
              '协议审计、录制/SIEM、HA、迁移验收和许可证商业边界。',
   'footer': '基于 <a '
@@ -147,7 +150,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': 'Agent 协作',
   'hero': 'Agent 协作与编排：Multica',
   'subtitle': 'AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析',
-  'meta': 'Multica v0.6.2 · source@7ab92d7 · main@7ab92d7 · 2026-10-13',
+  'meta': 'Multica v0.6.2 · source@7ab92d7 · main@7ab92d7 · 2026-10-16',
   'summary': '覆盖 Issue 四类 lifecycle 与 Triage、Task/runs、Agent/Runtime、25 种 protocol family、Codex '
              'usage/thread、Channel、Desktop、Squad、Autopilot、MCP 与无 Sandbox 边界。',
   'footer': '基于 <a '
@@ -160,17 +163,18 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': 'Sandbox',
   'hero': 'Sandbox 与执行环境：E2B',
   'subtitle': 'AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析',
-  'meta': 'E2B Infra 2026.30 · source@f32ee8a · SDK main@62a17dfc · Agent Sandbox v1.0.6@cd0761d · '
-          '2026-10-13',
+  'meta': 'E2B Infra 2026.30 · source@f32ee8a · SDK main@62a17dfc · Agent Sandbox v1.0.7@807cc371 · '
+          '2026-10-16',
   'summary': '覆盖 Firecracker、Sandbox fork、filesystem-only resume、workload '
-             'identity、Secrets、日志与集群管理、团队配额和计量，以及 Agent Sandbox scoped-token v2、SDK/RL 与迁移边界。',
+             'identity、Secrets、日志与集群管理、团队配额和计量，以及 Agent Sandbox v1.0.7 的 bearer-token、流式命令、WarmPool 与迁移边界。',
   'footer': '基于 <a '
             'href="https://github.com/e2b-dev/infra/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104">e2b-dev/infra '
             '2026.30</a>、<a '
             'href="https://github.com/e2b-dev/e2b/tree/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3">E2B '
             'SDK 主线快照</a> 与 <a '
-            'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/cd0761d5001baaf293460cd382ee318744d6b249">Agent '
-            'Sandbox v1.0.6</a> 官方资料整理'},
+            'href="https://github.com/kubernetes-sigs/agent-sandbox/releases/tag/v1.0.7">Agent Sandbox v1.0.7 Release</a>、<a '
+            'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/b3832ed88cb8acc57cc5e81072f551d52f14b32f">tag object</a> 与 <a '
+            'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/807cc37107bd7c012115afac9fa9c3b77b8365c2">exact source</a> 官方资料整理'},
  {'src': '/data/model_release_timeline.md',
   'dst': '/data/model_release_timeline.html',
   'href': '/model_release_timeline.html',
@@ -178,7 +182,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': '模型时间线',
   'hero': '模型发布时间时间线',
   'subtitle': '2022—2026 九大阵营主线公开模型的首次发布与开放形态',
-  'meta': '2022-01—2026-10-13 · 121 条记录 · 审校日期 2026-10-13',
+  'meta': '2022-01—2026-10-16 · 126 条记录 · 审校日期 2026-10-16',
   'summary': '按首次公开日期整理九个模型阵营的主线版本，并支持按供应商、年份、多模态和开放权重筛选及 CSV/JSON/Markdown 导出。',
   'footer': '事实来源为 <a '
             'href="/model_release_timeline.md">model_release_timeline.md</a>；每条记录保留对应的官方公告、模型页、技术报告或官方仓库链接。',
