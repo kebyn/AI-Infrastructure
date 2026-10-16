@@ -1115,31 +1115,60 @@ if (diagrams.length) {
 PYGMENTS_LIGHT_STYLE = "friendly"
 PYGMENTS_DARK_STYLE = "github-dark"
 
+# Stock theme colors that fall below WCAG AA 4.5:1 on our `--bg-code` surfaces
+# (#eef2f6 light / #1a1e26 dark). Overrides keep each hue, only moving lightness.
+PYGMENTS_LIGHT_AA_OVERRIDES = """\
+/* WCAG AA fixes on --bg-code: hue preserved, lightness lowered to ≥ 4.5:1 */
+.highlight .c, .highlight .ch, .highlight .c1, .highlight .cm,
+.highlight .cpf, .highlight .cs { color: #407481; }
+.highlight .no { color: #29739a; }
+.highlight .si { color: #3770a9; }
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh,
+.highlight .mi, .highlight .mo, .highlight .il { color: #317a55; }
+.highlight .gi { color: #007e00; }
+.highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi,
+.highlight .vm { color: #a835c8; }
+.highlight .ni { color: #bc4428; }
+.highlight .nc, .highlight .nn { color: #0c749f; }
+.highlight .gp, .highlight .sx { color: #ae5208; }
+"""
+PYGMENTS_DARK_AA_OVERRIDES = ".highlight .w { color: #808893; }\n"
+
 
 def _build_pygments_css():
     """Generate theme-aware Pygments token styles scoped to .highlight blocks.
 
     The container background is dropped so the shared `--bg-code` surface wins;
     the dark stylesheet is emitted twice (attribute selector and media query) to
-    match how the site resolves light/dark.
+    match how the site resolves light/dark. Line-number rules are unused (we
+    never enable linenos) and AA overrides are appended last so they win the
+    cascade at equal specificity.
     """
     def defs(style):
         css = HtmlFormatter(style=style).get_style_defs(".highlight")
         css = re.sub(r"^\.highlight \{[^}]*\}\n?", "", css, flags=re.M)
         css = css.replace("pre { line-height: 125%; }\n", "")
-        return css
+        return re.sub(r"^(?:td|span)\.linenos[^\n]*\n", "", css, flags=re.M)
+
+    def scope_dark(css):
+        attr = re.sub(r"^\.highlight\b", ':root[data-theme="dark"] .highlight', css, flags=re.M)
+        media = re.sub(r"^\.highlight\b", ':root:not([data-theme]) .highlight', css, flags=re.M)
+        return attr, media
 
     light = defs(PYGMENTS_LIGHT_STYLE)
     dark = defs(PYGMENTS_DARK_STYLE)
-    dark_attr = re.sub(r"^\.highlight\b", ':root[data-theme="dark"] .highlight', dark, flags=re.M)
-    dark_media = re.sub(r"^\.highlight\b", ':root:not([data-theme]) .highlight', dark, flags=re.M)
+    dark_attr, dark_media = scope_dark(dark)
+    dark_overrides_attr, dark_overrides_media = scope_dark(PYGMENTS_DARK_AA_OVERRIDES)
     return (
         "/* ─── Pygments tokens (light) ─── */\n"
         + light
+        + PYGMENTS_LIGHT_AA_OVERRIDES
         + "\n/* ─── Pygments tokens (dark) ─── */\n"
         + dark_attr
+        + dark_overrides_attr
         + "\n@media (prefers-color-scheme: dark) {\n"
         + dark_media
+        + dark_overrides_media
         + "\n}\n"
     )
 

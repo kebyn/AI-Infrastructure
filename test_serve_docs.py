@@ -285,6 +285,48 @@ class SharedThemeRenderingTest(unittest.TestCase):
         self.assertIn(':root[data-theme="dark"] .highlight', serve_docs.CSS)
         self.assertIn("@media (prefers-color-scheme: dark)", serve_docs.CSS)
 
+    def test_pygments_token_colors_meet_wcag_aa_on_code_surfaces(self):
+        def luminance(color):
+            channels = [int(color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+            linear = [value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4 for value in channels]
+            return sum(value * weight for value, weight in zip(linear, (0.2126, 0.7152, 0.0722)))
+
+        def effective_rules(text):
+            """Selector -> {color, bg} after cascade: later same-specificity rules win per property."""
+            merged = {}
+            for selectors, body in re.findall(r"([^{}]+)\{([^}]*)\}", re.sub(r"/\*.*?\*/", "", text, flags=re.S)):
+                color = re.search(r"(?<![-\w])color: (#[\da-fA-F]{6})", body)
+                if not color:
+                    continue
+                background = re.search(r"background(?:-color)?: (#[\da-fA-F]{6})", body)
+                for selector in selectors.split(","):
+                    selector = selector.strip()
+                    if not selector:
+                        continue
+                    rule = merged.setdefault(selector, {})
+                    rule["color"] = color.group(1)
+                    if background:
+                        rule["bg"] = background.group(1)
+            return merged
+
+        raw = serve_docs.PYGMENTS_CSS
+        light_text = raw.split("tokens (light) ─── */")[1].split("/* ─── Pygments tokens (dark)")[0]
+        rest = raw.split("/* ─── Pygments tokens (dark) ─── */")[1]
+        dark_attr_text, _, media_tail = rest.partition("@media (prefers-color-scheme: dark) {")
+        dark_media_text = media_tail.rsplit("}", 1)[0]
+        light_surface = re.search(r"--bg-code: (#[\da-f]{6});", serve_docs.LIGHT_PALETTE).group(1)
+        dark_surface = re.search(r"--bg-code: (#[\da-f]{6});", serve_docs.DARK_PALETTE).group(1)
+
+        for name, text, surface in (
+            ("light", light_text, light_surface),
+            ("dark-attr", dark_attr_text, dark_surface),
+            ("dark-media", dark_media_text, dark_surface),
+        ):
+            for selector, rule in effective_rules(text).items():
+                low, high = sorted((luminance(rule["color"]), luminance(rule.get("bg") or surface)))
+                with self.subTest(section=name, selector=selector, color=rule["color"]):
+                    self.assertGreaterEqual((high + 0.05) / (low + 0.05), 4.5)
+
     def test_print_rules_hide_page_chrome(self):
         match = re.search(r"@media print \{(.*)\n\}", serve_docs.CSS, re.S)
         self.assertIsNotNone(match)
