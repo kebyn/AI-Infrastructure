@@ -4427,7 +4427,7 @@
           "heading": "7.10 优势与限制",
           "line": 1069,
           "action": "保留",
-          "target": "Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers-7-11-优势与限制",
+          "target": "Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers-7-12-优势与限制",
           "reason": "保留组件专有内容"
         },
         {
@@ -11143,7 +11143,7 @@
           "heading": "1.6 v26.7.1 组件补丁与驱动边界",
           "line": 87,
           "action": "保留",
-          "target": "Kubernetes-AI-Platform-Deep-Dive.md#gpu-operator-1-6-v26-7-1-组件补丁与驱动边界",
+          "target": "Kubernetes-AI-Platform-Deep-Dive.md#gpu-operator-1-6-v26-7-2-组件补丁与驱动边界",
           "reason": "保留组件专有内容"
         },
         {
@@ -11947,17 +11947,17 @@
         "26a765387375116bc5beb1cc3566741877ea208c586164971de10d26beab35e1",
         "cb07e83a8f03f1a98efa7d29dfee6db35b4af8d539e6c4e157e1cf8c228ad5df",
         "041e9ade458f42539e7cf10c5e77e5196a9a0735954b9e10518f795f89362e85",
-        "b258c6625186048e2b6232912d1ce5c3c01b5b3aedcf3dd113e1ca9b78744a85",
+        "1f7cb2f09ecd55addd5071521d6121027c11363b89a841eb9328226392e7ec52",
         "6b3046f2a365bbd6289cb2eedd6f8601ef07f57694f1d1bc971e6ce2dece0b67",
         "b38c8680dd0aa8ed38e31ec964ead7a94560472d99099c6a82aa1c408a8f2fbf",
         "b8d4adce3341a653455270837ef048ba605133682637095da130be817fc4f524",
         "b1c430f3772c29bbf3da6cf9b10d75f524b4282994a639a7ba4604d069b47de1",
-        "4da56a43b73f0acf81261765e3856d1c57c18b1bb5d9d0ce380264d11755f550",
-        "33c3049a0330d4208e8ad2ccc250712afb72f8f593bfaede4da0dab468858114",
-        "29d33b1540195e1b0aad149c3376f0d95d59994c0083f7875a5aa64b6712e968",
-        "d69cefc3d8e2f31a1f19beb877333dd5da1934449101f28b704ed571f9646007",
-        "afe96705514faa4f3ef17376d65c36dfb1deec5aefed3ecc8bc205918ae9fdf7",
-        "3ddf8b5bb460067bf046da239f423bc0e1bc8f2f69c657cb7d769a22044db581",
+        "05174bcbb4a34eccabfc0383bd30dac92a386926138351ce310b047a856a4bf8",
+        "024a169132438d2fb5ca174ba4b81449cf7bea5785e8e05ae176301afbd87b93",
+        "b0a4fdcb27b50871dc360eb7e03e1e4ba8e8d9ca957657b26b5fd00db72d25da",
+        "93662471eef9023dc8a240fc9bba171c32b3abfe9ba8803259633c4a61f40290",
+        "000d010016b8fc5d78af97acb36d1359466fa5cb278fa74b6dcc146d83847c6c",
+        "0e9a9f374f3f7876999e46a59a8ce3480c2384c87711a56cea4776ef33f46a0b",
         "a0036b480b65dc2424fe468eae381e0c95e20eece3c4d722f20cdce4545bc156",
         "5a06d09ab848a6df4305796f54647cfc7b16a6137f299310610d1b8d197d65ab",
         "53704e9099c9820593c5f475455643797b37539b4dbba4ea9dfb964f47b5df1e",
@@ -11976,7 +11976,7 @@
         "9ae781320ea1881e49cc435883a65c3073bd41cee617e9a24a0387c2c4725bc2",
         "6f468f84b142b464e930e3d8659a0e2feff2c30986a9eb65c4fac67f7753d0a6",
         "c5c1d0162115e4147dbfe2df3220498f98429c851744ffafb57b160900e67efa",
-        "c1412a47122b07f59f47f732a7a3b414b449c39ab364806fca13f251e7c8f046",
+        "6a93534e30fc65234fd50e7a37531c74cf3286efb3f7b0ebc16355971a26c7db",
         "0bc148cf37869176762d0dd4f6265a386bfe966f6f14134b1d73db13640abf41",
         "634c3dfba1b217211d710ae0fcc5d2662933f2f6ecbdf85873d9528ba46e556d",
         "3154b7d7ff03e5dccf7cd399e7638fe3d2c9c93251848cb33412e5c801fd1884",
@@ -11985,8 +11985,8 @@
         "0b18298d26bf70821006d63677089b1e1cc107b55010a15c92683c139c3c1907",
         "31794a66738cfe0bf52a06459a5671daf4fbcfc40bf9e9ee1bd763e026aa14db",
         "7d35fecec6654e9b20a9251a7ef234f5852cc7022c0133e6fc115fa8a4147515",
-        "f1561f88977c25b7b5dbe52ec05cb266c7ceb04e542a666613c7d96b605b3718",
-        "531f872639bb058dcfab86a818955b9ee2907e603e236abeb6fa00c0c1848cfe",
+        "ffef182320c611b49d088bf650cbf3f1a201420c9eddb9a9bda8ff7825e0aa49",
+        "9ba550584504106a9808ce5ab03d89a36956213aae185aa5ce61f69fce9c901f",
         "67982dbf8d688f3fab70cdfcdf1c8843fc6bce5c9a568bea841b09c102508ab7",
         "d88b6105b0aaa116308f90949e92b6fdf45854aed1caee4d8e1e2c5cd785cbd4",
         "f596fe918db77987b864e1f47f3d6e5ecd6e6d71115495e81d50e1ff36974f37",
@@ -12003,7 +12003,7 @@
         "8de33779129cf1cff6b7aa35db627d5e7174da3e4359d10660bff19db42cc034",
         "32476d8a37d4c0622fed04a89b3af95713cf97676599048f462271ac3ed82179",
         "e029e84ec97fc7ec072245542842016fc915fe3f155171a5acc5a463d1cd4294",
-        "ac0b218df7fb07316ee051da715f026abc266dab24cc6d4b2970fb6084133d88",
+        "0daa628b004f4863dc65174bba0d5115d54c85abe1993fb7cef041cac88bad46",
         "6f18f8a09c953d9a3cbcbd04671cc160f779cbea484a3f55c035699f5688456d",
         "e19e7071de2e3a0ba871c45e4151baccbb4d89fab9b843560e6fbcf280d60e8a",
         "cbcecf5c6717d58331dfeca52eefe06449aaf3f6687ec544c1d85c15ced21014"
@@ -12024,9 +12024,9 @@
         "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/uninstall.html",
         "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/26.7/upgrade.html",
         "https://github.com/NVIDIA/gpu-operator",
-        "https://github.com/NVIDIA/gpu-operator/blob/dbacf43d4938816fefe62690ab868a640a195282/api/nvidia/v1/clusterpolicy_types.go",
-        "https://github.com/NVIDIA/gpu-operator/blob/dbacf43d4938816fefe62690ab868a640a195282/deployments/gpu-operator/values.yaml",
-        "https://github.com/NVIDIA/gpu-operator/tree/dbacf43d4938816fefe62690ab868a640a195282",
+        "https://github.com/NVIDIA/gpu-operator/blob/5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832/api/nvidia/v1/clusterpolicy_types.go",
+        "https://github.com/NVIDIA/gpu-operator/blob/5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832/deployments/gpu-operator/values.yaml",
+        "https://github.com/NVIDIA/gpu-operator/tree/5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832",
         "https://github.com/NVIDIA/k8s-device-plugin/tree/v0.20.1"
       ],
       "source_sha256": "75a5a33cde4f642553e39f2f3bf5e6ed331c98a873f3ea5a1de0fe6f25aa721f",
@@ -12986,7 +12986,7 @@
           "heading": "第三章：v1.8.2 到 v1.15.2 版本矩阵",
           "line": 102,
           "action": "保留",
-          "target": "Kubernetes-AI-Platform-Deep-Dive.md#volcano-upgrade-v1-8-2-到-v1-15-3-版本矩阵",
+          "target": "Kubernetes-AI-Platform-Deep-Dive.md#volcano-upgrade-v1-8-2-到-v1-16-0-版本矩阵",
           "reason": "保留组件专有内容"
         },
         {
@@ -13424,7 +13424,7 @@
       ],
       "code_blocks": [
         "cb9cde48837b9e049fd5169004db3867d29bf78675eadf96d2d265ef80bf4237",
-        "e8067cb24a589e97917d26e8545d23100cc756ab6f1878ac60edf756f64fc294",
+        "e4897f678205f8507d94119c9c1ff2b22586d8b7dadf60661ca9e4d849267758",
         "164ed98b54381ba52a2edb87816100c4f3ce8f1ad7058a45194bc8a4d60c5511",
         "d0372ee224205bda19bfabe55a36fa1e8135fe689ef5316342a0d66c104080ee",
         "14a202e452c344f8eb3055868d31b38b293f3b411e360b5b0a5dacffdb9ff7a0",
@@ -13632,7 +13632,7 @@
         "https://z.ai/blog/glm-5.3",
         "https://z.ai/company"
       ],
-      "content_sha256": "65c9f8a5e23227ca2facd65d3c7b6c941f83f4c8b0581d67a5f02e4061704159",
+      "content_sha256": "b65fa6bf786599e70b23f076bce067c29542d9f8ad04866687c6e00b72d567f3",
       "source_sha256": "65c9f8a5e23227ca2facd65d3c7b6c941f83f4c8b0581d67a5f02e4061704159",
       "retired": false
     }
