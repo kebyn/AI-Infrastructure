@@ -216,11 +216,21 @@ class SharedThemeRenderingTest(unittest.TestCase):
             self.assertIn("mermaid.render", Path(doc["dst"]).read_text(encoding="utf-8"))
 
     def test_mermaid_fallback_preserves_definition_as_text(self):
-        definition = 'flowchart LR\nA[&lt;example&gt;] --&gt; B &amp; C'
-        body = f'<pre><code class="language-mermaid">{definition}</code></pre>'
-        rendered = serve_docs.render_mermaid_blocks(body)
-        self.assertIn(definition, rendered)
-        self.assertNotIn("<example>", rendered)
+        definition = "flowchart LR\nA[<example>] --> B & C"
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "diagram.md"
+            dst = Path(directory) / "diagram.html"
+            src.write_text("# 图\n\n```mermaid\n" + definition + "\n```\n", encoding="utf-8")
+            with redirect_stdout(StringIO()):
+                serve_docs.render_doc({
+                    "src": str(src), "dst": str(dst), "title": "图",
+                    "hero": "图", "subtitle": "图", "meta": "图", "footer": "图",
+                })
+            html = dst.read_text(encoding="utf-8")
+        self.assertIn('<div class="mermaid">', html)
+        self.assertIn("&lt;example&gt;", html)
+        self.assertIn("&amp;", html)
+        self.assertNotIn("<example>", html)
 
     def test_text_colors_meet_wcag_aa_on_theme_surfaces(self):
         def luminance(color):
@@ -235,6 +245,22 @@ class SharedThemeRenderingTest(unittest.TestCase):
                     with self.subTest(theme=name, text=foreground, surface=background):
                         low, high = sorted((luminance(colors[foreground]), luminance(colors[background])))
                         self.assertGreaterEqual((high + 0.05) / (low + 0.05), 4.5)
+
+    def test_pygments_highlighting_and_theme_scoping(self):
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "code.md"
+            dst = Path(directory) / "code.html"
+            src.write_text("# 代码\n\n```python\nprint('hi')\n```\n", encoding="utf-8")
+            with redirect_stdout(StringIO()):
+                serve_docs.render_doc({
+                    "src": str(src), "dst": str(dst), "title": "代码",
+                    "hero": "代码", "subtitle": "代码", "meta": "代码", "footer": "代码",
+                })
+            html = dst.read_text(encoding="utf-8")
+        self.assertIn('<div class="highlight">', html)
+        self.assertIn("<span", html)
+        self.assertIn(':root[data-theme="dark"] .highlight', serve_docs.CSS)
+        self.assertIn("@media (prefers-color-scheme: dark)", serve_docs.CSS)
 
 
 @unittest.skipUnless(sync_playwright, "可选浏览器测试需要 uv run --with playwright，并安装 Chromium")
@@ -2587,16 +2613,21 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("flowchart LR", html)
         self.assertNotIn('class="language-mermaid"', html)
 
-    def test_render_mermaid_blocks_converts_fenced_diagram(self):
-        body = (
-            '<pre><code class="language-mermaid">'
-            'flowchart LR\nA --&gt; B\n'
-            '</code></pre>'
-        )
-
-        rendered = serve_docs.render_mermaid_blocks(body)
-
-        self.assertEqual(rendered, '<div class="mermaid">\nflowchart LR\nA --&gt; B\n</div>')
+    def test_fenced_mermaid_block_renders_as_mermaid_target(self):
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "diagram.md"
+            dst = Path(directory) / "diagram.html"
+            src.write_text(
+                "# 图\n\n```mermaid\nflowchart LR\nA --> B\n```\n", encoding="utf-8"
+            )
+            with redirect_stdout(StringIO()):
+                serve_docs.render_doc({
+                    "src": str(src), "dst": str(dst), "title": "图",
+                    "hero": "图", "subtitle": "图", "meta": "图", "footer": "图",
+                })
+            html = dst.read_text(encoding="utf-8")
+        self.assertIn('<div class="mermaid">flowchart LR\nA --&gt; B</div>', html)
+        self.assertNotIn('class="language-mermaid"', html)
 
     def test_mermaid_blocks_do_not_use_unsupported_reverse_arrows(self):
         docs_dir = Path(__file__).resolve().parent

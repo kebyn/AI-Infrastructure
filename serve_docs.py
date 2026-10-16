@@ -8,6 +8,9 @@ import re
 from pathlib import Path
 from urllib.parse import unquote, urlsplit, urlunsplit
 
+from pymdownx.superfences import fence_div_format
+from pygments.formatters import HtmlFormatter
+
 INDEX = "/data/index.html"
 CATEGORIES = (
     "推理与压测", "模型时间线", "存储", "访问治理", "Kubernetes 平台", "Agent 协作", "Sandbox",
@@ -295,20 +298,6 @@ def rewrite_document_links(body, source):
         return f'href="{escape(target, quote=True)}"'
 
     return re.sub(r'href="([^"]*)"', replace, body)
-
-def render_mermaid_blocks(body):
-    """Convert fenced mermaid code blocks into Mermaid render targets."""
-    def repl(match):
-        diagram = unescape(match.group(1)).strip()
-        return f'<div class="mermaid">\n{escape(diagram, quote=False)}\n</div>'
-
-    return re.sub(
-        r'<pre><code class="language-mermaid">(.*?)</code></pre>',
-        repl,
-        body,
-        flags=re.S,
-    )
-
 
 def wrap_tables(body):
     """Give ordinary Markdown tables their own keyboard-accessible scroll area."""
@@ -1014,6 +1003,40 @@ if (diagrams.length) {
 </script>
 """
 
+PYGMENTS_LIGHT_STYLE = "friendly"
+PYGMENTS_DARK_STYLE = "github-dark"
+
+
+def _build_pygments_css():
+    """Generate theme-aware Pygments token styles scoped to .highlight blocks.
+
+    The container background is dropped so the shared `--bg-code` surface wins;
+    the dark stylesheet is emitted twice (attribute selector and media query) to
+    match how the site resolves light/dark.
+    """
+    def defs(style):
+        css = HtmlFormatter(style=style).get_style_defs(".highlight")
+        css = re.sub(r"^\.highlight \{[^}]*\}\n?", "", css, flags=re.M)
+        css = css.replace("pre { line-height: 125%; }\n", "")
+        return css
+
+    light = defs(PYGMENTS_LIGHT_STYLE)
+    dark = defs(PYGMENTS_DARK_STYLE)
+    dark_attr = re.sub(r"^\.highlight\b", ':root[data-theme="dark"] .highlight', dark, flags=re.M)
+    dark_media = re.sub(r"^\.highlight\b", ':root:not([data-theme]) .highlight', dark, flags=re.M)
+    return (
+        "/* ─── Pygments tokens (light) ─── */\n"
+        + light
+        + "\n/* ─── Pygments tokens (dark) ─── */\n"
+        + dark_attr
+        + "\n@media (prefers-color-scheme: dark) {\n"
+        + dark_media
+        + "\n}\n"
+    )
+
+
+PYGMENTS_CSS = _build_pygments_css()
+
 LIGHT_PALETTE = """
   color-scheme: light;
   --bg: #f8fafc;
@@ -1050,7 +1073,7 @@ DARK_PALETTE = """
   --backdrop: rgba(1, 4, 9, 0.68);
   --shadow: rgba(0, 0, 0, 0.35);
 """
-CSS = (
+CSS = PYGMENTS_CSS + (
     ":root {" + LIGHT_PALETTE + "}\n"
     ':root[data-theme="dark"] {' + DARK_PALETTE + "}\n"
     "@media (prefers-color-scheme: dark) { :root:not([data-theme]) {" + DARK_PALETTE + "} }\n"
@@ -1807,7 +1830,8 @@ def render_doc(doc):
 
     extensions = [
         "tables",
-        "fenced_code",
+        "pymdownx.superfences",
+        "pymdownx.highlight",
         "toc",
         "smarty",
         "sane_lists",
@@ -1821,6 +1845,18 @@ def render_doc(doc):
             "toc_depth": 2,
             "slugify": slugify_heading,
         },
+        "pymdownx.superfences": {
+            "custom_fences": [
+                {"name": "mermaid", "class": "mermaid", "format": fence_div_format}
+            ],
+        },
+        "pymdownx.highlight": {
+            "guess_lang": False,
+            "use_pygments": True,
+            "css_class": "highlight",
+            "pygments_style": PYGMENTS_LIGHT_STYLE,
+            "pygments_lang_class": False,
+        },
     }
 
     body = markdown.markdown(
@@ -1828,7 +1864,6 @@ def render_doc(doc):
         extensions=extensions,
         extension_configs=extension_configs,
     )
-    body = render_mermaid_blocks(body)
     body = rewrite_document_links(body, doc["src"])
     timeline_script = ""
     if doc.get("type") == "timeline":
