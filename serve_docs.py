@@ -2033,6 +2033,24 @@ body.toc-open .back-to-top { visibility: hidden; }
 /* ─── Strong emphasis with accent ─── */
 strong { color: var(--text); }
 p strong, li strong { color: var(--green); }
+
+/* ─── Print ─── */
+@media print {
+  .site-header, .doc-sidebar, .toc-fab, .toc-backdrop, .toc-close,
+  .back-to-top, .reading-progress, .heading-anchor, .doc-pager,
+  .skip-link, .doc-hero-category, .index-tools, .index-results, .index-empty {
+    display: none !important;
+  }
+  .doc-shell { display: block; grid-template-columns: none; }
+  .doc-shell .doc-container, .doc-container { max-width: none; padding: 0; }
+  body { background: #fff; color: #000; }
+  a { color: #000; text-decoration: underline; }
+  pre, .highlight, .table-wrap, table, .mermaid, details { break-inside: avoid; }
+  pre, .highlight { background: #fff !important; }
+  h2, h3 { break-after: avoid; }
+  details > *:not(summary) { display: revert; }
+  @page { margin: 16mm; }
+}
 """
 
 def canonical_url(path):

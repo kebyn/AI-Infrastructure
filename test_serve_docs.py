@@ -285,6 +285,17 @@ class SharedThemeRenderingTest(unittest.TestCase):
         self.assertIn(':root[data-theme="dark"] .highlight', serve_docs.CSS)
         self.assertIn("@media (prefers-color-scheme: dark)", serve_docs.CSS)
 
+    def test_print_rules_hide_page_chrome(self):
+        match = re.search(r"@media print \{(.*)\n\}", serve_docs.CSS, re.S)
+        self.assertIsNotNone(match)
+        block = match.group(1)
+        for selector in (
+            ".site-header", ".doc-sidebar", ".doc-pager",
+            ".back-to-top", ".reading-progress", ".heading-anchor",
+        ):
+            with self.subTest(selector=selector):
+                self.assertIn(selector, block)
+
 
 @unittest.skipUnless(sync_playwright, "可选浏览器测试需要 uv run --with playwright，并安装 Chromium")
 class PageBrowserTest(unittest.TestCase):
