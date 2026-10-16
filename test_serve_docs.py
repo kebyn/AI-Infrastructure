@@ -591,6 +591,24 @@ class PageBrowserTest(unittest.TestCase):
         self.assertEqual(self.page.locator(".mermaid").inner_text(), "invalid diagram")
 
 
+    def test_scrollspy_highlights_active_section_and_back_to_top(self):
+        self.page.set_viewport_size({"width": 1280, "height": 900})
+        self.page.goto(self.url + "/AI-Inference-Deep-Dive.html")
+        heading_id = self.page.locator("main h2[id]").nth(1).get_attribute("id")
+        self.page.evaluate("id => { location.hash = ''; location.hash = id; }", heading_id)
+        self.page.wait_for_function(
+            """id => [...document.querySelectorAll('.toc a[aria-current="true"]')]
+               .some(a => a.getAttribute('href') === '#' + id)""",
+            arg=heading_id,
+        )
+        self.assertEqual(self.page.locator('.toc a[aria-current="true"]').count(), 1)
+        self.page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
+        self.page.wait_for_function("document.querySelector('.back-to-top').hidden === false")
+        self.page.emulate_media(reduced_motion="reduce")
+        self.page.locator(".back-to-top").click()
+        self.page.wait_for_function("window.scrollY < 5")
+
+
 class RenderDocLayoutTest(unittest.TestCase):
     def test_all_deep_dives_are_registered_and_use_current_audit_date(self):
         docs_dir = Path(__file__).resolve().parent
@@ -2729,9 +2747,51 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertNotIn('<h2 id="目录">目录</h2>', html)
         self.assertRegex(html, r'<a class="toc-chapter" href="#第一章">第一章</a>')
         self.assertRegex(html, r'<a href="#子节">子节</a>')
-        self.assertRegex(html, r'<h2 id="第一章">第一章</h2>')
-        self.assertRegex(html, r'<h3 id="子节">子节</h3>')
+        self.assertRegex(html, r'<h2 id="第一章">第一章<a class="heading-anchor" href="#第一章"[^>]*>#</a></h2>')
+        self.assertRegex(html, r'<h3 id="子节">子节<a class="heading-anchor" href="#子节"[^>]*>#</a></h3>')
         self.assertNotIn("<hr />\n\n<hr />", html)
+
+
+    def test_prev_next_derives_from_docs_order(self):
+        def render(doc, directory):
+            target = dict(doc, dst=str(Path(directory) / (Path(doc["dst"]).stem + ".html")))
+            with redirect_stdout(StringIO()):
+                serve_docs.render_doc(target)
+            return Path(target["dst"]).read_text(encoding="utf-8")
+
+        with tempfile.TemporaryDirectory() as directory:
+            first = render(serve_docs.DOCS[0], directory)
+            last = render(serve_docs.DOCS[-1], directory)
+        self.assertIn('class="pager-link pager-next"', first)
+        self.assertNotIn('class="pager-link pager-prev"', first)
+        self.assertIn('class="pager-link pager-prev"', last)
+        self.assertNotIn('class="pager-link pager-next"', last)
+
+    def test_document_absent_from_registry_has_no_pager(self):
+        with tempfile.TemporaryDirectory() as directory:
+            src = Path(directory) / "orphan.md"
+            dst = Path(directory) / "orphan.html"
+            src.write_text("# 孤立文档\n\n正文\n", encoding="utf-8")
+            with redirect_stdout(StringIO()):
+                serve_docs.render_doc({
+                    "src": str(src), "dst": str(dst), "title": "孤立文档",
+                    "hero": "孤立文档", "subtitle": "孤立文档", "meta": "孤立文档", "footer": "孤立文档",
+                })
+            html = dst.read_text(encoding="utf-8")
+        self.assertNotIn('class="doc-pager"', html)
+        self.assertNotIn('aria-label="文档导航"', html)
+
+    def test_heading_permalinks_and_sidebar_toc_stay_clean(self):
+        doc = next(d for d in serve_docs.DOCS if Path(d["src"]).name == "Lustre-3FS-Deep-Dive.md")
+        with tempfile.TemporaryDirectory() as directory:
+            target = dict(doc, dst=str(Path(directory) / "lustre.html"))
+            with redirect_stdout(StringIO()):
+                serve_docs.render_doc(target)
+            html = Path(target["dst"]).read_text(encoding="utf-8")
+        self.assertIn('class="heading-anchor" href="#', html)
+        for text in re.findall(r'<a class="toc-chapter" href="#[^"]*">(.*?)</a>', html):
+            with self.subTest(chapter=text):
+                self.assertNotIn("#", text)
 
 
 if __name__ == "__main__":

@@ -958,6 +958,80 @@ TOC_SCRIPT = r"""
   });
   mobile.addEventListener('change', () => setTocOpen(false));
   setTocOpen(false);
+
+  // Scrollspy: highlight the current section in the sidebar without touching
+  // drawer state (inert/aria-hidden/role/focus stay under setTocOpen's control).
+  if ('IntersectionObserver' in window) {
+    const links = new Map();
+    tocSidebar.querySelectorAll('a[href^="#"]').forEach((link) => {
+      const id = decodeURIComponent(link.getAttribute('href').slice(1));
+      if (id) links.set(id, link);
+    });
+    const headings = [...document.querySelectorAll('main h2[id], main h3[id]')];
+    const setActive = (activeId) => {
+      links.forEach((link, id) => {
+        if (id === activeId) link.setAttribute('aria-current', 'true');
+        else link.removeAttribute('aria-current');
+      });
+    };
+    let headerPx = 64;
+    const readHeader = () => {
+      const value = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height'));
+      if (!Number.isNaN(value)) headerPx = value;
+    };
+    readHeader();
+    if (headings.length && links.size) {
+      const visible = new Set();
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) visible.add(entry.target.id);
+          else visible.delete(entry.target.id);
+        });
+        for (const heading of headings) {
+          if (visible.has(heading.id)) { setActive(heading.id); return; }
+        }
+      }, { rootMargin: `-${Math.round(headerPx)}px 0px -65% 0px`, threshold: 0 });
+      headings.forEach((heading) => observer.observe(heading));
+      window.addEventListener('resize', readHeader);
+    }
+  }
+})();
+</script>
+"""
+
+READING_UX_SCRIPT = r"""
+<script>
+(() => {
+  const progressBar = document.querySelector('.reading-progress > span');
+  const backToTop = document.querySelector('.back-to-top');
+  if (!progressBar && !backToTop) return;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let ticking = false;
+  function update() {
+    ticking = false;
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    const ratio = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0;
+    if (progressBar) progressBar.style.transform = `scaleX(${ratio})`;
+    if (backToTop) backToTop.hidden = window.scrollY <= 600;
+  }
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(update);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  if (backToTop) {
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    });
+  }
+  // Expand collapsed appendices so they are included when printing or saving to PDF.
+  window.addEventListener('beforeprint', () => {
+    document.querySelectorAll('details').forEach((item) => { item.open = true; });
+  });
+  update();
 })();
 </script>
 """
@@ -1854,6 +1928,108 @@ details > *:not(summary) {
   .index-container { padding-top: 32px; }
 }
 
+/* ─── Heading anchor links ─── */
+.heading-anchor {
+  margin-left: 0.4em;
+  color: var(--text-secondary);
+  font-weight: 400;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+h2:hover .heading-anchor,
+h3:hover .heading-anchor,
+.heading-anchor:focus-visible { opacity: 1; }
+.heading-anchor:hover { color: var(--accent); }
+
+/* ─── Scrollspy-active TOC entry ─── */
+.toc a[aria-current="true"] {
+  color: var(--accent);
+  font-weight: 700;
+}
+.toc.toc-nested > ul > li > .toc-chapter[aria-current="true"] {
+  box-shadow: inset 3px 0 0 var(--accent);
+  padding-left: 8px;
+}
+
+/* ─── Doc hero category badge ─── */
+.doc-hero-category {
+  display: inline-block;
+  padding: 2px 10px;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  background: var(--surface-hover);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ─── Previous / next navigation ─── */
+.doc-pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 56px 0 0;
+}
+.doc-pager .pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+}
+.doc-pager .pager-link:hover { border-color: var(--accent-dim); background: var(--surface-hover); }
+.doc-pager .pager-prev { grid-column: 1; }
+.doc-pager .pager-next { grid-column: 2; text-align: right; }
+.doc-pager .pager-label { color: var(--text-secondary); font-size: 0.82em; }
+.doc-pager .pager-title { color: var(--accent); font-weight: 600; overflow-wrap: anywhere; }
+
+/* ─── Reading progress & back-to-top ─── */
+.reading-progress {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 29;
+  pointer-events: none;
+}
+.reading-progress > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: var(--accent);
+  transition: transform 0.1s linear;
+}
+.back-to-top {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 43;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 12px 32px var(--shadow);
+}
+.back-to-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+body.toc-open .back-to-top { visibility: hidden; }
+
 /* ─── Strong emphasis with accent ─── */
 strong { color: var(--text); }
 p strong, li strong { color: var(--green); }
@@ -1903,6 +2079,46 @@ def build_head(title, description, canonical_path, og_type):
     ])
 
 
+def build_prev_next(doc):
+    """Previous/next links derived from the DOCS registry order (timeline included)."""
+    hrefs = [item.get("href") for item in DOCS]
+    if doc.get("href") not in hrefs:
+        return ""
+    index = hrefs.index(doc.get("href"))
+    parts = []
+    if index > 0:
+        prev = DOCS[index - 1]
+        parts.append(
+            f'<a class="pager-link pager-prev" href="{escape(prev["href"], quote=True)}">'
+            f'<span class="pager-label">上一篇</span>'
+            f'<span class="pager-title">{escape(prev["title"])}</span></a>'
+        )
+    if index < len(DOCS) - 1:
+        nxt = DOCS[index + 1]
+        parts.append(
+            f'<a class="pager-link pager-next" href="{escape(nxt["href"], quote=True)}">'
+            f'<span class="pager-label">下一篇</span>'
+            f'<span class="pager-title">{escape(nxt["title"])}</span></a>'
+        )
+    if not parts:
+        return ""
+    return '<nav class="doc-pager" aria-label="文档导航">\n' + "\n".join(parts) + "\n</nav>"
+
+
+def add_heading_permalinks(body):
+    """Append a hidden anchor link to each h2/h3 so sections are directly linkable."""
+    def repl(match):
+        level, heading_id, inner = match.group(1), match.group(2), match.group(3)
+        label = escape(plain_text(inner), quote=True)
+        return (
+            f'<h{level} id="{heading_id}">{inner}'
+            f'<a class="heading-anchor" href="#{heading_id}" aria-label="链接到“{label}”">#</a>'
+            f'</h{level}>'
+        )
+
+    return re.sub(r'<h([23]) id="([^"]+)">(.*?)</h\1>', repl, body, flags=re.S)
+
+
 def render_doc(doc):
     with open(doc["src"], "r", encoding="utf-8") as f:
         md_text = f.read()
@@ -1950,6 +2166,7 @@ def render_doc(doc):
         timeline_script = TIMELINE_SCRIPT
     body = wrap_tables(body)
     body, toc_html = split_body_and_toc(body)
+    body = add_heading_permalinks(body)
     sidebar_html = (
         '<aside id="doc-sidebar" class="doc-sidebar" aria-label="文档目录">\n'
         '<button class="toc-close" type="button">关闭目录</button>\n'
@@ -1965,6 +2182,8 @@ def render_doc(doc):
         if toc_html
         else ""
     )
+    category = doc.get("category") or "其他"
+    pager_html = build_prev_next(doc)
     description = doc.get("summary") or doc.get("subtitle") or doc.get("hero") or ""
     head = build_head(doc["title"], description, doc.get("href", "/"), "article")
 
@@ -1981,6 +2200,7 @@ def render_doc(doc):
 <div class="doc-page">
 <div class="doc-container doc-hero-container">
   <div class="doc-hero">
+    <span class="doc-hero-category">{escape(category)}</span>
     <h1>{doc["hero"]}</h1>
     <p class="subtitle">{doc["subtitle"]}</p>
     <p class="meta">{doc["meta"]}</p>
@@ -1990,15 +2210,19 @@ def render_doc(doc):
   {sidebar_html}
   <main id="main-content" class="doc-container" tabindex="-1">
   {body}
+  {pager_html}
   <div class="doc-footer">
     <p>{rewrite_document_links(doc["footer"], doc["src"])}</p>
   </div>
   </main>
 </div>
 </div>
+<div class="reading-progress" aria-hidden="true"><span></span></div>
+<button class="back-to-top" type="button" aria-label="回到顶部" hidden>↑</button>
 {THEME_CONTROLS_SCRIPT}
 {MERMAID_SCRIPT}
 {TOC_SCRIPT}
+{READING_UX_SCRIPT}
 {timeline_script}
 </body>
 </html>"""
