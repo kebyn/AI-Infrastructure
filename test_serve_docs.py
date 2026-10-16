@@ -338,6 +338,12 @@ class SharedThemeRenderingTest(unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertIn(selector, block)
 
+    def test_heading_anchor_styles_cover_touch_and_target(self):
+        self.assertIn("@media (hover: none)", serve_docs.CSS)
+        self.assertIn("h2:target .heading-anchor", serve_docs.CSS)
+        self.assertIn("h3:target .heading-anchor", serve_docs.CSS)
+        self.assertIn("@keyframes heading-target-flash", serve_docs.CSS)
+
 
 @unittest.skipUnless(sync_playwright, "可选浏览器测试需要 uv run --with playwright，并安装 Chromium")
 class PageBrowserTest(unittest.TestCase):

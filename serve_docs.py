@@ -1970,6 +1970,20 @@ h2:hover .heading-anchor,
 h3:hover .heading-anchor,
 .heading-anchor:focus-visible { opacity: 1; }
 .heading-anchor:hover { color: var(--accent); }
+/* Touch devices have no hover; keep anchors discoverable at rest. */
+@media (hover: none) {
+  .heading-anchor { opacity: 0.55; }
+}
+/* Flash the jumped-to heading; the global reduced-motion block disables this. */
+h2:target, h3:target {
+  animation: heading-target-flash 1.6s ease-out;
+}
+h2:target .heading-anchor,
+h3:target .heading-anchor { opacity: 1; }
+@keyframes heading-target-flash {
+  from { background-color: var(--surface-hover); }
+  to { background-color: transparent; }
+}
 
 /* ─── Scrollspy-active TOC entry ─── */
 .toc a[aria-current="true"] {
