@@ -11,7 +11,8 @@ from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from pymdownx.superfences import fence_div_format
 from pygments.formatters import HtmlFormatter
 
-INDEX = "/data/index.html"
+ROOT = Path(__file__).resolve().parent
+INDEX = str(ROOT / "index.html")
 CATEGORIES = (
     "推理与压测", "模型时间线", "存储", "访问治理", "Kubernetes 平台", "Agent 协作", "Sandbox",
 )
@@ -217,6 +218,10 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'footer': '事实来源为 <a '
             'href="/model_release_timeline.md">model_release_timeline.md</a>；每条记录保留对应的官方公告、模型页、技术报告或官方仓库链接。',
   'type': 'timeline'}]
+
+for _doc in DOCS:
+    _doc["src"] = str(ROOT / Path(_doc["src"]).name)
+    _doc["dst"] = str(ROOT / Path(_doc["dst"]).name)
 
 def slugify_heading(value, separator):
     """Generate stable heading ids that match the hand-written Markdown TOC."""
@@ -2396,7 +2401,7 @@ class V6HTTPServer(HTTPServer):
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
-        super().__init__(*a, directory="/data", **kw)
+        super().__init__(*a, directory=str(ROOT), **kw)
 
     def do_GET(self):
         path = self.path.rstrip("/")

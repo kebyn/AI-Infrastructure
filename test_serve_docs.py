@@ -2312,7 +2312,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertIn("修改 Issue 状态不会停止活动 Task", markdown_text)
 
     def test_multica_stable_evidence_links_are_pinned(self):
-        markdown_text = Path("/data/Multica-Deep-Dive.md").read_text(
+        markdown_text = (Path(__file__).resolve().parent / "Multica-Deep-Dive.md").read_text(
             encoding="utf-8"
         )
         stable_commit = "7ab92d7622ecd81d179a8d83ae2dea74835a5069"
