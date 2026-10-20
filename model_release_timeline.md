@@ -1,6 +1,6 @@
 # 主流大模型发布时间时间线
 
-**覆盖范围：** 2022-01-01 至 2026-10-16（UTC，截止日固定为 2026-10-16）。
+**覆盖范围：** 2022-01-01 至 2026-10-20（UTC，截止日固定为 2026-10-20）。
 
 本文按“首次公开发布”排序，整理 DeepSeek、Moonshot/Kimi、Alibaba/Qwen、智谱/GLM、小米 MiMo、腾讯混元、OpenAI、Anthropic、Google 九个阵营的主线公开模型。模型先公布、后开放 API 或权重的情况，在“备注”中补充；同一系列的参数尺寸、日期后缀、蒸馏版和 API 快照通常不单列，除非它改变了模型定位或公开形态。
 
@@ -10,7 +10,7 @@
 - “公开”包括聊天产品、API、研究预览和开放权重；它们不是同一个状态，具体状态写在“发布形态”和“备注”中。
 - 只把重要的通用、推理、多模态、代码和 Agent 模型纳入主表。纯 embedding、rerank、ASR、TTS、图像、视频、翻译等专用模型默认排除；Gemma 作为 Google 的重要开放模型分支保留。
 - “前后继关系”是主线关系，不表示官方唯一命名或严格的一对一替代关系。比如 Flash、Mini、Haiku、Sonnet、Opus 等独立档位，只有在能力或产品定位明显变化时单列。
-- 2026 年条目按截止日当天可见的官方页面整理；官方页面后续可能继续更新。2026-10-16 截止的主表共 126 行，GPT-6 Chat/Intelligent UI 的条目是产品部署更新，不计作新的底层模型。
+- 2026 年条目按截止日当天可见的官方页面整理；官方页面后续可能继续更新。2026-10-20 截止的主表共 126 行，GPT-6 Chat/Intelligent UI 的条目是产品部署更新，不计作新的底层模型。
 
 ## 时间线
 
@@ -140,7 +140,7 @@
 | 2026-09-28 | Anthropic | Claude Sonnet 5.5 | 通用、代码、Agent、视觉 | 正式发布、API/产品 | Sonnet 5 的 5.5 更新，强调编码、视觉和可执行工作流 | Sonnet 5 → Sonnet 5.5 | [Claude Sonnet 5.5](https://www.anthropic.com/claude-sonnet-5-5) | 官方页面日期为 2026-09-28。 |
 | 2026-09-29 | OpenAI | GPT-6.1 Sol | 通用、推理、代码、Agent | 产品/API 更新 | Sol 档位的模型升级，改善代码、工具和复杂任务执行；保留 GPT-6 Sol 的产品定位 | GPT-6 Sol → GPT-6.1 Sol | [GPT-6.1 Sol](https://openai.com/index/introducing-gpt-6-1-sol/) | 这是模型变体/升级，不是新的 GPT-6 家族根节点；部署切换不重复计数。 |
 | 2026-10-07 | OpenAI | GPT-6 in ChatGPT / Intelligent UI | 产品部署更新、Agent UI | ChatGPT 产品部署更新 | 将 GPT-6 能力接入 ChatGPT 与 Intelligent UI，强调界面、工具和交互形态变化 | GPT-6 family → ChatGPT/Intelligent UI deployment | [GPT-6 and Intelligent UI](https://openai.com/index/gpt-6-for-everyone/) | 这是产品部署更新，不是新的底层模型；不把它与 GPT-6 Astra、Sol/Luna 或 GPT-6.1 Sol 重复计为模型。 |
-| 2026-10-07 | Anthropic | Claude Haiku 5.5 | 轻量、代码、Agent | 正式发布、API/产品 | Haiku 5.5 提供更快、更低成本的 Claude 5.5 档位 | Haiku 4.5 → Haiku 5.5 | [Claude Haiku 5.5](https://www.anthropic.com/claude-haiku-5-5) | 截止 2026-10-16 已公开；不纳入截止日之后的条目。 |
+| 2026-10-07 | Anthropic | Claude Haiku 5.5 | 轻量、代码、Agent | 正式发布、API/产品 | Haiku 5.5 提供更快、更低成本的 Claude 5.5 档位 | Haiku 4.5 → Haiku 5.5 | [Claude Haiku 5.5](https://www.anthropic.com/claude-haiku-5-5) | 截止 2026-10-20 已公开；不纳入截止日之后的条目。 |
 | 2026-10-13 | Google | Gemini 4 Argon | 通用、多模态、推理、Agent | 模型卡/产品与 API 公开 | 原生多模态和推理能力，支持约 1M context，面向通用 Agent 与复杂任务 | Gemini 3.5 → Gemini 4 Argon | [Gemini 4 Argon model card](https://deepmind.google/models/model-cards/gemini-4-argon/) | Google DeepMind 官方 model card 于 2026-10-13 发布；按新模型计入，不把同日产品部署名另列。 |
 
 ## 覆盖与校验说明

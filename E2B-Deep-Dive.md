@@ -2,9 +2,9 @@
 
 > **AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析**
 >
-> 基于 E2B 官方基础设施仓库整理：<https://github.com/e2b-dev/infra>
+> 基于 E2B 官方 Runtime 仓库整理：<https://github.com/e2b-dev/runtime>
 >
-> 稳定版本基线：Infra `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104` 未变；SDK 当前未发布主线快照 `main@62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3`；Agent Sandbox 稳定对照为 annotated tag `v1.0.7`（tag object `b3832ed88cb8acc57cc5e81072f551d52f14b32f`，peeled source `807cc37107bd7c012115afac9fa9c3b77b8365c2`）；审校日期：2026-10-16。Infra `2026.30` 是 lightweight tag，所列 commit 是 tag 直接指向的源码；正文对 Agent Sandbox 使用 peeled source commit 而非 tag object。SDK 主线与 Agent Sandbox 对照均不扩大 Infra 稳定兼容承诺。
+> 稳定版本基线：Runtime `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104` 未变；SDK 正式发布 `e2b@2.57.0`（tag object `fd18ffa2e438e13a9555045f037844f5cabd91b3`，peeled source `85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2`；Python 对应 `@e2b/python-sdk@2.57.0`）；Agent Sandbox 稳定对照为 annotated tag `v1.0.7`（tag object `b3832ed88cb8acc57cc5e81072f551d52f14b32f`，peeled source `807cc37107bd7c012115afac9fa9c3b77b8365c2`）；审校日期：2026-10-20。Runtime `2026.30` 是 lightweight tag，所列 commit 是 tag 直接指向的源码；正文对 Agent Sandbox 使用 peeled source commit，SDK 同时记录 release tag object 与 source commit。Runtime `main@0bb1c43fa22e5187b80890b24be14711ff7db6bc` 的 `embed` 分发、API 和配置变化仍属于未发布主线观察，不扩大稳定兼容承诺。
 
 ---
 
@@ -187,7 +187,7 @@ flowchart TB
 
 ### 2.3 仓库结构
 
-官方 `e2b-dev/infra` 仓库不是一个单服务项目，而是一套完整基础设施代码：
+官方 `e2b-dev/runtime` 仓库不是一个单服务项目，而是一套完整基础设施代码：
 
 | 路径 | 内容 |
 |------|------|
@@ -631,7 +631,7 @@ Infra 2026.30 的 `network.allowPublicTraffic` 默认值是 `true`。未设置�
 
 私有 ingress 不能只设置 `allowPublicTraffic=false`：Infra 2026.30 还要求创建请求启用 `secure=true`，否则 API 会拒绝创建，因为 envd 控制面必须有独立的 `envdAccessToken`。这两个开关保护不同路径，不能互相替代。
 
-下面的示例使用官方 SDK 当前实现说明调用形态；SDK 示例提交固定为 `e2b-dev/e2b@62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3`，不改变本文的 Infra 稳定基线。该提交是未发布 `main` 快照，不能当作 SDK 稳定 release 或 Infra API 兼容承诺。
+下面的示例使用正式 SDK `e2b@2.57.0` 当前实现说明调用形态；TypeScript 与 Python 示例均固定到对应正式 tag 的 source commit `85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2`，TypeScript tag object 为 `fd18ffa2e438e13a9555045f037844f5cabd91b3`，不改变本文的 Runtime 稳定基线。对应正式 tag 是已发布 SDK 证据，不把 Runtime `main` 的后续变化写入本文。
 
 ```typescript
 import { Sandbox } from "e2b"
@@ -656,9 +656,9 @@ console.log(response.status)
 
 SDK 的 MCP 创建流程也增加了补偿边界：远端 Sandbox 已创建但 `mcp-gateway` 启动失败时，JavaScript 和 Python SDK 会 best-effort `kill()` 已分配实例，再抛出带 stderr 的 `SandboxError` / `SandboxException`；异步 Python 不吞掉 cleanup 中的 `CancelledError`。这避免调用者拿不到 Sandbox 对象时留下运行中实例，但它是 SDK 主线行为，不代表 Infra 2026.30 新增了控制面事务或原子创建语义。
 
-审校时的 SDK `main@62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3` 包含与 Infra 2026.30 `iam.tokens` 对接的客户端形态：Sandbox 可声明 IAM workload identity，TypeScript `Secret` 暴露 `iamToken`，Python 对应属性为 `iam_token`；network transform callback 会收到 token placeholder，供受信任的网络变换器在发送请求时填充，而不是把长期凭据写进 Sandbox URL。SDK 同时对 token name 做格式校验，非法名称在客户端被拒绝。Python SDK 的 `http2` transport 参数允许调用方显式选择 HTTP/2，但服务端是否支持仍由 Infra 部署和入口代理决定。这些客户端接口仍属于未发布主线快照，不能替代已发布 SDK 的兼容性测试。
+审校时的 SDK `e2b@2.57.0` / `@e2b/python-sdk@2.57.0` 包含与 Runtime 2026.30 `iam.tokens` 对接的客户端形态：Sandbox 可声明 IAM workload identity，TypeScript `Secret` 暴露 `iamToken`，Python 对应属性为 `iam_token`；network transform callback 会收到 token placeholder，供受信任的网络变换器在发送请求时填充，而不是把长期凭据写进 Sandbox URL。SDK 同时对 token name 做格式校验，非法名称在客户端被拒绝。Python SDK 的 `http2` transport 参数允许调用方显式选择 HTTP/2，但服务端是否支持仍由 Runtime 部署和入口代理决定。这些客户端接口现在以正式 SDK release 为证据，但不能反向扩大 Runtime 2026.30 的部署兼容范围。
 
-服务端 workload identity/`iam.tokens` 已属于 Infra 2026.30 稳定基线，但 `Secret.iamToken`/`iam_token`、callback placeholder、token name validation 与 `http2` 的具体客户端接口仍固定在未发布 SDK 主线，不能倒推为所有已发布 SDK 都能调用。部署还必须同时启用服务端 admission gate 和身份 provider；只升级 SDK 不会自动启用 IAM。
+服务端 workload identity/`iam.tokens` 已属于 Runtime 2026.30 稳定基线，`Secret.iamToken`/`iam_token`、callback placeholder、token name validation 与 `http2` 的具体客户端接口固定在 SDK `2.57.0` 正式 release；不能倒推为任意未来 SDK 或任意 Runtime 主线都保持相同合同。部署还必须同时启用服务端 admission gate 和身份 provider；只升级 SDK 不会自动启用 IAM。
 
 ```python
 import httpx
@@ -1029,7 +1029,7 @@ Orchestrator 的网络子系统会为 sandbox 建立 NAT 和 nftables 规则，�
 
 ### 9.1 官方支持路径与二次工程边界
 
-`e2b-dev/infra` 2026.30 已退休仓库中的 Nomad-based deployment configuration 和相应 pipeline，部署文档转向 Kubernetes distribution。2026.29 及更早的 Terraform+Nomad/GCP/AWS 操作步骤仍可用于理解历史环境和迁移来源，但不再构成 2026.30 新装的官方稳定合同；不能一边引用 2026.30 API/runtime，一边把旧 Nomad jobs 当作同版受支持交付物。
+Runtime `2026.30` 快照已移除旧 Nomad-based deployment configuration 和相应 pipeline，部署文档转向 Kubernetes distribution。2026.29 及更早的 Terraform+Nomad/GCP/AWS 操作步骤仍可用于理解历史环境和迁移来源，但不再构成 2026.30 新装的官方稳定合同；不能一边引用 2026.30 API/runtime，一边把旧 Nomad jobs 当作同版受支持交付物。
 
 本文后续的组件取舍和 Kubernetes 改造内容是基于官方组件边界给出的工程分析，不构成任意 Kubernetes 发行形态都受 E2B 官方支持的声明。涉及字段、端口、ServiceAccount、服务发现或高可用模式时，仍须回到 2026.30 固定 release 的部署文档、manifest/schema 和组件源码验证。
 
@@ -1567,52 +1567,57 @@ E2B 适合这些场景：
 
 ## 附录 A：固定版本与官方来源
 
-本文的服务端兼容边界固定在 E2B Infra `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`。SDK 链接固定到官方 monorepo 未发布主线快照 `62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3`，只用于证明 `getHost()`、`trafficAccessToken`、示例调用形态，以及记录 transport/MCP cleanup/IAM 客户端边界；Host 编码、共享 envd URL、官方路由 Header 注入与 token 属性的观察不改变 Infra 2026.30 的稳定承诺。Agent Sandbox `v1.0.7@807cc37107bd7c012115afac9fa9c3b77b8365c2`（tag object `b3832ed88cb8acc57cc5e81072f551d52f14b32f`）只作 Kubernetes Sandbox、Router、SDK/RL 与迁移契约对照。另注：官方基础设施仓库 `e2b-dev/infra` 在本轮审校期间更名为 [`e2b-dev/runtime`](https://github.com/e2b-dev/runtime)（GitHub 301 保留既有链接解析），`2026.30` Release 仍挂在更名后的仓库；本文保留更名前的仓库名与固定 commit 链接，升级时按新仓库名重新核对。
+本文的服务端兼容边界固定在 E2B Runtime `2026.30@f32ee8a2a50052f32e3632ceb451111a98dd5104`。SDK 正式证据固定为 `e2b@2.57.0` 与 `@e2b/python-sdk@2.57.0`：TypeScript tag object 为 `fd18ffa2e438e13a9555045f037844f5cabd91b3`，两套 SDK 的 source commit 均为 `85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2`，用于证明 `getHost()`、`trafficAccessToken`、示例调用形态，以及记录 transport/MCP cleanup/IAM 客户端边界；Host 编码、共享 envd URL、官方路由 Header 注入与 token 属性的观察不改变 Runtime 2026.30 的稳定承诺。Agent Sandbox `v1.0.7@807cc37107bd7c012115afac9fa9c3b77b8365c2`（tag object `b3832ed88cb8acc57cc5e81072f551d52f14b32f`）只作 Kubernetes Sandbox、Router、SDK/RL 与迁移契约对照。另注：官方基础设施仓库已更名为 [`e2b-dev/runtime`](https://github.com/e2b-dev/runtime)，`2026.30` Release 仍挂在更名后的仓库；当前来源链接统一使用新仓库名，历史同步记录保留旧名称以便追溯。`runtime/main@0bb1c43fa22e5187b80890b24be14711ff7db6bc` 的 `embed` 分发、API 和配置变化暂不属于稳定兼容范围。
 
 | 主题 | 官方固定快照 |
 | --- | --- |
-| Infra 2026.30 完整源码 | [e2b-dev/infra@f32ee8a](https://github.com/e2b-dev/infra/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104) |
-| Infra 2026.30 Release | <https://github.com/e2b-dev/infra/releases/tag/2026.30> |
-| 删除 control-plane access-token 表 | [`20260823120000_drop_access_tokens.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20260823120000_drop_access_tokens.sql) |
-| Secrets metadata API | [`handlers/secrets.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/secrets.go) |
-| Filesystem-only resume | [`handlers/sandbox_resume.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_resume.go) |
-| 动态日志读取/路由入口 | [`handlers/logstore.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/logstore.go) |
-| envd live upgrade handover | [`process/upgrade.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/services/process/upgrade.go) |
-| 集群注册与 team assignment | [`register_team_cluster.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/pkg/dashboard/sql_queries/clusters/register_team_cluster.sql) |
-| OpenAPI、fork 与网络 schema | [`spec/openapi.yml`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/spec/openapi.yml) |
-| Sandbox fork handler | [`sandbox_fork.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_fork.go) |
-| Snapshot resume/fork metadata | [`sandbox_resume.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_resume.go) |
-| Fork 集成测试 | [`sandbox_fork_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/api/sandboxes/sandbox_fork_test.go) |
-| addon 表与 `team_limits` 基础视图 | [`20251011200438_create_addons_table.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20251011200438_create_addons_table.sql) |
-| 事件 TTL 与最终 `team_limits` 视图 | [`20260702120000_add_events_ttl_days.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20260702120000_add_events_ttl_days.sql) |
-| Dashboard 有效 Team limits 响应 | [`dashboard-api/internal/handlers/teams_list.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/dashboard-api/internal/handlers/teams_list.go) |
-| Sandbox 并发 reservation Lua | [`sandbox/reservations/redis/scripts.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/sandbox/reservations/redis/scripts.go) |
-| Team/route API rate-limit middleware | [`middleware/ratelimit/ratelimit.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/middleware/ratelimit/ratelimit.go) |
-| 每次 Create/Resume/Fork 生成 execution ID | [`api/internal/handlers/sandbox.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox.go) |
-| Sandbox 生命周期事件类型与字段 | [`shared/pkg/events/sandbox.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/events/sandbox.go) |
-| Orchestrator 后台发布生命周期事件 | [`orchestrator/pkg/server/sandboxes.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/orchestrator/pkg/server/sandboxes.go) |
-| ClickHouse Sandbox Event schema | [`20250725223340_add_sandbox_events_local.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/migrations/20250725223340_add_sandbox_events_local.sql) |
-| ClickHouse 事件 TTL schema | [`20260702120000_add_sandbox_events_ttl_days.sql`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/migrations/20260702120000_add_sandbox_events_ttl_days.sql) |
-| ClickHouse 生命周期事件批处理写入 | [`clickhouse/pkg/events/delivery.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/pkg/events/delivery.go) |
-| API Orchestrator 发布 execution 规格与运行时长 | [`api/internal/orchestrator/analytics.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/orchestrator/analytics.go) |
-| HMAC token 生成 | [`sandbox_envd_secret.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/sandbox/sandbox_envd_secret.go) |
-| Host/Header 路由名称、门控、优先级与校验 | [`shared/pkg/proxy/host.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/host.go) |
-| 共享域名、IP、缺失字段和冲突 Header 测试 | [`shared/pkg/proxy/host_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/host_test.go) |
-| Sandbox ID 小写字母与数字校验 | [`shared/pkg/id/id.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/id/id.go) |
-| 路由解析错误到 HTTP 400 的映射 | [`shared/pkg/proxy/handler.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/handler.go) |
-| Client Proxy 到 Orchestrator Proxy 的 Header 转发 | [`shared/pkg/proxy/pool/client.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/pool/client.go) |
-| 共享 HTTP server timeout 与连接指标 | [`shared/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/proxy.go) |
-| lifecycle 隔离的 ReverseProxy 连接池 | [`shared/pkg/proxy/pool/pool.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/pool/pool.go) |
-| Header/Host 改写、重试与并发限制测试 | [`shared/pkg/proxy/proxy_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/proxy_test.go) |
-| Sandbox lifecycle 连接限流器 | [`shared/pkg/connlimit/limiter.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/connlimit/limiter.go) |
-| Sandbox 入站连接上限 feature flag | [`shared/pkg/featureflags/flags.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/featureflags/flags.go) |
-| Client Proxy 路由与暂停态 token 转发 | [`client-proxy/internal/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/client-proxy/internal/proxy/proxy.go) |
-| API 自动恢复前鉴权 | [`api/internal/handlers/proxy_grpc.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/proxy_grpc.go) |
-| Orchestrator Proxy 运行态鉴权 | [`orchestrator/pkg/proxy/proxy.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/orchestrator/pkg/proxy/proxy.go) |
-| Traffic Token 集成与自动恢复测试 | [`traffic_access_token_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/proxies/traffic_access_token_test.go) |
-| envd loopback 端口扫描与 `socat` 转发 | [`envd/internal/port/forward.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/port/forward.go) |
-| envd `1s` 扫描周期与转发器启动 | [`envd/main.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/main.go) |
-| guest 各类监听地址可达性集成测试 | [`localhost_bind_test.go`](https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/envd/localhost_bind_test.go) |
+| Runtime 2026.30 完整源码 | [e2b-dev/runtime@f32ee8a](https://github.com/e2b-dev/runtime/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104) |
+| Runtime 2026.30 Release | <https://github.com/e2b-dev/runtime/releases/tag/2026.30> |
+| TypeScript SDK `e2b@2.57.0` Release | <https://github.com/e2b-dev/e2b/releases/tag/e2b%402.57.0> |
+| TypeScript SDK `e2b@2.57.0` tag object | <https://github.com/e2b-dev/e2b/tree/fd18ffa2e438e13a9555045f037844f5cabd91b3> |
+| E2B SDK `2.57.0` exact source | <https://github.com/e2b-dev/e2b/tree/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2> |
+| Python SDK `@e2b/python-sdk@2.57.0` Release | <https://github.com/e2b-dev/e2b/releases/tag/%40e2b%2Fpython-sdk%402.57.0> |
+| Python SDK `@e2b/python-sdk@2.57.0` tag object | <https://github.com/e2b-dev/e2b/tree/39a66fd13c00b864384804ffa5ccbc4d770f7073> |
+| 删除 control-plane access-token 表 | [`20260823120000_drop_access_tokens.sql`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20260823120000_drop_access_tokens.sql) |
+| Secrets metadata API | [`handlers/secrets.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/secrets.go) |
+| Filesystem-only resume | [`handlers/sandbox_resume.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_resume.go) |
+| 动态日志读取/路由入口 | [`handlers/logstore.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/logstore.go) |
+| envd live upgrade handover | [`process/upgrade.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/services/process/upgrade.go) |
+| 集群注册与 team assignment | [`register_team_cluster.sql`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/pkg/dashboard/sql_queries/clusters/register_team_cluster.sql) |
+| OpenAPI、fork 与网络 schema | [`spec/openapi.yml`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/spec/openapi.yml) |
+| Sandbox fork handler | [`sandbox_fork.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_fork.go) |
+| Snapshot resume/fork metadata | [`sandbox_resume.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_resume.go) |
+| Fork 集成测试 | [`sandbox_fork_test.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/api/sandboxes/sandbox_fork_test.go) |
+| addon 表与 `team_limits` 基础视图 | [`20251011200438_create_addons_table.sql`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20251011200438_create_addons_table.sql) |
+| 事件 TTL 与最终 `team_limits` 视图 | [`20260702120000_add_events_ttl_days.sql`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20260702120000_add_events_ttl_days.sql) |
+| Dashboard 有效 Team limits 响应 | [`dashboard-api/internal/handlers/teams_list.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/dashboard-api/internal/handlers/teams_list.go) |
+| Sandbox 并发 reservation Lua | [`sandbox/reservations/redis/scripts.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/sandbox/reservations/redis/scripts.go) |
+| Team/route API rate-limit middleware | [`middleware/ratelimit/ratelimit.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/middleware/ratelimit/ratelimit.go) |
+| 每次 Create/Resume/Fork 生成 execution ID | [`api/internal/handlers/sandbox.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox.go) |
+| Sandbox 生命周期事件类型与字段 | [`shared/pkg/events/sandbox.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/events/sandbox.go) |
+| Orchestrator 后台发布生命周期事件 | [`orchestrator/pkg/server/sandboxes.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/orchestrator/pkg/server/sandboxes.go) |
+| ClickHouse Sandbox Event schema | [`20250725223340_add_sandbox_events_local.sql`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/migrations/20250725223340_add_sandbox_events_local.sql) |
+| ClickHouse 事件 TTL schema | [`20260702120000_add_sandbox_events_ttl_days.sql`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/migrations/20260702120000_add_sandbox_events_ttl_days.sql) |
+| ClickHouse 生命周期事件批处理写入 | [`clickhouse/pkg/events/delivery.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/pkg/events/delivery.go) |
+| API Orchestrator 发布 execution 规格与运行时长 | [`api/internal/orchestrator/analytics.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/orchestrator/analytics.go) |
+| HMAC token 生成 | [`sandbox_envd_secret.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/sandbox/sandbox_envd_secret.go) |
+| Host/Header 路由名称、门控、优先级与校验 | [`shared/pkg/proxy/host.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/host.go) |
+| 共享域名、IP、缺失字段和冲突 Header 测试 | [`shared/pkg/proxy/host_test.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/host_test.go) |
+| Sandbox ID 小写字母与数字校验 | [`shared/pkg/id/id.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/id/id.go) |
+| 路由解析错误到 HTTP 400 的映射 | [`shared/pkg/proxy/handler.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/handler.go) |
+| Client Proxy 到 Orchestrator Proxy 的 Header 转发 | [`shared/pkg/proxy/pool/client.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/pool/client.go) |
+| 共享 HTTP server timeout 与连接指标 | [`shared/pkg/proxy/proxy.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/proxy.go) |
+| lifecycle 隔离的 ReverseProxy 连接池 | [`shared/pkg/proxy/pool/pool.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/pool/pool.go) |
+| Header/Host 改写、重试与并发限制测试 | [`shared/pkg/proxy/proxy_test.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/proxy_test.go) |
+| Sandbox lifecycle 连接限流器 | [`shared/pkg/connlimit/limiter.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/connlimit/limiter.go) |
+| Sandbox 入站连接上限 feature flag | [`shared/pkg/featureflags/flags.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/featureflags/flags.go) |
+| Client Proxy 路由与暂停态 token 转发 | [`client-proxy/internal/proxy/proxy.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/client-proxy/internal/proxy/proxy.go) |
+| API 自动恢复前鉴权 | [`api/internal/handlers/proxy_grpc.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/proxy_grpc.go) |
+| Orchestrator Proxy 运行态鉴权 | [`orchestrator/pkg/proxy/proxy.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/orchestrator/pkg/proxy/proxy.go) |
+| Traffic Token 集成与自动恢复测试 | [`traffic_access_token_test.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/proxies/traffic_access_token_test.go) |
+| envd loopback 端口扫描与 `socat` 转发 | [`envd/internal/port/forward.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/port/forward.go) |
+| envd `1s` 扫描周期与转发器启动 | [`envd/main.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/main.go) |
+| guest 各类监听地址可达性集成测试 | [`localhost_bind_test.go`](https://github.com/e2b-dev/runtime/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/envd/localhost_bind_test.go) |
 | Agent Sandbox v1.0.7 release | <https://github.com/kubernetes-sigs/agent-sandbox/releases/tag/v1.0.7> |
 | Agent Sandbox v1.0.7 tag object | <https://github.com/kubernetes-sigs/agent-sandbox/tree/b3832ed88cb8acc57cc5e81072f551d52f14b32f> |
 | Agent Sandbox v1.0.7 exact source | [`agent-sandbox` v1.0.7@807cc371](https://github.com/kubernetes-sigs/agent-sandbox/tree/807cc37107bd7c012115afac9fa9c3b77b8365c2) |
@@ -1629,19 +1634,19 @@ E2B 适合这些场景：
 | Agent Sandbox Go Router 代理与鉴权边界 | [`proxy/proxy.go`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/sandbox-router/proxy/proxy.go) |
 | Agent Sandbox `sandboxd` 用户指南 | [`packages/sandboxd/USER_GUIDE.md`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/packages/sandboxd/USER_GUIDE.md) |
 | Agent Sandbox legacy Python Router | [`sandbox_router.py`](https://github.com/kubernetes-sigs/agent-sandbox/blob/807cc37107bd7c012115afac9fa9c3b77b8365c2/clients/python/agentic-sandbox-client/sandbox-router/sandbox_router.py) |
-| TypeScript SDK 共享 envd URL 与 `getHost()` 边界 | [`packages/js-sdk/src/connectionConfig.ts`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/js-sdk/src/connectionConfig.ts) |
-| TypeScript Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/js-sdk/src/sandbox/index.ts) |
-| TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/js-sdk/tests/sandbox/network.test.ts) |
-| Python SDK 共享 envd URL 与 `get_host()` 边界 | [`packages/python-sdk/e2b/connection_config.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/e2b/connection_config.py) |
-| Python pyqwest transport 与共享 envd client | [`packages/python-sdk/e2b/api/client_sync/__init__.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/e2b/api/client_sync/__init__.py) |
-| Python envd RPC transport 边界 | [`packages/python-sdk/e2b/envd/client_shared.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/e2b/envd/client_shared.py) |
-| Python Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/python-sdk/e2b/sandbox_sync/main.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/e2b/sandbox_sync/main.py) |
-| Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/e2b/sandbox/main.py) |
-| Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |
+| TypeScript SDK 共享 envd URL 与 `getHost()` 边界 | [`packages/js-sdk/src/connectionConfig.ts`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/js-sdk/src/connectionConfig.ts) |
+| TypeScript Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/js-sdk/src/sandbox/index.ts`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/js-sdk/src/sandbox/index.ts) |
+| TypeScript SDK 私有 ingress 测试 | [`packages/js-sdk/tests/sandbox/network.test.ts`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/js-sdk/tests/sandbox/network.test.ts) |
+| Python SDK 共享 envd URL 与 `get_host()` 边界 | [`packages/python-sdk/e2b/connection_config.py`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/python-sdk/e2b/connection_config.py) |
+| Python pyqwest transport 与共享 envd client | [`packages/python-sdk/e2b/api/client_sync/__init__.py`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/python-sdk/e2b/api/client_sync/__init__.py) |
+| Python envd RPC transport 边界 | [`packages/python-sdk/e2b/envd/client_shared.py`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/python-sdk/e2b/envd/client_shared.py) |
+| Python Sandbox 初始化、路由 Header 与 MCP cleanup | [`packages/python-sdk/e2b/sandbox_sync/main.py`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/python-sdk/e2b/sandbox_sync/main.py) |
+| Python SDK host 与 token 属性 | [`packages/python-sdk/e2b/sandbox/main.py`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/python-sdk/e2b/sandbox/main.py) |
+| Python SDK 私有 ingress 测试 | [`packages/python-sdk/tests/sync/sandbox_sync/test_network.py`](https://github.com/e2b-dev/e2b/blob/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/packages/python-sdk/tests/sync/sandbox_sync/test_network.py) |
 
 ### A.1 合并前历史证据（迁移审计）
 
-以下链接来自合并前的 SDK 与 Agent Sandbox v1.0.4 文档。当前正文已升级到 SDK `main@62a17dfc` 与 Agent Sandbox `v1.0.7@807cc371`；旧链接仅用于复核迁移前证据，不扩大 Infra `2026.30` 的稳定兼容范围。
+以下链接来自合并前的 SDK 与 Agent Sandbox v1.0.4 文档。当前正文已升级到正式 SDK `e2b@2.57.0` / `@e2b/python-sdk@2.57.0` 与 Agent Sandbox `v1.0.7@807cc371`；旧链接仅用于复核迁移前证据，不扩大 Runtime `2026.30` 的稳定兼容范围。
 
 - E2B SDK 旧版 TypeScript connection config：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/js-sdk/src/connectionConfig.ts>
 - E2B SDK 旧版 TypeScript Sandbox：<https://github.com/e2b-dev/e2b/blob/ccaf9fc0ffe6ac39c7ec786af7608ab1de19467b/packages/js-sdk/src/sandbox/index.ts>
@@ -1664,4 +1669,51 @@ E2B 适合这些场景：
 - Agent Sandbox v1.0.4 browser session：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/proxy/browsersession.go>
 - Agent Sandbox v1.0.4 Header parser：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/proxy/headers.go>
 - Agent Sandbox v1.0.4 proxy：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/proxy/proxy.go>
+
+### A.2 更名前 Runtime 2026.30 证据（历史链接）
+
+以下链接保留迁移清单记录的原始仓库路径；它们与新仓库中的同一 `f32ee8a2a50052f32e3632ceb451111a98dd5104` 快照一一对应，只用于历史可追溯性，不代表当前来源仍应使用旧仓库名。
+
+- <https://github.com/e2b-dev/infra>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/logstore.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/proxy_grpc.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_fork.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/sandbox_resume.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/handlers/secrets.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/middleware/ratelimit/ratelimit.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/orchestrator/analytics.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/sandbox/reservations/redis/scripts.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/api/internal/sandbox/sandbox_envd_secret.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/migrations/20250725223340_add_sandbox_events_local.sql>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/migrations/20260702120000_add_sandbox_events_ttl_days.sql>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/clickhouse/pkg/events/delivery.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/client-proxy/internal/proxy/proxy.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/dashboard-api/internal/handlers/teams_list.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20251011200438_create_addons_table.sql>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20260702120000_add_events_ttl_days.sql>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/migrations/20260823120000_drop_access_tokens.sql>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/db/pkg/dashboard/sql_queries/clusters/register_team_cluster.sql>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/port/forward.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/internal/services/process/upgrade.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/envd/main.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/orchestrator/pkg/proxy/proxy.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/orchestrator/pkg/server/sandboxes.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/connlimit/limiter.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/events/sandbox.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/featureflags/flags.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/id/id.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/handler.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/host.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/host_test.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/pool/client.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/pool/pool.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/proxy.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/packages/shared/pkg/proxy/proxy_test.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/spec/openapi.yml>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/api/sandboxes/sandbox_fork_test.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/envd/localhost_bind_test.go>
+- <https://github.com/e2b-dev/infra/blob/f32ee8a2a50052f32e3632ceb451111a98dd5104/tests/integration/internal/tests/proxies/traffic_access_token_test.go>
+- <https://github.com/e2b-dev/infra/releases/tag/2026.30>
+- <https://github.com/e2b-dev/infra/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104>
 - Agent Sandbox v1.0.4 path routing：<https://github.com/kubernetes-sigs/agent-sandbox/blob/810726d89c71da77cdc82668bca1b00f5cd21ed8/sandbox-router/proxy/pathroute.go>

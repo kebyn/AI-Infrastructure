@@ -691,13 +691,13 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(registered_docs, markdown_docs)
         for doc in deep_dive_docs:
             with self.subTest(document=Path(doc["src"]).name):
-                self.assertIn("2026-10-16", doc["meta"])
+                self.assertIn("2026-10-20", doc["meta"])
                 self.assertNotIn("2026-09-17", doc["meta"])
                 self.assertNotIn("2026-09-06", doc["meta"])
                 self.assertNotIn("2026-09-01", doc["meta"])
                 self.assertNotIn("2026-08-22", doc["meta"])
                 markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
-                self.assertIn("审校日期：2026-10-16", markdown_text)
+                self.assertIn("审校日期：2026-10-20", markdown_text)
                 self.assertNotIn("审校日期：2026-09-17", markdown_text)
                 self.assertNotIn("审校日期：2026-09-06", markdown_text)
                 self.assertNotIn("审校日期：2026-08-22", markdown_text)
@@ -712,7 +712,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["href"], "/model_release_timeline.html")
         self.assertEqual(doc["title"], "模型发布时间时间线")
         self.assertEqual(doc["hero"], "模型发布时间时间线")
-        self.assertIn("2026-10-16", doc["meta"])
+        self.assertIn("2026-10-20", doc["meta"])
         self.assertIn("筛选", doc["summary"])
         self.assertIn("导出", doc["summary"])
         self.assertIn("model_release_timeline.md", doc["footer"])
@@ -729,7 +729,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertIn("模型发布时间时间线", html)
         self.assertIn('/model_release_timeline.html', html)
-        self.assertIn("2026-10-16", html)
+        self.assertIn("2026-10-20", html)
 
     def test_timeline_source_has_126_rows_and_rendered_rows_have_filter_metadata(self):
         source = Path(__file__).resolve().parent / "model_release_timeline.md"
@@ -893,7 +893,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         entries = re.findall(r"^\| \[.*?\]\(([^)#]+\.md)\)", readme, re.M)
         self.assertEqual(set(entries), {Path(doc["src"]).name for doc in serve_docs.DOCS})
         self.assertEqual(len(entries), 7)
-        for term in ("2026-10-16", "exact source commit", "tag-only", "未发布主线快照", "26.03.1", "v0.21.0", "docs_migration.json", "不提供旧地址重定向"):
+        for term in ("2026-10-20", "exact source commit", "tag-only", "未发布主线快照", "26.03.1", "v0.21.0", "docs_migration.json", "不提供旧地址重定向"):
             self.assertIn(term, readme)
         # All former README revision pins remain verifiable in their domain documents.
         corpus = "\n".join(Path(doc["src"]).read_text() for doc in serve_docs.DOCS)
@@ -915,7 +915,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["hero"], "基础设施访问治理：Self-hosted 平台对比")
         self.assertEqual(
             doc["meta"],
-            "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.2 · Boundary v0.21.3 · Pomerium v0.33.4 · Guacamole 1.6.0 tag-only · 2026-10-16",
+            "Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.2 · Boundary v0.21.3 · Pomerium v0.33.4 · Guacamole 1.6.0 tag-only · 2026-10-20",
         )
         for summary_term in (
             "六个平台",
@@ -943,7 +943,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
         for required_text in (
-            "审校日期：2026-10-16",
+            "审校日期：2026-10-20",
             "v18.10.0",
             "v0.29.2@5c5ee3f2e300ff01d305c3fe9301fe68ec1ad934",
             "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
@@ -1056,7 +1056,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         markdown_text = Path(doc["src"]).read_text(encoding="utf-8")
         for required_text in (
-            "审校日期：2026-10-16",
+            "审校日期：2026-10-20",
             "v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308",
             "2026-09-02",
             "2026-09-03",
@@ -1268,8 +1268,13 @@ class RenderDocLayoutTest(unittest.TestCase):
         expected_commits = {
             ("E2B-Deep-Dive.md", "component"): (
                 "f32ee8a2a50052f32e3632ceb451111a98dd5104",
-                "62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3",
+                "85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2",
                 "807cc37107bd7c012115afac9fa9c3b77b8365c2",
+            ),
+            ("E2B-Deep-Dive.md", "sdk-release"): (
+                "fd18ffa2e438e13a9555045f037844f5cabd91b3",
+                "39a66fd13c00b864384804ffa5ccbc4d770f7073",
+                "85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2",
             ),
             ("Teleport-Deep-Dive.md", "component"): (
                 "ddaa46b8f4ee579d43480cd2d3b6a14b18e3ef7d",
@@ -1342,6 +1347,10 @@ class RenderDocLayoutTest(unittest.TestCase):
                 "b3832ed88cb8acc57cc5e81072f551d52f14b32f",
                 "807cc37107bd7c012115afac9fa9c3b77b8365c2",
             ),
+            ("E2B-Deep-Dive.md", "sdk-release"): (
+                "fd18ffa2e438e13a9555045f037844f5cabd91b3",
+                "85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2",
+            ),
             ("Multica-Deep-Dive.md", "component"): (
                 "0854695681139a5b0dce03aaf3583752a65409ed",
                 "7ab92d7622ecd81d179a8d83ae2dea74835a5069",
@@ -1395,7 +1404,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             ('AI-Inference-Deep-Dive.md', 'mooncake'): ("v0.3.13.post1", "v0.3.12.post1"),
             ('AI-Inference-Deep-Dive.md', 'dynamo'): ("Dynamo v1.5.1", "Dynamo v1.4.2"),
             ("Teleport-Deep-Dive.md", "component"): ("Teleport v18.10.0", "Teleport v19"),
-            ("E2B-Deep-Dive.md", "component"): ("E2B Infra 2026.30", "E2B Infra 2026.29"),
+            ("E2B-Deep-Dive.md", "component"): ("E2B Runtime 2026.30", "E2B Runtime 2026.29"),
             ("Multica-Deep-Dive.md", "component"): ("Multica v0.6.2", "Multica v0.4.44"),
             ('AI-Inference-Deep-Dive.md', 'benchmark'): ("vLLM v0.31.0", "vLLM v0.29.0"),
             ('Kubernetes-AI-Platform-Deep-Dive.md', 'ai-schedulers'): (
@@ -1739,20 +1748,20 @@ class RenderDocLayoutTest(unittest.TestCase):
                 self.assertIn(required_text, markdown_text)
 
         self.assertIn(
-            "https://github.com/e2b-dev/infra/blob/"
+            "https://github.com/e2b-dev/runtime/blob/"
             "f32ee8a2a50052f32e3632ceb451111a98dd5104/"
             "packages/orchestrator/pkg/proxy/proxy.go",
             markdown_text,
         )
         self.assertIn(
-            "https://github.com/e2b-dev/infra/blob/"
+            "https://github.com/e2b-dev/runtime/blob/"
             "f32ee8a2a50052f32e3632ceb451111a98dd5104/"
             "tests/integration/internal/tests/proxies/traffic_access_token_test.go",
             markdown_text,
         )
         self.assertIn(
             "https://github.com/e2b-dev/e2b/blob/"
-            "62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/"
+            "85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/"
             "packages/js-sdk/src/sandbox/index.ts",
             markdown_text,
         )
@@ -1826,7 +1835,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertNotIn('-H "X-Sandbox-Port:', header_section)
 
         infra_commit_base = (
-            "https://github.com/e2b-dev/infra/blob/"
+            "https://github.com/e2b-dev/runtime/blob/"
             "f32ee8a2a50052f32e3632ceb451111a98dd5104/"
         )
         for source_path in (
@@ -1848,7 +1857,7 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         sdk_commit_base = (
             "https://github.com/e2b-dev/e2b/blob/"
-            "62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3/"
+            "85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2/"
         )
         for source_path in (
             "packages/js-sdk/src/connectionConfig.ts",
@@ -1894,7 +1903,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "callback placeholder",
             "token name",
             "http2",
-            "具体客户端接口仍固定在未发布 SDK 主线",
+            "具体客户端接口固定在 SDK `2.57.0` 正式 release",
             "WarmPool status",
             "ServiceMonitor",
             "PodScheduled image",
@@ -1912,7 +1921,10 @@ class RenderDocLayoutTest(unittest.TestCase):
             "Ed25519",
             "ConnectivityInClusterService",
             "FleetConfig.adopt_existing=True",
-            "Infra `2026.30` 是 lightweight tag",
+            "Runtime `2026.30` 是 lightweight tag",
+            "runtime/main@0bb1c43fa22e5187b80890b24be14711ff7db6bc",
+            "embed` 分发",
+            "暂不属于稳定兼容范围",
             "Agent Sandbox v1.0.7",
         ):
             with self.subTest(required_text=required_text):
@@ -1963,12 +1975,12 @@ class RenderDocLayoutTest(unittest.TestCase):
 
         self.assertNotRegex(
             markdown_text,
-            r"github[.]com/e2b-dev/infra/(?:blob|tree)/(?:main|master)/",
+            r"github[.]com/e2b-dev/runtime/(?:blob|tree)/(?:main|master)/",
         )
 
         infra_revisions = set(
             re.findall(
-                r"github[.]com/e2b-dev/infra/(?:blob|tree)/([^/)]+)",
+                r"github[.]com/e2b-dev/runtime/(?:blob|tree)/([^/)]+)",
                 markdown_text,
             )
         )
@@ -1978,7 +1990,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         )
 
         commit_base = (
-            "https://github.com/e2b-dev/infra/blob/"
+            "https://github.com/e2b-dev/runtime/blob/"
             "f32ee8a2a50052f32e3632ceb451111a98dd5104/"
         )
         source_paths = (
@@ -2016,7 +2028,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             with self.subTest(summary_term=summary_term):
                 self.assertIn(summary_term, doc["summary"])
         self.assertIn(
-            "https://github.com/e2b-dev/infra/tree/"
+            "https://github.com/e2b-dev/runtime/tree/"
             "f32ee8a2a50052f32e3632ceb451111a98dd5104",
             doc["footer"],
         )
@@ -2138,7 +2150,7 @@ class RenderDocLayoutTest(unittest.TestCase):
         self.assertEqual(doc["title"], "Agent 协作与编排：Multica")
         self.assertEqual(
             doc["meta"],
-            "Multica v0.6.2 · source@7ab92d7 · main@7ab92d7 · 2026-10-16",
+            "Multica v0.6.2 · source@7ab92d7 · main@7ab92d7 · 2026-10-20",
         )
         for summary_term in (
             "Issue 四类 lifecycle",
@@ -2188,7 +2200,7 @@ class RenderDocLayoutTest(unittest.TestCase):
             "v0.6.2",
             "7ab92d7622ecd81d179a8d83ae2dea74835a5069",
             "0854695681139a5b0dce03aaf3583752a65409ed",
-            "审校日期：2026-10-16",
+            "审校日期：2026-10-20",
             "MULTICA_IMAGE_TAG=v0.6.2",
             "没有强制的 Issue 状态转换图",
             "Task 完成不等于 Issue 完成",

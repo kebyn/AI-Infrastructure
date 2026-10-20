@@ -1,6 +1,6 @@
 # Kubernetes AI 平台深度文档
 
-> 审校日期：2026-10-16。沿用各组件固定证据，正式 Release、Alpha/Beta、RC、tag-only 与未发布主线快照分别记录；本次完成官方上游版本复核与增量同步。
+> 审校日期：2026-10-20。沿用各组件固定证据，正式 Release、Alpha/Beta、RC、tag-only 与未发布主线快照分别记录；本次完成官方上游版本复核与增量同步。
 
 ## 第1篇：版本演进 {#k8s-history}
 
@@ -8,9 +8,9 @@
 
 > **Kubernetes v1.24—v1.37、Gateway API、AI/Agent 平台、控制面性能、安全与运维的 Blog 历史审计**
 >
-> 本文基于 Kubernetes 官方 Blog 2022 年起（约 v1.24）至 2026-10-16 的年份归档、RSS、sitemap，以及对应的 Release 页面、文档、KEP 和 v1.37.1 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-AI-Platform-Deep-Dive.md#k8s-scheduler) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers)。
+> 本文基于 Kubernetes 官方 Blog 2022 年起（约 v1.24）至 2026-10-20 的年份归档、RSS、sitemap，以及对应的 Release 页面、文档、KEP 和 v1.37.1 源码整理。它关注跨 SIG 的平台能力，不替代本仓库的 [Kubernetes 原生调度器深度技术文档](Kubernetes-AI-Platform-Deep-Dive.md#k8s-scheduler) 或 [Kubernetes AI 调度器深度对比](Kubernetes-AI-Platform-Deep-Dive.md#ai-schedulers)。
 >
-> 稳定版本基线：Kubernetes <code>v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-10-16。<code>v1.37.1</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
+> 稳定版本基线：Kubernetes <code>v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308</code>；v1.36 作为仍影响 v1.37 升级和生产落地的前置版本回溯；审校日期：2026-10-20。<code>v1.37.1</code> 是 annotated tag，正文以解引用后的 source commit 为准，不把 tag object 当作源码提交。
 >
 > 预览线单独记录：Kubernetes <code>v1.38.0-alpha.2</code> 于 2026-10-07 发布，annotated tag object 为 <code>145a3b6e4355651b0fcb26ec74c680e7a4444469</code>，解引用后的 source commit 为 <code>f3a03cbd1d301c6f0123b0b79113316a497da874</code>；它只用于预览 API、feature gate 和升级预演，不替换 <code>v1.37.1</code> Stable 兼容基线。
 
@@ -22,7 +22,7 @@
 
 #### 1.1.1 这篇综述读取了什么 {#k8s-history-1-1-这篇综述读取了什么}
 
-RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口是 2022-01-01 至 2026-10-16 已发布的文章，重点选择以下四类：
+RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口是 2022-01-01 至 2026-10-20 已发布的文章，重点选择以下四类：
 
 | 类型 | 纳入方式 | 证据边界 |
 | --- | --- | --- |
@@ -33,7 +33,7 @@ RSS 和年份归档是发现入口，不是版本合同。本文的时间窗口�
 
 RSS XML 的 <code>description</code> 是文章摘要或 HTML 片段，不能代替网页正文；正文以对应官方页面为准。链接、日期和成熟度也应以审校时的 RSS 与 Release 页面为准，未来文章发布不会自动改变本文的历史截止边界。
 
-#### 1.1.2 截至 2026-10-16 的近期文章地图 {#k8s-history-1-2-截至-2026-09-26-的近期文章地图}
+#### 1.1.2 截至 2026-10-20 的近期文章地图 {#k8s-history-1-2-截至-2026-09-26-的近期文章地图}
 
 下表列出本文的主要证据入口。它不是把 RSS 文章长段复制到仓库，而是把相互关联的文章按平台问题重新组织。
 
@@ -1433,7 +1433,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 ### 1.15 结论 {#k8s-history-结论}
 
-截至 2026-10-16，Kubernetes Blog/RSS 展示的核心趋势可以概括为：
+截至 2026-10-20，Kubernetes Blog/RSS 展示的核心趋势可以概括为：
 
 1. **控制面更重视峰值和恢复。** RangeStream、watch cache protection、concurrent decode 和 storage migration 共同处理大规模 API server 的内存、恢复和版本生命周期。
 2. **AI 调度的上游基础开始成形。** Workload/PodGroup、Gang、workload-aware preemption、DRA claim、标准 NUMA 属性和 Pod-level manager 让 Kubernetes 可以表达更多 AI/HPC 资源关系，但许多组合仍默认关闭。
@@ -1458,7 +1458,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 | v1.37 enhancement count | 67 |
 | Stable / Beta / Alpha / deprecation | 16 / 23 / 27 / 1 |
 | RSS feed | <https://kubernetes.io/feed.xml> |
-| 审校日期 | 2026-10-16 |
+| 审校日期 | 2026-10-20 |
 
 <code>v1.37.1</code> 的 tag object 和 source commit 是两个不同的 Git object。本文以及仓库渲染元数据使用 source commit；tag object 仅保留在本表作为 Git ref 复核信息。Blog 中的 Beta/Alpha、Working Group proposal、生态 CRD 和主线实现均不扩大 <code>v1.37.1</code> 的 Stable 兼容承诺。
 
@@ -1583,7 +1583,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 
 #### 1.16.8 排除项与审计统计 {#k8s-history-a-8-排除项与审计统计}
 
-年份归档和 RSS 中的文章先按标题、正文和发布日期去重，再按下表分类。统计是截至 2026-10-16 的审计快照；由于 Blog RSS 只保留近期条目，2022—2025 的候选来自年份归档、sitemap 和文章页面，不把当前 feed 的截断误判为历史文章不存在。
+年份归档和 RSS 中的文章先按标题、正文和发布日期去重，再按下表分类。统计是截至 2026-10-20 的审计快照；由于 Blog RSS 只保留近期条目，2022—2025 的候选来自年份归档、sitemap 和文章页面，不把当前 feed 的截断误判为历史文章不存在。
 
 | 分类 | 处理 | 2022—2026 快照数量/说明 |
 | --- | --- | --- |
@@ -1729,7 +1729,7 @@ Memory QoS 可以减轻模型加载、tokenizer、KV cache 和 sidecar 争抢内
 >
 > 基于 Kubernetes 官方 Scheduling、Preemption and Eviction 文档、调度配置参考与 v1.37.1 源码整理
 >
-> 版本基线：Kubernetes `v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308`；审校日期：2026-10-16。`v1.37.1` 为 annotated tag，正文使用解引用后的 source commit，不使用 tag object。AI 调度器对照同步至 Kueue `v0.20.2`、Grove `v0.1.0-alpha.16`、KAI-Scheduler `v0.18.6` 与 Volcano `v1.16.0`；Koordinator 版本本轮复核未变化。
+> 版本基线：Kubernetes `v1.37.1@f78e722310e50bcaca9276be22276d9e91d91308`；审校日期：2026-10-20。`v1.37.1` 为 annotated tag，正文使用解引用后的 source commit，不使用 tag object。AI 调度器对照同步至 Kueue `v0.20.2`、Grove `v0.1.0-alpha.16`、KAI-Scheduler `v0.18.6` 与 Volcano `v1.16.0`；Koordinator 版本本轮复核未变化。
 
 ---
 
@@ -3114,7 +3114,7 @@ kubectl describe podgroup -n <namespace> <podgroup>
 | DRAWorkloadResourceClaims | v1.37 Beta，默认关闭 |
 | SchedulerPreQueueingHints | v1.37 Alpha，默认关闭 |
 | OpportunisticBatching | v1.35 Beta，v1.37.0 默认开启 |
-| 审校日期 | 2026-10-16 |
+| 审校日期 | 2026-10-20 |
 
 `v1.37.1` 是 annotated tag：tag object 为 `d2b770f4c94636a992534a8d3156b6b2d8e82ac3`，解引用后的源码 commit 为 `f78e722310e50bcaca9276be22276d9e91d91308`。本文页头和站点元数据使用后者；保留 tag object 仅用于复核 Git ref，不把它当作 source commit。
 
@@ -3188,7 +3188,7 @@ v1.37.0 是新的 minor baseline：除 Workload/PodGroup v1beta1 与工作负载
 >
 > 基于 NVIDIA GPU Operator 官方仓库与 26.7 官方文档整理：<https://github.com/NVIDIA/gpu-operator>
 >
-> 文档快照：GPU Operator `v26.7.2`，源码提交 `5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832`（annotated tag 解引用；tag object `9ae64a28deb145182fc0def6f4ceb23fdd3aba79` 仅作类型证据），审校日期：2026-10-16
+> 文档快照：GPU Operator `v26.7.2`，源码提交 `5a9c8a8b3f5bac7fb06ad3c2a05771fceb8b4832`（annotated tag 解引用；tag object `9ae64a28deb145182fc0def6f4ceb23fdd3aba79` 仅作类型证据），审校日期：2026-10-20
 
 ---
 
@@ -4776,7 +4776,7 @@ kubectl logs -n gpu-operator -l app=nvidia-mig-manager \
 >
 > 基于 HAMi 官方仓库与官网文档整理：<https://github.com/Project-HAMi/HAMi>
 >
-> 稳定版本基线：`v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e`，审校日期：2026-10-16。主线中的后续实现不作为 v2.10.0 的稳定能力；本轮复核稳定 Release 未变化。
+> 稳定版本基线：`v2.10.0@4707fb02c91c545bc7343ce26dba4c32919f9a3e`，审校日期：2026-10-20。主线中的后续实现不作为 v2.10.0 的稳定能力；本轮复核稳定 Release 未变化。
 
 ---
 
@@ -5918,7 +5918,7 @@ curl http://<scheduler-ip>:31993/metrics
 >
 > 基于五个项目的官方仓库、官方文档和 CNCF 资料整理
 >
-> 稳定版本基线：Koordinator `v1.8.0@989ca85`（本轮复核未变化）、Kueue `v0.20.2@296ec3db567abbe36b65a63695710e3d3f3d0bdb`、Grove `v0.1.0-alpha.16@e33b8353e66dd6ed86fd4913660f88f8dbd17955`、KAI-Scheduler `v0.18.6@279f61c6d55b20bd47a43f2560c1b4f646a55547`、Volcano `v1.16.0@41f27d567fb5bdaf2cab01e1caaf48f7e266eefb`；审校日期：2026-10-16。未发布辅助快照为 Koordinator `main@618b581b32668e317b0d18523d46cf9f55b549d8`。Volcano 官网证据固定到 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；v1.16.0 的 chart/OCI 发布物仍应在部署前按 release 固定 digest。主线快照只作证据，不扩大稳定版本承诺。
+> 稳定版本基线：Koordinator `v1.8.0@989ca85`（本轮复核未变化）、Kueue `v0.20.2@296ec3db567abbe36b65a63695710e3d3f3d0bdb`、Grove `v0.1.0-alpha.16@e33b8353e66dd6ed86fd4913660f88f8dbd17955`、KAI-Scheduler `v0.18.6@279f61c6d55b20bd47a43f2560c1b4f646a55547`、Volcano `v1.16.0@41f27d567fb5bdaf2cab01e1caaf48f7e266eefb`；审校日期：2026-10-20。未发布辅助快照为 Koordinator `main@618b581b32668e317b0d18523d46cf9f55b549d8`。Volcano 官网证据固定到 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；v1.16.0 的 chart/OCI 发布物仍应在部署前按 release 固定 digest。主线快照只作证据，不扩大稳定版本承诺。
 
 ---
 
@@ -7329,7 +7329,7 @@ helm get manifest <release> -n <namespace> > helm-manifest-backup.yaml
 
 ---
 
-> 稳定目标版本：Volcano `v1.16.0@41f27d567fb5bdaf2cab01e1caaf48f7e266eefb`；tag object 为 `b4ad252f3fd42c766d11d204e97622cddbbe4bd5`；官方文档快照 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；`volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513` 只作历史 chart 证据，v1.16.0 部署前需重新核对 chart/OCI 发布物；审校日期：2026-10-16。网站分支只用于文档证据；不把其后主线内容写成 v1.16.0 能力。
+> 稳定目标版本：Volcano `v1.16.0@41f27d567fb5bdaf2cab01e1caaf48f7e266eefb`；tag object 为 `b4ad252f3fd42c766d11d204e97622cddbbe4bd5`；官方文档快照 `master@f5258704d7ef5bda28f31ba51950cdea9adbe921`；`volcano-1.15.2@c2050e3debe58dbcdf9bb75b667799eec9409513` 只作历史 chart 证据，v1.16.0 部署前需重新核对 chart/OCI 发布物；审校日期：2026-10-20。网站分支只用于文档证据；不把其后主线内容写成 v1.16.0 能力。
 
 > `v1.16.0-alpha.0`、`.1`、`.2` 是正式 v1.16.0 之前的历史 prerelease；当前稳定目标已切换到 v1.16.0，不把 alpha 阶段的中间行为当作独立稳定承诺。
 
@@ -8109,7 +8109,7 @@ kubectl get events -A --sort-by=.lastTimestamp
 >
 > 基于 KServe 官方仓库与官网文档整理：<https://github.com/kserve/kserve>
 >
-> 稳定版本基线：`kserve/kserve v0.21.0@d1482554fc4f66dd41aee70e01f5174e24f265bd`（lightweight tag，commit 即源码）；未发布主线快照：`kserve/kserve master@bb22cc477a6bd317bb2c7e357a85efcab8c7462a`、官网 `kserve/website main@71c8b22a05d6be72560b2cc326865930063cd0e8`；审校日期：2026-10-16。主线快照只用于说明未进入 tag 的后续方向，不计入 v0.21.0 兼容承诺。
+> 稳定版本基线：`kserve/kserve v0.21.0@d1482554fc4f66dd41aee70e01f5174e24f265bd`（lightweight tag，commit 即源码）；未发布主线快照：`kserve/kserve master@bb22cc477a6bd317bb2c7e357a85efcab8c7462a`、官网 `kserve/website main@71c8b22a05d6be72560b2cc326865930063cd0e8`；审校日期：2026-10-20。主线快照只用于说明未进入 tag 的后续方向，不计入 v0.21.0 兼容承诺。
 
 > `v0.21.0-rc0`/`rc1` 已被 `v0.21.0` 正式 Release 取代，不再单列边界；本轮没有更新的 prerelease。
 
@@ -9484,7 +9484,7 @@ kubectl get daemonset -n kserve kserve-localmodelnode-agent
 >
 > 基于 Kubeflow Community Distribution 官方仓库整理：<https://github.com/kubeflow/community-distribution>
 >
-> 稳定版本基线：Community Distribution `26.03.1@f09f3eeaa25cc852665f460497a42b7fc68639ac`，审校日期：2026-10-16。组件矩阵以该 release 的 manifests 为准；本轮复核稳定 Release 未变化。
+> 稳定版本基线：Community Distribution `26.03.1@f09f3eeaa25cc852665f460497a42b7fc68639ac`，审校日期：2026-10-20。组件矩阵以该 release 的 manifests 为准；本轮复核稳定 Release 未变化。
 
 ---
 

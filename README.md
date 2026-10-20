@@ -6,7 +6,7 @@
 
 ## 版本与证据边界
 
-基础设施文档与模型时间线本轮统一以 **2026-10-16** 为审校截止日；本轮完成固定范围内的官方上游 release、预览线和主线快照复核，并按稳定版、预览版、tag-only 与未发布主线分别记录，不把预览能力写成稳定兼容承诺。
+基础设施文档与模型时间线本轮统一以 **2026-10-20** 为审校截止日；本轮完成固定范围内的官方上游 release、预览线和主线快照复核，并按稳定版、预览版、tag-only 与未发布主线分别记录，不把预览能力写成稳定兼容承诺。
 
 各领域文档保留完整版本、annotated tag 解引用后的 exact source commit、官方来源与迁移限制。正式 Release、Grove Alpha、Beta API、Guacamole tag-only 和未发布主线快照分别记录；主线能力不计入稳定版兼容承诺。Kubeflow `26.03.1` 所带组件及安装 patch 与独立 KServe `v0.21.0` 分别固定，不能把后者能力推定为前者已集成。
 
@@ -21,8 +21,8 @@
 | [AI 存储与文件系统：Lustre 与 3FS](Lustre-3FS-Deep-Dive.md) | Lustre 官方资料；3FS `main@22fca04` | Lustre 与 3FS 深度技术文档 | 关注 AI 存储、HPC 并行文件系统、RDMA/NVMe 共享存储和 KVCache 落盘的工程师 | Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、dataloader、checkpoint、KV cache、生产选型 |
 | [基础设施访问治理：Self-hosted 平台对比](Teleport-Deep-Dive.md) | Teleport `v18.10.0@ddaa46b`；The Bastion `v3.24.01`；Warpgate `v0.29.2`；Boundary `v0.21.3`；Pomerium `v0.33.4`；Guacamole `1.6.0` tag-only | Self-hosted 基础设施访问平台对比 | 需要在 OpenSSH/VPN/堡垒机、Teleport、The Bastion、Warpgate、Boundary、Pomerium 与 Guacamole 间做选型的平台、安全和运维工程师 | 统一能力矩阵、信任边界、身份/凭据生命周期、SSH/Kubernetes/DB/HTTP/RDP/VNC 协议深度、录制/SIEM、HA/故障、迁移验收与许可证边界 |
 | [Agent 协作与编排：Multica](Multica-Deep-Dive.md) | `v0.6.2@7ab92d76`；main 同 commit | AI-native 团队任务管理与 coding agent 编排平台 | 关注 coding agent 团队协作、本地 CLI 执行、自托管和权限治理的工程师 | Issue lifecycle/Triage、Task/runs、Codex usage/thread、Channel/Desktop、25 种 protocol family、Squad、Autopilot、MCP 与无 Sandbox 边界 |
-| [Sandbox 与执行环境：E2B](E2B-Deep-Dive.md) | Infra `2026.30`；SDK `main@62a17dfc`；Agent Sandbox `v1.0.7@807cc371` | E2B AI Sandbox 与自托管架构 | 关注代码执行沙箱、microVM、安全隔离、团队配额和私有化部署的工程师 | Firecracker、fork、filesystem-only resume、workload identity、Secrets、Kubernetes 分发与 Agent Sandbox bearer-token/流式命令/迁移对照 |
-| [model_release_timeline.md](model_release_timeline.md) | 2022—2026-10-16；126 条记录；审校 2026-10-16 | 模型发布时间时间线 | 需要按厂商、年份或开放形态检索主线模型的读者 | 九大阵营、首次公开日期、发布形态、官方来源；页面支持供应商/年份/多模态/开放权重筛选和 CSV/JSON/Markdown 导出 |
+| [Sandbox 与执行环境：E2B](E2B-Deep-Dive.md) | Runtime `2026.30@f32ee8a2`；SDK `e2b@2.57.0`（tag object `fd18ffa2`，source `85dd0e5a`）；Agent Sandbox `v1.0.7@807cc371` | E2B AI Sandbox 与自托管架构 | 关注代码执行沙箱、microVM、安全隔离、团队配额和私有化部署的工程师 | Firecracker、fork、filesystem-only resume、workload identity、Secrets、Kubernetes 分发与 Agent Sandbox bearer-token/流式命令/迁移对照 |
+| [model_release_timeline.md](model_release_timeline.md) | 2022—2026-10-20；126 条记录；审校 2026-10-20 | 模型发布时间时间线 | 需要按厂商、年份或开放形态检索主线模型的读者 | 九大阵营、首次公开日期、发布形态、官方来源；页面支持供应商/年份/多模态/开放权重筛选和 CSV/JSON/Markdown 导出 |
 
 ## 推荐阅读路径
 

@@ -4,7 +4,7 @@
 >
 > 基于 Multica 官方仓库和官方文档整理：<https://github.com/multica-ai/multica>
 >
-> 稳定版本基线：annotated tag `v0.6.2` 的 tag object 为 `0854695681139a5b0dce03aaf3583752a65409ed`，解引用后的 source commit 为 `7ab92d7622ecd81d179a8d83ae2dea74835a5069`；当前 `main` 也指向该 commit；审校日期：2026-10-16。本轮复核仍以 `v0.6.2` 为最新正式 release，未发现新的 release 取代该基线。正文的产品契约、默认参数和部署行为以 `v0.6.2` 的 peeled source commit 为准；`main` 与 release 当前重合不等于未来主线兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
+> 稳定版本基线：annotated tag `v0.6.2` 的 tag object 为 `0854695681139a5b0dce03aaf3583752a65409ed`，解引用后的 source commit 为 `7ab92d7622ecd81d179a8d83ae2dea74835a5069`；当前 `main` 也指向该 commit；审校日期：2026-10-20。本轮复核仍以 `v0.6.2` 为最新正式 release，未发现新的 release 取代该基线。正文的产品契约、默认参数和部署行为以 `v0.6.2` 的 peeled source commit 为准；`main` 与 release 当前重合不等于未来主线兼容承诺。项目使用自定义 Multica License，许可证边界见第十一章。
 
 ![Multica v0.6.2 Workspace 概览：成员与 AI Agent 在同一工作区围绕 Issue、Project 与执行记录协作](https://raw.githubusercontent.com/multica-ai/multica/7ab92d7622ecd81d179a8d83ae2dea74835a5069/apps/docs/public/images/docs/workspace-overview.webp)
 
@@ -1238,7 +1238,7 @@ Multica 的技术核心是一个清晰的两端协议：服务端把团队工作
 | Annotated tag object | `0854695681139a5b0dce03aaf3583752a65409ed` | 证明 tag 类型；不是源码 commit | 否 |
 | Peeled source commit | `7ab92d7622ecd81d179a8d83ae2dea74835a5069` | 正文所有稳定实现与文档证据 | 是 |
 | Current main | `7ab92d7622ecd81d179a8d83ae2dea74835a5069` | 审校时与 release peeled commit 重合；不作为未来兼容承诺 | 否 |
-| 审校日期 | `2026-10-16` | 本文证据截止日 | 不代表未来版本 |
+| 审校日期 | `2026-10-20` | 本文证据截止日 | 不代表未来版本 |
 | Release | [`v0.6.2`](https://github.com/multica-ai/multica/releases/tag/v0.6.2) | Release notes 与分发入口 | 以 peeled commit 为源码准绳 |
 
 版本升级时应重新解引用 tag，并分别记录 tag object、source commit、Chart、backend/frontend image digest 和 daemon/CLI 版本。
@@ -1457,7 +1457,7 @@ Release 链：[v0.4.41](https://github.com/multica-ai/multica/releases/tag/v0.4.
 - [Multica License](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/LICENSE)
 - [NOTICE](https://github.com/multica-ai/multica/blob/d60775aa9394b911b18701a326f655465604e7d1/NOTICE)
 
-本文固定的是 2026-10-16 复核的 `v0.6.2`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
+本文固定的是 2026-10-20 复核的 `v0.6.2`。未来 release 可能改变 provider 数量、默认 sandbox policy、状态、重试、部署清单或许可证；升级时必须重新审计 release tag、peeled source commit、migration、daemon 与许可证文本。
 
 ### E.7 合并前历史证据（迁移审计）
 

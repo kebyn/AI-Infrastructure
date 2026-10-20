@@ -51,7 +51,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'subtitle': '公共概念、Mooncake、Dynamo、压测工具与组合选型',
   'meta': 'Mooncake v0.3.13.post1 · Dynamo v1.5.1 source@2093662 · ModelExpress v0.7.0 · AIPerf '
           'v0.13.0 · GuideLLM v0.7.4 · inference-perf v0.7.0 · SGLang v0.5.21 · vLLM v0.31.0 · '
-          'EvalScope v1.13.0 · 2026-10-16',
+          'EvalScope v1.13.0 · 2026-10-20',
   'summary': '覆盖 KVCache、P/D 分离、Mooncake Transfer Engine/Store/HiCache、Dynamo '
              'Router/Planner/ModelExpress，以及 AIPerf、SGLang Bench、vLLM Bench、EvalScope 的指标、trace 与 '
              'SLO/goodput。',
@@ -88,7 +88,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
           'Koordinator v1.8.0 · Kueue v0.20.2@296ec3db · Grove alpha.16@e33b8353 · KAI-Scheduler '
           'v0.18.6@279f61c6 · Volcano v1.16.0@41f27d56（升级 v1.8.2 → v1.16.0） · KServe v0.21.0 '
           'master@bb22cc4 website@71c8b22 · Kubeflow 26.03.1 · Kubernetes v1.38.0-alpha.2 仅作预览 · '
-          '2026-10-16',
+          '2026-10-20',
   'summary': '覆盖 Kubernetes Blog/RSS、v1.37 DRA 扩展、Workload/PodGroup v1beta1、Gang/TAS、GPU '
              'Operator、HAMi、五类 AI 调度器、Volcano 升级、独立 KServe 与 Kubeflow 发行版，以及成熟度和组合合同。',
   'footer': '基于 <a '
@@ -145,7 +145,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': '存储',
   'hero': 'AI 存储与文件系统：Lustre 与 3FS',
   'subtitle': 'HPC 并行文件系统、AI 原生分布式文件系统、RDMA/NVMe 与 KVCache 存储层选型解析',
-  'meta': 'Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-10-16',
+  'meta': 'Lustre 官方资料 · deepseek-ai/3fs main@22fca04 · 2026-10-20',
   'summary': '覆盖 Lustre MDS/OSS/OST/LNet、3FS Meta/Storage/CRAQ/USRBIO、AI dataloader、checkpoint、KV '
              'cache 与生产选型。',
   'footer': '基于 <a href="https://wiki.lustre.org/Introduction_to_Lustre">Lustre Wiki</a>、<a '
@@ -160,7 +160,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'hero': '基础设施访问治理：Self-hosted 平台对比',
   'subtitle': 'Teleport、The Bastion、Warpgate 与 Boundary/Pomerium/Guacamole 的身份、协议、审计和运维比较',
   'meta': 'Teleport v18.10.0 · Bastion v3.24.01 · Warpgate v0.29.2 · Boundary v0.21.3 · Pomerium '
-          'v0.33.4 · Guacamole 1.6.0 tag-only · 2026-10-16',
+          'v0.33.4 · Guacamole 1.6.0 tag-only · 2026-10-20',
   'summary': '覆盖六个平台的统一能力矩阵、信任边界、短期凭据、RBAC/JIT、SSH/Kubernetes/数据库/HTTP/RDP/VNC '
              '协议审计、录制/SIEM、HA、迁移验收和许可证商业边界。',
   'footer': '基于 <a '
@@ -180,7 +180,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': 'Agent 协作',
   'hero': 'Agent 协作与编排：Multica',
   'subtitle': 'AI-native 团队任务管理、coding agent 协作编排、本地执行与自托管架构解析',
-  'meta': 'Multica v0.6.2 · source@7ab92d7 · main@7ab92d7 · 2026-10-16',
+  'meta': 'Multica v0.6.2 · source@7ab92d7 · main@7ab92d7 · 2026-10-20',
   'summary': '覆盖 Issue 四类 lifecycle 与 Triage、Task/runs、Agent/Runtime、25 种 protocol family、Codex '
              'usage/thread、Channel、Desktop、Squad、Autopilot、MCP 与无 Sandbox 边界。',
   'footer': '基于 <a '
@@ -193,15 +193,15 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': 'Sandbox',
   'hero': 'Sandbox 与执行环境：E2B',
   'subtitle': 'AI Sandbox、Firecracker microVM、Orchestrator、envd 与自托管架构解析',
-  'meta': 'E2B Infra 2026.30 · source@f32ee8a · SDK main@62a17dfc · Agent Sandbox v1.0.7@807cc371 · '
-          '2026-10-16',
+  'meta': 'E2B Runtime 2026.30 · source@f32ee8a · SDK e2b@2.57.0@85dd0e5a · Agent Sandbox v1.0.7@807cc371 · '
+          '2026-10-20',
   'summary': '覆盖 Firecracker、Sandbox fork、filesystem-only resume、workload '
              'identity、Secrets、日志与集群管理、团队配额和计量，以及 Agent Sandbox v1.0.7 的 bearer-token、流式命令、WarmPool 与迁移边界。',
   'footer': '基于 <a '
-            'href="https://github.com/e2b-dev/infra/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104">e2b-dev/infra '
+            'href="https://github.com/e2b-dev/runtime/tree/f32ee8a2a50052f32e3632ceb451111a98dd5104">e2b-dev/runtime '
             '2026.30</a>、<a '
-            'href="https://github.com/e2b-dev/e2b/tree/62a17dfc3f11439d1d06bfb9bb515eadc5adfcd3">E2B '
-            'SDK 主线快照</a> 与 <a '
+            'href="https://github.com/e2b-dev/e2b/tree/85dd0e5ac545747925d25f5fc24fef3f1ff9e8f2">E2B '
+            'SDK e2b@2.57.0 / @e2b/python-sdk@2.57.0</a> 与 <a '
             'href="https://github.com/kubernetes-sigs/agent-sandbox/releases/tag/v1.0.7">Agent Sandbox v1.0.7 Release</a>、<a '
             'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/b3832ed88cb8acc57cc5e81072f551d52f14b32f">tag object</a> 与 <a '
             'href="https://github.com/kubernetes-sigs/agent-sandbox/tree/807cc37107bd7c012115afac9fa9c3b77b8365c2">exact source</a> 官方资料整理'},
@@ -212,7 +212,7 @@ DOCS = [{'src': '/data/AI-Inference-Deep-Dive.md',
   'category': '模型时间线',
   'hero': '模型发布时间时间线',
   'subtitle': '2022—2026 九大阵营主线公开模型的首次发布与开放形态',
-  'meta': '2022-01—2026-10-16 · 126 条记录 · 审校日期 2026-10-16',
+  'meta': '2022-01—2026-10-20 · 126 条记录 · 审校日期 2026-10-20',
   'summary': '按首次公开日期整理九个模型阵营的主线版本，并支持按供应商、年份、多模态和开放权重筛选及 CSV/JSON/Markdown 导出。',
   'footer': '事实来源为 <a '
             'href="/model_release_timeline.md">model_release_timeline.md</a>；每条记录保留对应的官方公告、模型页、技术报告或官方仓库链接。',
